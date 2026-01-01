@@ -6,7 +6,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
 
 ## Tasks
 
-- [-] 1. Project Setup and Infrastructure
+- [x] 1. Project Setup and Infrastructure
   - Initialize Next.js 15 project with TypeScript and App Router
   - Configure Tailwind CSS and Shadcn/ui components
   - Set up ESLint, Prettier, and TypeScript strict mode
@@ -15,7 +15,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Configure environment variables for development
   - _Requirements: 16.1, 16.2, 16.3_
 
-- [ ] 1.1 Set up testing infrastructure
+- [x] 1.1 Set up testing infrastructure
   - Configure Vitest for unit and property-based testing
   - Create test directory structure
   - Set up test utilities and helpers
