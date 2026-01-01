@@ -21,7 +21,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Set up test utilities and helpers
   - _Requirements: 16.1_
 
-- [ ] 2. Supabase Backend Setup
+- [x] 2. Supabase Backend Setup
   - Initialize Supabase project
   - Create database schema with migrations (profiles, itineraries, itinerary_shares tables)
   - Implement Row Level Security (RLS) policies
@@ -30,7 +30,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Implement free tier limit trigger function
   - _Requirements: 1.1, 1.2, 10.1, 10.2_
 
-- [ ] 2.1 Write property test for RLS policies
+- [x] 2.1 Write property test for RLS policies
   - **Property 1: Authentication Profile Management**
   - **Validates: Requirements 1.2**
 

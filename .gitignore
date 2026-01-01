@@ -38,3 +38,6 @@ next-env.d.ts
 
 # vitest
 .vitest
+
+# supabase
+supabase/.temp
