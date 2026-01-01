@@ -1,0 +1,68 @@
+import { z } from 'zod';
+
+// ============================================================================
+// Location Types
+// ============================================================================
+
+export const LocationSchema = z.object({
+  name: z.string().min(1, 'Location name is required'),
+  address: z.string().min(1, 'Address is required'),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+  place_id: z.string().optional(),
+});
+
+export type Location = z.infer<typeof LocationSchema>;
+
+// ============================================================================
+// Activity Types
+// ============================================================================
+
+export const ActivitySchema = z.object({
+  id: z.uuid(),
+  time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Time must be in HH:MM format'),
+  title: z.string().min(1, 'Activity title is required').max(100),
+  description: z.string().max(500),
+  location: LocationSchema,
+  duration_minutes: z.number().int().min(15).max(480),
+  order: z.number().int().min(0),
+});
+
+export type Activity = z.infer<typeof ActivitySchema>;
+
+// ============================================================================
+// Day Types
+// ============================================================================
+
+export const DaySchema = z.object({
+  day_number: z.number().int().min(1).max(30),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
+  activities: z.array(ActivitySchema),
+});
+
+export type Day = z.infer<typeof DaySchema>;
+
+// ============================================================================
+// Itinerary Types
+// ============================================================================
+
+export const ItinerarySchema = z.object({
+  id: z.uuid(),
+  user_id: z.uuid(),
+  title: z.string().min(1, 'Title is required').max(100),
+  destination: z.string().min(1, 'Destination is required').max(100),
+  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
+  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
+  days: z.array(DaySchema).min(1),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
+  shared_with: z.array(z.uuid()),
+}).refine(
+  (data) => data.end_date >= data.start_date,
+  {
+    message: 'End date must be on or after start date',
+    path: ['end_date'],
+  }
+);
+
+export type Itinerary = z.infer<typeof ItinerarySchema>;

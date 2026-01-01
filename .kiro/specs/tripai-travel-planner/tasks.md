@@ -34,7 +34,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 1: Authentication Profile Management**
   - **Validates: Requirements 1.2**
 
-- [ ] 3. Core Type Definitions and Data Models
+- [x] 3. Core Type Definitions and Data Models
   - Create TypeScript interfaces for Itinerary, Day, Activity, Location
   - Create interfaces for ChatSession, ChatMessage, StreamingResponse
   - Create interfaces for CollaborationSession, UserPresence
@@ -42,7 +42,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Create validation schemas using Zod or similar
   - _Requirements: 3.3, 8.1, 11.1_
 
-- [ ] 3.1 Write property test for data model validation
+- [x] 3.1 Write property test for data model validation
   - **Property 4: Input Validation Rejects Empty Values**
   - **Validates: Requirements 2.3**
 
