@@ -83,6 +83,7 @@ export async function signInWithGoogle() {
 
 /**
  * Sign out the current user
+ * Requirements: 1.5
  */
 export async function signOut() {
   const { error } = await supabase.auth.signOut();
@@ -91,4 +92,7 @@ export async function signOut() {
     console.error('Error signing out:', error);
     throw error;
   }
+
+  // Clear session storage (chat history, etc.)
+  sessionStorage.clear();
 }

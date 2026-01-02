@@ -12,11 +12,30 @@ The architecture follows the Single Responsibility Principle (SRP) with clear se
 - **Data Layer**: Supabase database and real-time synchronization
 
 Key technical decisions:
+- **Supabase Cloud Service**: Using Supabase hosted cloud service (not self-hosted), which automatically handles OAuth callbacks, session management, and database triggers
 - **Streaming AI responses** via Supabase Edge Functions for real-time user feedback
 - **CRDT-based collaboration** using Yjs for conflict-free concurrent editing
 - **Domain-restricted API keys** for secure Google Maps integration
 - **In-memory session management** for chat history without database persistence
 - **Modular architecture** to support future monetization features
+
+### Deployment Architecture
+
+**Backend Infrastructure:**
+- **Supabase Cloud**: Fully managed Supabase instance hosted at `https://[project-id].supabase.co`
+  - PostgreSQL database with automatic backups
+  - Built-in authentication with OAuth providers
+  - Real-time subscriptions via WebSocket
+  - Edge Functions (Deno runtime) for serverless compute
+  - Automatic SSL/TLS certificates
+  - Global CDN for static assets
+
+**Authentication Flow (Simplified with Supabase Cloud):**
+- OAuth callbacks are handled by Supabase's authentication service at `https://[project-id].supabase.co/auth/v1/callback`
+- Supabase automatically exchanges OAuth codes for sessions
+- Database triggers automatically create user profiles on signup
+- Client-side callback page (`/auth/callback`) only needs to redirect to home page
+- No need for complex server-side OAuth handling in Next.js API routes
 
 ## Architecture
 
@@ -344,6 +363,85 @@ interface UserPresence {
 - Follow Gen Z design principles
 
 ### API Endpoints
+
+#### Authentication Flow (Supabase Cloud)
+
+**Important Note: Using Supabase Cloud Service**
+
+This application uses **Supabase's hosted cloud service**, which significantly simplifies the OAuth authentication flow. Unlike self-hosted solutions, Supabase Cloud automatically handles:
+
+1. **OAuth Callback Processing**
+   - Supabase's authentication service at `https://[project-id].supabase.co/auth/v1/callback` handles all OAuth callbacks
+   - Automatically exchanges authorization codes for access tokens
+   - Sets secure HTTP-only cookies for session management
+   - No need for custom server-side OAuth handling in Next.js
+
+2. **Session Management**
+   - Sessions are automatically stored in browser localStorage
+   - Tokens are automatically refreshed before expiration
+   - Session state is synchronized across tabs
+
+3. **User Profile Creation**
+   - Database trigger (`handle_new_user()`) automatically creates profiles on signup
+   - Triggered at the database level when new users are inserted into `auth.users`
+   - No need for manual profile creation in application code
+
+**Simplified Authentication Architecture:**
+
+```
+User clicks "Sign in with Google"
+    ↓
+Frontend: supabase.auth.signInWithOAuth({ provider: 'google' })
+    ↓
+Redirect to Google OAuth
+    ↓
+User authorizes
+    ↓
+Google redirects to: https://[project-id].supabase.co/auth/v1/callback?code=xxx
+    ↓
+Supabase Cloud automatically:
+  - Exchanges code for tokens
+  - Creates session
+  - Sets cookies
+  - Triggers database trigger (creates profile)
+    ↓
+Redirects to: https://your-domain.com/auth/callback
+    ↓
+Client-side callback page (app/auth/callback/page.tsx):
+  - Shows loading animation
+  - Redirects to home page
+    ↓
+useAuth hook detects session change
+    ↓
+User is logged in ✅
+```
+
+**Client-Side Callback Page:**
+
+```typescript
+// app/auth/callback/page.tsx
+'use client';
+
+export default function AuthCallbackPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Supabase has already handled everything
+    // Session is already in localStorage
+    // Just redirect to home
+    router.push('/');
+  }, [router]);
+
+  return <LoadingSpinner />;
+}
+```
+
+**Key Benefits of Supabase Cloud:**
+- ✅ No server-side OAuth code exchange needed
+- ✅ No manual session management
+- ✅ No manual profile creation
+- ✅ Automatic security best practices
+- ✅ Simplified codebase (~20 lines vs ~80 lines)
 
 #### Next.js API Routes
 

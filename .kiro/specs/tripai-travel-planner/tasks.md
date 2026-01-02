@@ -46,20 +46,21 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 4: Input Validation Rejects Empty Values**
   - **Validates: Requirements 2.3**
 
-- [ ] 4. Authentication Implementation
+- [x] 4. Authentication Implementation
   - Create Supabase client wrapper in lib/supabase/client.ts
   - Implement authentication hooks (useAuth)
   - Create login page with Google OAuth button
-  - Implement OAuth callback handler
+  - Implement OAuth callback page (simplified - Supabase Cloud handles OAuth)
   - Create session persistence logic
   - Implement sign-out functionality
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - _Note: Using Supabase Cloud service - OAuth callback and profile creation handled automatically_
 
-- [ ] 4.1 Write property test for session persistence
+- [x] 4.1 Write property test for session persistence
   - **Property 2: Session Persistence Across Refreshes**
   - **Validates: Requirements 1.4**
 
-- [ ] 4.2 Write property test for sign-out cleanup
+- [x] 4.2 Write property test for sign-out cleanup
   - **Property 3: Sign-out Cleanup**
   - **Validates: Requirements 1.5**
 
