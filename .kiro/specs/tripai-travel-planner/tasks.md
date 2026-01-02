@@ -89,33 +89,35 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
 - [ ] 7. Landing Page Implementation
   - Create landing page layout (app/page.tsx)
   - Implement HeroSection component with Gen Z styling
-  - Create TripForm component with destination and duration inputs
-  - Implement form validation
+  - Create TripForm component with destination, duration, and custom requirements inputs
+  - Display custom requirements as a larger textarea positioned below destination and duration
+  - Implement form validation (destination required, custom requirements optional)
   - Add loading state during itinerary generation
   - Implement navigation to planning interface
-  - _Requirements: 2.1, 2.2, 2.3, 2.4_
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
 - [ ] 7.1 Write unit tests for form validation
-  - Test empty input rejection
-  - Test valid input acceptance
-  - _Requirements: 2.3_
+  - Test empty destination rejection
+  - Test valid destination acceptance
+  - Test optional custom requirements handling
+  - _Requirements: 2.5_
 
 - [ ] 8. Supabase Edge Function: Generate Itinerary
   - Create Edge Function in supabase/functions/generate-itinerary/
   - Implement Gemini API client wrapper
-  - Create structured prompt for itinerary generation
+  - Create structured prompt for itinerary generation including custom requirements
   - Implement streaming response handling
   - Parse AI response into Itinerary structure
   - Handle errors and retries
-  - _Requirements: 3.1, 3.2, 3.3, 3.4, 14.2, 14.3_
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 14.2, 14.3_
 
 - [ ] 8.1 Write property test for streaming delivery
   - **Property 7: Streaming Response Delivery**
-  - **Validates: Requirements 3.2, 8.2, 18.1**
+  - **Validates: Requirements 3.3, 8.2, 18.1**
 
 - [ ] 8.2 Write property test for itinerary parsing
   - **Property 8: Itinerary Parsing Completeness**
-  - **Validates: Requirements 3.3**
+  - **Validates: Requirements 3.4**
 
 - [ ] 9. Frontend Gemini Integration
   - Create Gemini client in lib/gemini/client.ts
@@ -123,7 +125,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Create itinerary parser in lib/gemini/parser.ts
   - Implement error handling for API failures
   - Add retry logic with exponential backoff
-  - _Requirements: 3.2, 3.3, 3.4, 17.1, 17.3_
+  - _Requirements: 3.3, 3.4, 3.5, 17.1, 17.3_
 
 - [ ] 10. Session Management
   - Implement session state management with React Context
@@ -287,7 +289,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
 
 - [ ] 20.2 Write property test for session memory storage
   - **Property 9: Session Memory Storage**
-  - **Validates: Requirements 3.5, 8.5**
+  - **Validates: Requirements 3.6, 8.5**
 
 - [ ] 21. Yjs Collaboration Setup
   - Install Yjs and y-websocket packages

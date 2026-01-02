@@ -38,10 +38,12 @@ TripAI is an AI-powered travel planning web application that enables users to cr
 #### Acceptance Criteria
 
 1. THE TripAI_System SHALL display a Gen Z-styled minimalist landing page with theme toggle
-2. WHEN the landing page loads, THE TripAI_System SHALL provide input fields for destination and trip duration
-3. WHEN a user submits travel preferences, THE TripAI_System SHALL validate the inputs are non-empty
-4. WHEN validation passes, THE TripAI_System SHALL navigate to the main planning interface
-5. WHEN a user toggles theme mode, THE TripAI_System SHALL switch between Light Mode and Dark Mode immediately
+2. WHEN the landing page loads, THE TripAI_System SHALL provide input fields for destination, trip duration, and custom requirements
+3. WHEN the landing page loads, THE TripAI_System SHALL display the custom requirements input field larger than the destination input field
+4. WHEN the landing page loads, THE TripAI_System SHALL position the custom requirements input field below the destination and duration inputs
+5. WHEN a user submits travel preferences, THE TripAI_System SHALL validate that destination is non-empty
+6. WHEN validation passes, THE TripAI_System SHALL navigate to the main planning interface
+7. WHEN a user toggles theme mode, THE TripAI_System SHALL switch between Light Mode and Dark Mode immediately
 
 ### Requirement 3: AI Itinerary Generation
 
@@ -49,11 +51,12 @@ TripAI is an AI-powered travel planning web application that enables users to cr
 
 #### Acceptance Criteria
 
-1. WHEN a user submits travel preferences, THE Edge_Function SHALL send the request to Gemini 2.0 Flash API with conversation context
-2. WHEN the AI generates a response, THE TripAI_System SHALL stream the response in real-time to the frontend
-3. WHEN streaming completes, THE TripAI_System SHALL parse the itinerary into structured data (days, activities, locations, times)
-4. WHEN parsing fails, THE TripAI_System SHALL request clarification from the user through the chat interface
-5. WHEN an itinerary is generated, THE TripAI_System SHALL store it in the session memory
+1. WHEN a user submits travel preferences, THE Edge_Function SHALL send the destination, duration, and custom requirements to Gemini 2.0 Flash API with conversation context
+2. WHEN custom requirements are provided, THE Edge_Function SHALL include them in the AI prompt to influence itinerary generation
+3. WHEN the AI generates a response, THE TripAI_System SHALL stream the response in real-time to the frontend
+4. WHEN streaming completes, THE TripAI_System SHALL parse the itinerary into structured data (days, activities, locations, times)
+5. WHEN parsing fails, THE TripAI_System SHALL request clarification from the user through the chat interface
+6. WHEN an itinerary is generated, THE TripAI_System SHALL store it in the session memory
 
 ### Requirement 4: Main Planning Interface Layout
 

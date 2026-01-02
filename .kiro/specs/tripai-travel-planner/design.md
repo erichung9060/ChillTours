@@ -312,8 +312,10 @@ interface UserPresence {
 - Handle theme mode switching
 
 **TripForm**
-- Collect destination and trip duration
-- Validate user inputs
+- Collect destination, trip duration, and custom requirements
+- Display custom requirements input as a larger textarea
+- Position custom requirements below destination and duration inputs
+- Validate user inputs (destination required, custom requirements optional)
 - Submit to itinerary generation endpoint
 - Display loading state during generation
 
@@ -453,8 +455,8 @@ export default function AuthCallbackPage() {
 #### Supabase Edge Functions
 
 **POST /functions/v1/generate-itinerary**
-- Accept: destination, duration, preferences
-- Call Gemini API with structured prompt
+- Accept: destination, duration, custom_requirements, preferences
+- Call Gemini API with structured prompt including custom requirements
 - Stream response chunks to client
 - Parse AI response into Itinerary structure
 - Return: StreamingResponse
@@ -475,9 +477,10 @@ class GeminiClient {
   async generateItinerary(
     destination: string,
     duration: number,
+    customRequirements: string,
     preferences: string[]
   ): AsyncGenerator<StreamingResponse> {
-    // Build structured prompt
+    // Build structured prompt with custom requirements
     // Call Gemini API with streaming
     // Yield chunks as they arrive
     // Parse final response into Itinerary
@@ -772,27 +775,27 @@ After analyzing all testable acceptance criteria, I identified several areas whe
 
 **Property 4: Input Validation Rejects Empty Values**
 *For any* input string composed entirely of whitespace or empty, the validation should reject it and prevent form submission.
-**Validates: Requirements 2.3**
+**Validates: Requirements 2.5**
 
 **Property 5: Theme Toggle Round-trip**
 *For any* theme mode selection (light/dark), toggling the theme should save to local storage, and reloading the page should restore the same theme preference.
-**Validates: Requirements 2.5, 13.1, 13.2, 13.4**
+**Validates: Requirements 2.7, 13.1, 13.2, 13.4**
 
 **Property 6: Gemini API Request Context Inclusion**
-*For any* user message sent to the chat, the Edge Function should include the complete conversation history and current itinerary context in the API request.
-**Validates: Requirements 3.1, 8.1**
+*For any* user message sent to the chat, the Edge Function should include the complete conversation history, current itinerary context, and custom requirements in the API request.
+**Validates: Requirements 3.1, 3.2, 8.1**
 
 **Property 7: Streaming Response Delivery**
 *For any* AI-generated response, the system should stream response chunks to the frontend as they are received, maintaining chunk order and completeness.
-**Validates: Requirements 3.2, 8.2, 18.1**
+**Validates: Requirements 3.3, 8.2, 18.1**
 
 **Property 8: Itinerary Parsing Completeness**
 *For any* valid AI response containing itinerary data, parsing should extract all days, activities, locations, and times into the structured Itinerary format without data loss.
-**Validates: Requirements 3.3**
+**Validates: Requirements 3.4**
 
 **Property 9: Session Memory Storage**
 *For any* generated itinerary or chat message, the data should be stored in session memory (not database) and accessible throughout the session.
-**Validates: Requirements 3.5, 8.5**
+**Validates: Requirements 3.6, 8.5**
 
 **Property 10: Chat Panel Toggle State**
 *For any* chat panel state (expanded/collapsed), clicking the toggle should switch to the opposite state consistently.
