@@ -64,7 +64,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 3: Sign-out Cleanup**
   - **Validates: Requirements 1.5**
 
-- [ ] 5. Theme System Implementation
+- [x] 5. Theme System Implementation
   - Create ThemeProvider component with Context API
   - Implement useTheme hook
   - Create ThemeToggle UI component
@@ -73,7 +73,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Apply theme to all UI components
   - _Requirements: 2.1, 2.5, 13.1, 13.2, 13.3, 13.4_
 
-- [ ] 5.1 Write property test for theme round-trip
+- [x] 5.1 Write property test for theme round-trip
   - **Property 5: Theme Toggle Round-trip**
   - **Validates: Requirements 2.5, 13.1, 13.2, 13.4**
 
