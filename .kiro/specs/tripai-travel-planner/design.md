@@ -455,7 +455,7 @@ export default function AuthCallbackPage() {
 #### Supabase Edge Functions
 
 **POST /functions/v1/generate-itinerary**
-- Accept: destination, duration, custom_requirements, preferences
+- Accept: destination, duration, custom_requirements
 - Call Gemini API with structured prompt including custom requirements
 - Stream response chunks to client
 - Parse AI response into Itinerary structure
@@ -477,8 +477,7 @@ class GeminiClient {
   async generateItinerary(
     destination: string,
     duration: number,
-    customRequirements: string,
-    preferences: string[]
+    customRequirements?: string
   ): AsyncGenerator<StreamingResponse> {
     // Build structured prompt with custom requirements
     // Call Gemini API with streaming
