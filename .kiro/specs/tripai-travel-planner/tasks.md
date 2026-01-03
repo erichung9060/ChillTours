@@ -102,7 +102,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Test optional custom requirements handling
   - _Requirements: 2.5_
 
-- [ ] 8. Supabase Edge Function: Generate Itinerary
+- [x] 8. Supabase Edge Function: Generate Itinerary
   - Create Edge Function in supabase/functions/generate-itinerary/
   - Implement Gemini API client wrapper
   - Create structured prompt for itinerary generation including custom requirements
@@ -111,11 +111,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Handle errors and retries
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 14.2, 14.3_
 
-- [ ] 8.1 Write property test for streaming delivery
+- [x] 8.1 Write property test for streaming delivery
   - **Property 7: Streaming Response Delivery**
   - **Validates: Requirements 3.3, 8.2, 18.1**
 
-- [ ] 8.2 Write property test for itinerary parsing
+- [x] 8.2 Write property test for itinerary parsing
   - **Property 8: Itinerary Parsing Completeness**
   - **Validates: Requirements 3.4**
 
