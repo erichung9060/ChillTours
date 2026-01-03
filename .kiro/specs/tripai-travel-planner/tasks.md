@@ -86,7 +86,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Create Modal/Dialog component
   - _Requirements: 20.1, 20.4, 20.5_
 
-- [ ] 7. Landing Page Implementation
+- [x] 7. Landing Page Implementation
   - Create landing page layout (app/page.tsx)
   - Implement HeroSection component with Gen Z styling
   - Create TripForm component with destination, duration, and custom requirements inputs
@@ -96,7 +96,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Implement navigation to planning interface
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7_
 
-- [ ] 7.1 Write unit tests for form validation
+- [x] 7.1 Write unit tests for form validation
   - Test empty destination rejection
   - Test valid destination acceptance
   - Test optional custom requirements handling
