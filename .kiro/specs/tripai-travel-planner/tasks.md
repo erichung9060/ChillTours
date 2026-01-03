@@ -122,10 +122,14 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
 - [ ] 9. Frontend Gemini Integration
   - Create Gemini client in lib/gemini/client.ts
   - Implement streaming response handler
+  - Create streaming JSON parser in lib/gemini/streaming-parser.ts
+  - Implement bracket balance tracking for incomplete JSON
+  - Implement auto-closing brackets for partial JSON parsing
   - Create itinerary parser in lib/gemini/parser.ts
+  - Implement progressive UI updates as JSON is parsed
   - Implement error handling for API failures
   - Add retry logic with exponential backoff
-  - _Requirements: 3.3, 3.4, 3.5, 17.1, 17.3_
+  - _Requirements: 3.3, 3.4, 3.5, 3.7, 3.8, 3.9, 3.10, 17.1, 17.3_
 
 - [ ] 10. Session Management
   - Implement session state management with React Context

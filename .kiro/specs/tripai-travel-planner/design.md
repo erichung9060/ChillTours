@@ -318,6 +318,9 @@ interface UserPresence {
 - Validate user inputs (destination required, custom requirements optional)
 - Submit to itinerary generation endpoint
 - Display loading state during generation
+- Initialize StreamingJSONParser for progressive parsing
+- Update UI progressively as partial JSON is parsed
+- Display parsed itinerary data immediately when available
 
 #### Planning Interface Components
 
@@ -495,6 +498,197 @@ class GeminiClient {
     // Yield chunks as they arrive
     // Detect and parse itinerary updates
   }
+}
+```
+
+#### Streaming JSON Parser
+
+```typescript
+class StreamingJSONParser {
+  private buffer: string = "";
+  private bracketStack: string[] = [];
+  
+  /**
+   * Append new chunk to buffer and attempt to parse
+   */
+  appendChunk(chunk: string): Partial<Itinerary> | null {
+    this.buffer += chunk;
+    return this.tryParse();
+  }
+  
+  /**
+   * Try to parse incomplete JSON by auto-closing brackets
+   */
+  private tryParse(): Partial<Itinerary> | null {
+    // Track bracket balance
+    const balanced = this.checkBracketBalance(this.buffer);
+    
+    if (balanced.isComplete) {
+      // JSON is complete, parse normally
+      return this.parseComplete(this.buffer);
+    } else {
+      // JSON is incomplete, try auto-closing
+      const completed = this.autoCloseBrackets(this.buffer, balanced);
+      return this.parsePartial(completed);
+    }
+  }
+  
+  /**
+   * Check bracket balance and track unclosed brackets
+   */
+  private checkBracketBalance(json: string): BracketBalance {
+    const stack: string[] = [];
+    let inString = false;
+    let escapeNext = false;
+    
+    for (let i = 0; i < json.length; i++) {
+      const char = json[i];
+      
+      if (escapeNext) {
+        escapeNext = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escapeNext = true;
+        continue;
+      }
+      
+      if (char === '"' && !escapeNext) {
+        inString = !inString;
+        continue;
+      }
+      
+      if (!inString) {
+        if (char === '{' || char === '[') {
+          stack.push(char);
+        } else if (char === '}' || char === ']') {
+          stack.pop();
+        }
+      }
+    }
+    
+    return {
+      isComplete: stack.length === 0,
+      unclosedBrackets: stack,
+    };
+  }
+  
+  /**
+   * Auto-close unclosed brackets to make valid JSON
+   */
+  private autoCloseBrackets(json: string, balance: BracketBalance): string {
+    let completed = json;
+    
+    // Close unclosed brackets in reverse order
+    for (let i = balance.unclosedBrackets.length - 1; i >= 0; i--) {
+      const bracket = balance.unclosedBrackets[i];
+      completed += bracket === '{' ? '}' : ']';
+    }
+    
+    return completed;
+  }
+  
+  /**
+   * Parse complete JSON
+   */
+  private parseComplete(json: string): Partial<Itinerary> | null {
+    try {
+      // Remove markdown code blocks if present
+      const cleaned = this.cleanJSON(json);
+      return JSON.parse(cleaned);
+    } catch (error) {
+      return null;
+    }
+  }
+  
+  /**
+   * Parse partial JSON (may be incomplete)
+   */
+  private parsePartial(json: string): Partial<Itinerary> | null {
+    try {
+      const cleaned = this.cleanJSON(json);
+      const parsed = JSON.parse(cleaned);
+      
+      // Return partial data even if incomplete
+      return {
+        title: parsed.title,
+        destination: parsed.destination,
+        days: parsed.days || [],
+      };
+    } catch (error) {
+      // If parsing fails, return null and wait for more data
+      return null;
+    }
+  }
+  
+  /**
+   * Clean JSON by removing markdown code blocks
+   */
+  private cleanJSON(json: string): string {
+    let cleaned = json.trim();
+    
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    return cleaned;
+  }
+  
+  /**
+   * Get the complete buffer
+   */
+  getBuffer(): string {
+    return this.buffer;
+  }
+  
+  /**
+   * Reset the parser
+   */
+  reset(): void {
+    this.buffer = "";
+    this.bracketStack = [];
+  }
+}
+
+interface BracketBalance {
+  isComplete: boolean;
+  unclosedBrackets: string[];
+}
+
+/**
+ * Usage Example:
+ */
+async function handleStreamingItinerary() {
+  const parser = new StreamingJSONParser();
+  const response = await fetch('/functions/v1/generate-itinerary', {
+    method: 'POST',
+    body: JSON.stringify({ destination: 'Tokyo', duration: 3 })
+  });
+  
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    
+    const chunk = decoder.decode(value, { stream: true });
+    
+    // Try to parse partial JSON
+    const partialItinerary = parser.appendChunk(chunk);
+    
+    if (partialItinerary) {
+      // Update UI immediately with available data
+      updateItineraryUI(partialItinerary);
+    }
+  }
+  
+  // Final parse with complete data
+  const finalItinerary = parser.parseComplete(parser.getBuffer());
+  updateItineraryUI(finalItinerary);
 }
 ```
 

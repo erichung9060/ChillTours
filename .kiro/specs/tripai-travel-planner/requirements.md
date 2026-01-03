@@ -57,6 +57,10 @@ TripAI is an AI-powered travel planning web application that enables users to cr
 4. WHEN streaming completes, THE TripAI_System SHALL parse the itinerary into structured data (days, activities, locations, times)
 5. WHEN parsing fails, THE TripAI_System SHALL request clarification from the user through the chat interface
 6. WHEN an itinerary is generated, THE TripAI_System SHALL store it in the session memory
+7. WHILE streaming is in progress, THE TripAI_System SHALL attempt to parse incomplete JSON by tracking bracket balance
+8. WHEN partial JSON can be parsed, THE TripAI_System SHALL display the parsed portions to the user immediately
+9. WHEN JSON brackets are unbalanced, THE TripAI_System SHALL automatically close brackets to attempt parsing
+10. WHEN partial parsing succeeds, THE TripAI_System SHALL update the UI with available itinerary data progressively
 
 ### Requirement 4: Main Planning Interface Layout
 
