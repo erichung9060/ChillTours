@@ -19,13 +19,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { destination, duration, custom_requirements } = body;
+    const { destination, startDate, endDate, custom_requirements } = body;
 
     // Validate required fields
-    if (!destination || !duration) {
+    if (!destination || !startDate || !endDate) {
       return new Response(
         JSON.stringify({ 
-          error: 'Missing required fields: destination and duration' 
+          error: 'Missing required fields: destination, startDate, or endDate' 
         }),
         { 
           status: 400,
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔑 Proxying request to Edge Function');
     console.log('📍 Destination:', destination);
-    console.log('📅 Duration:', duration);
+    console.log('📅 Dates:', startDate, 'to', endDate);
 
     // ✅ CORRECT: Use fetch() for streaming support
     // DO NOT use supabase.functions.invoke() - it doesn't support streaming!
@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           destination,
-          duration,
+          startDate,
+          endDate,
           custom_requirements,
         }),
       }

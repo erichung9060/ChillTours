@@ -32,7 +32,8 @@ export class GeminiError extends Error {
  */
 export interface GenerateItineraryOptions {
   destination: string;
-  duration: number;
+  startDate: string;
+  endDate: string;
   customRequirements?: string;
   userId: string;
 }
@@ -69,7 +70,7 @@ export class GeminiClient {
     options: GenerateItineraryOptions,
     onChunk?: StreamingCallback
   ): Promise<Itinerary> {
-    const { destination, duration, customRequirements, userId } = options;
+    const { destination, startDate, endDate, customRequirements, userId } = options;
 
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
@@ -82,7 +83,8 @@ export class GeminiClient {
       },
       body: JSON.stringify({
         destination,
-        duration,
+        startDate,
+        endDate,
         custom_requirements: customRequirements,
       }),
     });
@@ -122,7 +124,7 @@ export class GeminiClient {
       // Parse final complete itinerary
       const finalJSON = parser.getBuffer();
       const extracted = extractJSON(finalJSON) || finalJSON;
-      return parseItinerary(extracted, userId);
+      return parseItinerary(extracted, userId, startDate);
     } catch (error) {
       throw new GeminiError(
         `Failed to parse streaming response: ${error instanceof Error ? error.message : 'Unknown error'}`,

@@ -3,7 +3,8 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 interface GenerateItineraryRequest {
   destination: string;
-  duration: number;
+  startDate: string;
+  endDate: string;
   custom_requirements?: string;
 }
 
@@ -12,10 +13,15 @@ interface GenerateItineraryRequest {
  */
 function buildItineraryPrompt(
   destination: string,
-  duration: number,
+  startDate: string,
+  endDate: string,
   customRequirements?: string
 ): string {
-  let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination}.
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+  let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} starting from ${startDate} to ${endDate}.
 
 IMPORTANT: You must respond with a valid JSON object that follows this exact structure:
 
@@ -25,7 +31,6 @@ IMPORTANT: You must respond with a valid JSON object that follows this exact str
   "days": [
     {
       "day_number": 1,
-      "date": "YYYY-MM-DD",
       "activities": [
         {
           "time": "HH:MM",
@@ -45,7 +50,8 @@ IMPORTANT: You must respond with a valid JSON object that follows this exact str
 }
 
 Requirements:
-- Generate exactly ${duration} days
+- Generate exactly ${duration} days, numbered 1 to ${duration}.
+- Do NOT include a "date" field in the JSON for days; only use "day_number".
 - Each day should have 3-5 activities
 - Include realistic times (HH:MM format in 24-hour)
 - Provide accurate GPS coordinates (lat/lng) for each location
@@ -71,13 +77,13 @@ Deno.serve(async (req) => {
 
   try {
     // Parse request body
-    const { destination, duration, custom_requirements }: GenerateItineraryRequest =
+    const { destination, startDate, endDate, custom_requirements }: GenerateItineraryRequest =
       await req.json();
 
     // Validate required fields
-    if (!destination || !duration) {
+    if (!destination || !startDate || !endDate) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: destination and duration" }),
+        JSON.stringify({ error: "Missing required fields: destination, startDate, or endDate" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -105,7 +111,8 @@ Deno.serve(async (req) => {
     // Build prompt
     const prompt = buildItineraryPrompt(
       destination,
-      duration,
+      startDate,
+      endDate,
       custom_requirements
     );
 

@@ -6,28 +6,27 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { TrendingDestinations } from './trending-destinations';
+import { DateRangePicker } from './date-range-picker';
 
 export function TripForm() {
   const [destination, setDestination] = useState('');
-  const [days, setDays] = useState('5');
+  const [startDate, setStartDate] = useState<Date>();
+  const [endDate, setEndDate] = useState<Date>();
   const [vibe, setVibe] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ destination?: string; days?: string }>({});
+  const [errors, setErrors] = useState<{ destination?: string; dates?: string }>({});
 
   const validateForm = () => {
-    const newErrors: { destination?: string; days?: string } = {};
+    const newErrors: { destination?: string; dates?: string } = {};
     
     // Validate destination (required, non-empty)
     if (!destination.trim()) {
       newErrors.destination = 'Destination is required';
     }
     
-    // Validate days (optional but must be positive if provided)
-    if (days) {
-      const daysNum = Number(days);
-      if (isNaN(daysNum) || daysNum <= 0) {
-        newErrors.days = 'Please enter a valid number of days';
-      }
+    // Validate dates
+    if (!startDate || !endDate) {
+      newErrors.dates = 'Please select your travel dates';
     }
     
     setErrors(newErrors);
@@ -43,12 +42,16 @@ export function TripForm() {
     
     setIsLoading(true);
     
+    // Format dates for API
+    const formattedStart = startDate?.toISOString().split('T')[0];
+    const formattedEnd = endDate?.toISOString().split('T')[0];
+    
     // TODO: Navigate to planning interface with form data
     // For now, just simulate loading
     setTimeout(() => {
-      console.log('Form submitted:', { destination, days, vibe });
+      console.log('Form submitted:', { destination, startDate: formattedStart, endDate: formattedEnd, vibe });
       setIsLoading(false);
-      // router.push(`/plan/new?destination=${encodeURIComponent(destination)}&days=${days}&vibe=${encodeURIComponent(vibe)}`);
+      // router.push(`/plan/new?destination=${encodeURIComponent(destination)}&startDate=${formattedStart}&endDate=${formattedEnd}&vibe=${encodeURIComponent(vibe)}`);
     }, 1000);
   };
 
@@ -64,9 +67,9 @@ export function TripForm() {
     <Card className="w-full max-w-2xl mx-auto">
       <CardContent className="p-6 md:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
             {/* Destination Input */}
-            <div>
+            <div className="flex-1">
               <label htmlFor="destination" className="block text-sm font-medium mb-2 text-foreground/80">
                 Where to next?
               </label>
@@ -88,28 +91,25 @@ export function TripForm() {
               </div>
             </div>
 
-            {/* Days Input */}
-            <div className="md:w-32">
-              <label htmlFor="days" className="block text-sm font-medium mb-2 text-foreground/80">
-                How long?
+            {/* Date Range Picker */}
+            <div className="min-w-[300px]">
+              <label className="block text-sm font-medium mb-2 text-foreground/80">
+                When are you going?
               </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  📅
-                </span>
-                <Input
-                  id="days"
-                  type="number"
-                  placeholder="Days"
-                  value={days}
-                  onChange={(e) => setDays(e.target.value)}
-                  error={!!errors.days}
-                  helperText={errors.days}
-                  disabled={isLoading}
-                  min="1"
-                  className="pl-10"
-                />
-              </div>
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(start, end) => {
+                  setStartDate(start);
+                  setEndDate(end);
+                  if (start && end && errors.dates) {
+                    setErrors({ ...errors, dates: undefined });
+                  }
+                }}
+              />
+              {errors.dates && (
+                <p className="text-xs text-destructive mt-1">{errors.dates}</p>
+              )}
             </div>
           </div>
 

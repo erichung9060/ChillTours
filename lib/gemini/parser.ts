@@ -21,29 +21,27 @@ import { ItinerarySchema } from '@/types';
  */
 export function parseItinerary(
   response: string | Record<string, any>,
-  userId: string
+  userId: string,
+  contextStartDate?: string
 ): Itinerary {
   try {
     // Parse JSON if string
     const data = typeof response === 'string' ? JSON.parse(response) : response;
 
-    // Calculate dates if not provided
-    const today = new Date();
-    
-    // Try to extract start_date from first day, or use today
-    const startDate = data.start_date || 
+    // Use contextStartDate if provided, otherwise fallback to today
+    const startDate = contextStartDate || 
+                     data.start_date || 
                      (data.days?.[0]?.date) || 
-                     today.toISOString().split('T')[0];
+                     new Date().toISOString().split('T')[0];
     
-    // Try to extract end_date from last day, or calculate based on duration
-    const duration = data.duration || data.days?.length || 1;
-    const endDate = data.end_date || 
-                   (data.days?.[data.days.length - 1]?.date) ||
-                   (() => {
-                     const end = new Date(startDate);
-                     end.setDate(end.getDate() + duration - 1);
-                     return end.toISOString().split('T')[0];
-                   })();
+    // Calculate end_date based on days array length
+    const daysArray = data.days || [];
+    const duration = daysArray.length || 1;
+    const endDate = data.end_date || (() => {
+      const end = new Date(startDate);
+      end.setDate(end.getDate() + Math.max(0, duration - 1));
+      return end.toISOString().split('T')[0];
+    })();
 
     // Build itinerary with required fields
     const itinerary: Itinerary = {
@@ -53,7 +51,7 @@ export function parseItinerary(
       destination: data.destination,
       start_date: startDate,
       end_date: endDate,
-      days: parseDays(data.days || [], startDate),
+      days: parseDays(daysArray, startDate),
       created_at: data.created_at || new Date().toISOString(),
       updated_at: data.updated_at || new Date().toISOString(),
       shared_with: data.shared_with || [],
@@ -79,15 +77,16 @@ export function parseItinerary(
  */
 function parseDays(days: any[], startDate: string): Day[] {
   return days.map((day, index) => {
-    // Calculate date for this day if not provided
-    const dayDate = day.date || (() => {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + index);
-      return date.toISOString().split('T')[0];
-    })();
+    // Use day_number to calculate date relative to startDate
+    // day_number 1 -> index 0 -> startDate
+    const dayNum = day.day_number || index + 1;
+    
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + (dayNum - 1));
+    const dayDate = date.toISOString().split('T')[0];
 
     return {
-      day_number: day.day_number || index + 1,
+      day_number: dayNum,
       date: dayDate,
       activities: parseActivities(day.activities || []),
     };

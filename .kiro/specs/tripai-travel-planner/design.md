@@ -485,7 +485,8 @@ const response = await fetch(
     },
     body: JSON.stringify({
       destination,
-      duration,
+      startDate,
+      endDate,
       custom_requirements,
     }),
   }
@@ -510,7 +511,7 @@ while (true) {
 // ❌ WRONG: Does NOT support streaming
 const { data, error } = await supabase.functions.invoke(
   'generate-itinerary',
-  { body: { destination, duration } }
+  { body: { destination, startDate, endDate } }
 );
 // This waits for complete response, no streaming!
 ```
@@ -550,7 +551,7 @@ async function callEdgeFunctionWithStreaming() {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ destination, duration }),
+      body: JSON.stringify({ destination, startDate, endDate }),
     }
   );
 
@@ -571,8 +572,8 @@ async function callEdgeFunctionWithStreaming() {
 ---
 
 **POST /functions/v1/generate-itinerary**
-- Accept: destination, duration, custom_requirements
-- Call Gemini API with structured prompt including custom requirements
+- Accept: destination, startDate, endDate, custom_requirements
+- Call Gemini API with structured prompt including absolute dates but requesting relative days
 - Stream response chunks to client
 - Parse AI response into Itinerary structure
 - Return: StreamingResponse
@@ -591,14 +592,13 @@ async function callEdgeFunctionWithStreaming() {
 ```typescript
 class GeminiClient {
   async generateItinerary(
-    destination: string,
-    duration: number,
-    customRequirements?: string
-  ): AsyncGenerator<StreamingResponse> {
-    // Build structured prompt with custom requirements
+    options: GenerateItineraryOptions,
+    onChunk?: StreamingCallback
+  ): Promise<Itinerary> {
+    // Build structured prompt with dates
     // Call Gemini API with streaming
     // Yield chunks as they arrive
-    // Parse final response into Itinerary
+    // Parse final response into Itinerary using startDate for date reconstruction
   }
 
   async chat(
