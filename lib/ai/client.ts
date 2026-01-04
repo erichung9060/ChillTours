@@ -267,4 +267,4 @@ export class AIClient {
 /**
  * Default AI client instance
  */
-export const AIClient = new AIClient();
+export const aiClient = new AIClient();

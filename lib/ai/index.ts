@@ -5,7 +5,7 @@
  * and conversational chat.
  */
 
-export { AIClient, AIClient, AIError } from './client';
+export { AIClient, aiClient, AIError } from './client';
 export type { GenerateItineraryOptions, ChatOptions, StreamingCallback } from './client';
 
 export { StreamingJSONParser } from './streaming-parser';
