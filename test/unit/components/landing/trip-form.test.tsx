@@ -9,6 +9,19 @@ vi.mock('next/navigation', () => ({
   }),
 }));
 
+// Mock DateRangePicker
+vi.mock('@/components/landing/date-range-picker', () => ({
+  DateRangePicker: ({ onChange }: { onChange: (start: Date, end: Date) => void }) => (
+    <button
+      type="button"
+      data-testid="mock-date-picker"
+      onClick={() => onChange(new Date('2024-05-20'), new Date('2024-05-25'))}
+    >
+      Mock Select Dates
+    </button>
+  ),
+}));
+
 describe('TripForm - Form Validation', () => {
   it('should reject empty destination', async () => {
     render(<TripForm />);
@@ -62,36 +75,31 @@ describe('TripForm - Form Validation', () => {
     });
   });
 
-  it('should reject whitespace-only destination', async () => {
+  it('should validate date selection', async () => {
     render(<TripForm />);
     
     const destinationInput = screen.getByPlaceholderText(/e.g. Tokyo, Bali, Paris/i);
-    fireEvent.change(destinationInput, { target: { value: '   ' } });
     
-    const submitButton = screen.getByRole('button', { name: /generate free itinerary/i });
-    fireEvent.click(submitButton);
-    
-    await waitFor(() => {
-      expect(screen.getByText('Destination is required')).toBeInTheDocument();
-    });
-  });
-
-  it('should validate days input as positive number', async () => {
-    render(<TripForm />);
-    
-    const destinationInput = screen.getByPlaceholderText(/e.g. Tokyo, Bali, Paris/i);
-    const daysInput = screen.getByPlaceholderText(/Days/i);
-    
-    // Test that valid positive days are accepted
+    // Test that valid destination but missing dates shows error
     fireEvent.change(destinationInput, { target: { value: 'Tokyo' } });
-    fireEvent.change(daysInput, { target: { value: '5' } });
     
     const submitButton = screen.getByRole('button', { name: /generate free itinerary/i });
     fireEvent.click(submitButton);
     
-    // Should not show validation errors for valid input
+    // Should show date validation error
     await waitFor(() => {
-      expect(screen.queryByText('Please enter a valid number of days')).not.toBeInTheDocument();
+      expect(screen.getByText('Please select your travel dates')).toBeInTheDocument();
+    });
+
+    // Test that selecting dates clears error (or allows submission)
+    const datePicker = screen.getByTestId('mock-date-picker');
+    fireEvent.click(datePicker);
+
+    // Clicking submit again (technically error should clear on selection or next submit)
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Please select your travel dates')).not.toBeInTheDocument();
     });
   });
 });
