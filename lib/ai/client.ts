@@ -1,7 +1,7 @@
 /**
- * Gemini Client
+ * AI Client
  * 
- * This module provides a client for interacting with the Gemini API
+ * This module provides a client for interacting with the AI API
  * via Next.js API Routes. It handles:
  * - Streaming responses
  * - Error handling
@@ -15,15 +15,15 @@ import { StreamingJSONParser } from './streaming-parser';
 import { parseItinerary, parseItineraryUpdate, extractJSON } from './parser';
 
 /**
- * Error types for Gemini API
+ * Error types for AI API
  */
-export class GeminiError extends Error {
+export class AIError extends Error {
   constructor(
     message: string,
     public readonly code: string
   ) {
     super(message);
-    this.name = 'GeminiError';
+    this.name = 'AIError';
   }
 }
 
@@ -53,18 +53,18 @@ export interface ChatOptions {
 export type StreamingCallback = (chunk: string, partial: Partial<Itinerary> | null) => void;
 
 /**
- * Gemini Client
+ * AI Client
  * 
- * Provides methods for interacting with Gemini API through Next.js API Routes
+ * Provides methods for interacting with AI API through Next.js API Routes
  */
-export class GeminiClient {
+export class AIClient {
   /**
    * Generate an itinerary with streaming support
    * 
    * @param options - Generation options
    * @param onChunk - Callback for each streaming chunk
    * @returns Complete parsed itinerary
-   * @throws GeminiError if generation fails
+   * @throws AIError if generation fails
    */
   async generateItinerary(
     options: GenerateItineraryOptions,
@@ -75,7 +75,7 @@ export class GeminiClient {
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/gemini/generate-itinerary', {
+    const response = await fetch('/api/AI/generate-itinerary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +94,7 @@ export class GeminiClient {
     }
 
     if (!response.body) {
-      throw new GeminiError(
+      throw new AIError(
         'No response body received',
         'NO_RESPONSE_BODY'
       );
@@ -126,7 +126,7 @@ export class GeminiClient {
       const extracted = extractJSON(finalJSON) || finalJSON;
       return parseItinerary(extracted, userId, startDate);
     } catch (error) {
-      throw new GeminiError(
+      throw new AIError(
         `Failed to parse streaming response: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'PARSE_ERROR'
       );
@@ -139,7 +139,7 @@ export class GeminiClient {
    * @param options - Chat options
    * @param onChunk - Callback for each streaming chunk
    * @returns AI response message
-   * @throws GeminiError if chat fails
+   * @throws AIError if chat fails
    */
   async chat(
     options: ChatOptions,
@@ -150,7 +150,7 @@ export class GeminiClient {
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/gemini/chat', {
+    const response = await fetch('/api/AI/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -171,7 +171,7 @@ export class GeminiClient {
     }
 
     if (!response.body) {
-      throw new GeminiError(
+      throw new AIError(
         'No response body received',
         'NO_RESPONSE_BODY'
       );
@@ -205,7 +205,7 @@ export class GeminiClient {
         updates,
       };
     } catch (error) {
-      throw new GeminiError(
+      throw new AIError(
         `Failed to process chat response: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'CHAT_ERROR'
       );
@@ -216,9 +216,9 @@ export class GeminiClient {
    * Handle error response from API
    * 
    * @param response - Fetch response
-   * @returns GeminiError
+   * @returns AIError
    */
-  private async handleErrorResponse(response: Response): Promise<GeminiError> {
+  private async handleErrorResponse(response: Response): Promise<AIError> {
     let errorMessage = `API request failed with status ${response.status}`;
     let errorCode = 'API_ERROR';
 
@@ -230,7 +230,7 @@ export class GeminiClient {
       // Failed to parse error response, use default message
     }
 
-    return new GeminiError(errorMessage, errorCode);
+    return new AIError(errorMessage, errorCode);
   }
 
   /**
@@ -265,6 +265,6 @@ export class GeminiClient {
 }
 
 /**
- * Default Gemini client instance
+ * Default AI client instance
  */
-export const geminiClient = new GeminiClient();
+export const AIClient = new AIClient();

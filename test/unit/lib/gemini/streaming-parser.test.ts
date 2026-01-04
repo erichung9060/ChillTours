@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { StreamingJSONParser } from '@/lib/gemini/streaming-parser';
+import { StreamingJSONParser } from '@/lib/ai/streaming-parser';
 
 describe('StreamingJSONParser', () => {
   let parser: StreamingJSONParser;

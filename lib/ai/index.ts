@@ -1,11 +1,11 @@
 /**
- * Gemini Integration Module
+ * AI Integration Module
  * 
- * Exports all Gemini-related functionality for AI-powered itinerary generation
+ * Exports all AI-related functionality for AI-powered itinerary generation
  * and conversational chat.
  */
 
-export { GeminiClient, geminiClient, GeminiError } from './client';
+export { AIClient, AIClient, AIError } from './client';
 export type { GenerateItineraryOptions, ChatOptions, StreamingCallback } from './client';
 
 export { StreamingJSONParser } from './streaming-parser';
