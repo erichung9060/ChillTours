@@ -1,37 +1,63 @@
-/**
- * OAuth Callback Page (Simplified)
- * 
- * Supabase handles the OAuth flow automatically.
- * This page just needs to exist for the redirect.
- * 
- * Requirements: 1.1, 1.2
- */
-
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    // Supabase automatically handles the OAuth callback
-    // and sets the session in localStorage
-    
-    // Just redirect to home page
-    // The useAuth hook will detect the new session automatically
-    router.push('/');
-  }, [router]);
+    if (processedRef.current) return;
+    processedRef.current = true;
+
+    const handleAuth = async () => {
+      const code = searchParams.get('code');
+
+      if (code) {
+        try {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.error('Error exchanging code for session:', error);
+          }
+        } catch (err) {
+          console.error('Unexpected error during auth callback:', err);
+        }
+      }
+
+      // Redirect to home page
+      // The useAuth hook will detect the new session automatically
+      router.push('/');
+    };
+
+    handleAuth();
+  }, [router, searchParams]);
 
   return (
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-gray-600 dark:text-gray-400">
+        正在完成登入...
+      </p>
+    </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400">
-          正在完成登入...
-        </p>
-      </div>
+      <Suspense fallback={
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">
+            Preparing login...
+          </p>
+        </div>
+      }>
+        <AuthCallbackContent />
+      </Suspense>
     </div>
   );
 }

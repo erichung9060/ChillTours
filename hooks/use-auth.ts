@@ -138,6 +138,9 @@ export function useAuth(): UseAuthReturn {
         loading: false,
         error: null,
       });
+
+      // Reload the page to clear any remaining app state
+      window.location.reload();
     } catch (error) {
       setState(prev => ({
         ...prev,
