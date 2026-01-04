@@ -457,6 +457,119 @@ export default function AuthCallbackPage() {
 
 #### Supabase Edge Functions
 
+**IMPORTANT: Direct URL Invocation for Streaming Support**
+
+⚠️ **Critical Implementation Note:**
+
+When calling Supabase Edge Functions from the frontend to support streaming responses, you **MUST** use direct URL invocation with `fetch()` instead of the Supabase client's `invoke()` method.
+
+**Why:**
+- The `supabase.functions.invoke()` method does NOT support streaming responses
+- It waits for the complete response before returning
+- This defeats the purpose of streaming and causes poor UX
+
+**Correct Implementation:**
+
+```typescript
+// ✅ CORRECT: Direct URL with fetch() for streaming
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const { data: { session } } = await supabase.auth.getSession();
+
+const response = await fetch(
+  `${supabaseUrl}/functions/v1/generate-itinerary`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session?.access_token || anonKey}`,
+    },
+    body: JSON.stringify({
+      destination,
+      duration,
+      custom_requirements,
+    }),
+  }
+);
+
+// Read streaming response
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { done, value } = await reader.read();
+  if (done) break;
+  
+  const chunk = decoder.decode(value, { stream: true });
+  // Process chunk...
+}
+```
+
+**Incorrect Implementation:**
+
+```typescript
+// ❌ WRONG: Does NOT support streaming
+const { data, error } = await supabase.functions.invoke(
+  'generate-itinerary',
+  { body: { destination, duration } }
+);
+// This waits for complete response, no streaming!
+```
+
+**Authentication Requirements:**
+
+1. **With User Session (Recommended):**
+   - Use `session.access_token` from authenticated user
+   - Provides user context to Edge Function
+   - Enables RLS policies
+
+2. **Without User Session (Anonymous):**
+   - Use `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - Limited by RLS policies
+   - Suitable for public endpoints
+
+**Example with Error Handling:**
+
+```typescript
+async function callEdgeFunctionWithStreaming() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration missing');
+  }
+
+  // Get session token if user is logged in
+  const { data: { session } } = await supabase.auth.getSession();
+  const authToken = session?.access_token || supabaseKey;
+
+  const response = await fetch(
+    `${supabaseUrl}/functions/v1/generate-itinerary`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ destination, duration }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+
+  return response.body; // Return readable stream
+}
+```
+
+**Security Notes:**
+- Always include `Authorization` header with Bearer token
+- Use session token for authenticated requests
+- Use anon key only for public endpoints
+- Edge Functions validate tokens server-side
+
+---
+
 **POST /functions/v1/generate-itinerary**
 - Accept: destination, duration, custom_requirements
 - Call Gemini API with structured prompt including custom requirements
