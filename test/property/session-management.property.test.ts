@@ -29,11 +29,11 @@ const itineraryArbitrary = fc.record({
   user_id: fc.uuid(),
   title: fc.string({ minLength: 1, maxLength: 100 }),
   destination: fc.string({ minLength: 1, maxLength: 100 }),
-  start_date: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString().split('T')[0]),
-  end_date: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString().split('T')[0]),
+  start_date: fc.integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() }).map(ts => new Date(ts).toISOString().split('T')[0]),
+  end_date: fc.integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() }).map(ts => new Date(ts).toISOString().split('T')[0]),
   days: fc.array(fc.record({
     day_number: fc.integer({ min: 1, max: 14 }),
-    date: fc.date({ min: new Date('2020-01-01'), max: new Date('2030-12-31') }).map(d => d.toISOString().split('T')[0]),
+    date: fc.integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() }).map(ts => new Date(ts).toISOString().split('T')[0]),
     activities: fc.array(fc.record({
       id: fc.uuid(),
       time: fc.string({ minLength: 5, maxLength: 5 }),
@@ -49,8 +49,8 @@ const itineraryArbitrary = fc.record({
       order: fc.integer({ min: 0, max: 100 }),
     }), { maxLength: 10 }),
   }), { minLength: 1, maxLength: 14 }),
-  created_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString()),
-  updated_at: fc.date({ min: new Date('2020-01-01'), max: new Date('2025-12-31') }).map(d => d.toISOString()),
+  created_at: fc.integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() }).map(ts => new Date(ts).toISOString()),
+  updated_at: fc.integer({ min: new Date('2020-01-01').getTime(), max: new Date('2030-12-31').getTime() }).map(ts => new Date(ts).toISOString()),
   shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
 });
 

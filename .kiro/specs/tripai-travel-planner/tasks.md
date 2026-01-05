@@ -147,7 +147,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 21: Chat History Non-Persistence**
   - **Validates: Requirements 9.4, 9.5**
 
-- [ ] 11. Checkpoint - Core Infrastructure Complete
+- [x] 11. Checkpoint - Core Infrastructure Complete
   - Ensure all tests pass
   - Verify authentication flow works end-to-end
   - Verify theme switching works
