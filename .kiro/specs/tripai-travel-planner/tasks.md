@@ -131,7 +131,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Add retry logic with exponential backoff
   - _Requirements: 3.3, 3.4, 3.5, 3.7, 3.8, 3.9, 3.10, 17.1, 17.3_
 
-- [ ] 10. Session Management
+- [x] 10. Session Management
   - Implement session state management with React Context
   - Create useSession hook
   - Implement in-memory chat history storage
@@ -139,11 +139,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Verify chat history is never persisted to database
   - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-- [ ] 10.1 Write property test for session initialization
+- [x] 10.1 Write property test for session initialization
   - **Property 20: Session Initialization**
   - **Validates: Requirements 9.1, 9.2, 9.3**
 
-- [ ] 10.2 Write property test for chat history non-persistence
+- [x] 10.2 Write property test for chat history non-persistence
   - **Property 21: Chat History Non-Persistence**
   - **Validates: Requirements 9.4, 9.5**
 

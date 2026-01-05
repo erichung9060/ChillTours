@@ -32,6 +32,16 @@ export {
   StreamingResponseMetadataSchema,
 } from './chat';
 
+// Session types
+export type {
+  SessionState,
+  SessionContextValue,
+} from './session';
+
+export {
+  SessionStateSchema,
+} from './session';
+
 // Collaboration types
 export type {
   UserPresence,
@@ -50,7 +60,6 @@ export type {
   UserProfile,
   ThemeMode,
   ThemePreference,
-  SessionState,
 } from './user';
 
 export {
@@ -58,5 +67,4 @@ export {
   UserProfileSchema,
   ThemeModeSchema,
   ThemePreferenceSchema,
-  SessionStateSchema,
 } from './user';

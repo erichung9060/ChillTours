@@ -34,15 +34,3 @@ export const ThemePreferenceSchema = z.object({
 });
 
 export type ThemePreference = z.infer<typeof ThemePreferenceSchema>;
-
-// ============================================================================
-// Session State Types (for sessionStorage)
-// ============================================================================
-
-export const SessionStateSchema = z.object({
-  session_id: z.uuid(),
-  chat_history: z.array(z.any()), // Will be ChatMessage[] but avoiding circular dependency
-  current_itinerary_id: z.uuid().nullable(),
-});
-
-export type SessionState = z.infer<typeof SessionStateSchema>;
