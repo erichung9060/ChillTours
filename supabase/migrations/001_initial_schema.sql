@@ -52,19 +52,21 @@ CREATE INDEX idx_itineraries_destination ON itineraries(destination);
 -- ITINERARY SHARES TABLE
 -- ============================================================================
 -- Manages collaborative access to itineraries
+-- Uses email for identification to support sharing with unregistered users
 CREATE TABLE itinerary_shares (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   itinerary_id UUID NOT NULL REFERENCES itineraries(id) ON DELETE CASCADE,
-  shared_with_user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  shared_with_email TEXT NOT NULL,
   permission TEXT DEFAULT 'edit' CHECK (permission IN ('view', 'edit')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   
-  UNIQUE(itinerary_id, shared_with_user_id)
+  UNIQUE(itinerary_id, shared_with_email),
+  CONSTRAINT valid_email CHECK (shared_with_email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
 -- Indexes for faster share lookups
 CREATE INDEX idx_shares_itinerary_id ON itinerary_shares(itinerary_id);
-CREATE INDEX idx_shares_user_id ON itinerary_shares(shared_with_user_id);
+CREATE INDEX idx_shares_email ON itinerary_shares(shared_with_email);
 
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -107,11 +109,11 @@ CREATE POLICY "Users can view own and shared itineraries"
     -- Condition A: User owns the itinerary
     auth.uid() = user_id
     OR
-    -- Condition B: Itinerary is shared with user (using IN to avoid circular dependency)
+    -- Condition B: Itinerary is shared with user's email (using IN to avoid circular dependency)
     id IN (
       SELECT itinerary_id 
       FROM itinerary_shares 
-      WHERE shared_with_user_id = auth.uid()
+      WHERE shared_with_email = auth.jwt() ->> 'email'
     )
   );
 
@@ -131,7 +133,7 @@ CREATE POLICY "Users can update own and shared itineraries"
     EXISTS (
       SELECT 1 FROM itinerary_shares
       WHERE itinerary_id = itineraries.id
-      AND shared_with_user_id = auth.uid()
+      AND shared_with_email = auth.jwt() ->> 'email'
       AND permission = 'edit'
     )
   );
@@ -156,10 +158,10 @@ CREATE POLICY "Users can view shares for own itineraries"
     )
   );
 
--- Users can view shares where they are the shared user
+-- Users can view shares where they are the shared user (by email)
 CREATE POLICY "Users can view their own shares"
   ON itinerary_shares FOR SELECT
-  USING (shared_with_user_id = auth.uid());
+  USING (shared_with_email = auth.jwt() ->> 'email');
 
 -- Users can create shares for their own itineraries
 CREATE POLICY "Users can create shares for own itineraries"

@@ -232,7 +232,7 @@ interface Itinerary {
   days: Day[];
   created_at: string;
   updated_at: string;
-  shared_with: string[];  // User IDs for collaboration
+  shared_with: string[];  // Emails for collaboration
 }
 
 interface Day {
@@ -893,17 +893,19 @@ CREATE INDEX idx_itineraries_user_id ON itineraries(user_id);
 CREATE INDEX idx_itineraries_created_at ON itineraries(created_at DESC);
 
 -- Itinerary sharing for collaboration
+-- Uses email for identification to support sharing with unregistered users
 CREATE TABLE itinerary_shares (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   itinerary_id UUID NOT NULL REFERENCES itineraries(id) ON DELETE CASCADE,
-  shared_with_user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  shared_with_email TEXT NOT NULL,
   permission TEXT DEFAULT 'edit' CHECK (permission IN ('view', 'edit')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   
-  UNIQUE(itinerary_id, shared_with_user_id)
+  UNIQUE(itinerary_id, shared_with_email),
+  CONSTRAINT valid_email CHECK (shared_with_email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
-CREATE INDEX idx_shares_user_id ON itinerary_shares(shared_with_user_id);
+CREATE INDEX idx_shares_email ON itinerary_shares(shared_with_email);
 
 -- Row Level Security (RLS) Policies
 
@@ -929,7 +931,7 @@ CREATE POLICY "Users can view shared itineraries"
     EXISTS (
       SELECT 1 FROM itinerary_shares
       WHERE itinerary_id = itineraries.id
-      AND shared_with_user_id = auth.uid()
+      AND shared_with_email = auth.jwt() ->> 'email'
     )
   );
 
@@ -950,7 +952,7 @@ CREATE POLICY "Users can update shared itineraries"
     EXISTS (
       SELECT 1 FROM itinerary_shares
       WHERE itinerary_id = itineraries.id
-      AND shared_with_user_id = auth.uid()
+      AND shared_with_email = auth.jwt() ->> 'email'
       AND permission = 'edit'
     )
   );
@@ -1458,7 +1460,7 @@ const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
     days: fc.array(arbitraryDay(), { minLength: 1, maxLength: 14 }),
     created_at: fc.date().map(d => d.toISOString()),
     updated_at: fc.date().map(d => d.toISOString()),
-    shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
+    shared_with: fc.array(fc.emailAddress(), { maxLength: 5 }),
   }).filter(it => it.end_date >= it.start_date); // Ensure valid date range
 ```
 

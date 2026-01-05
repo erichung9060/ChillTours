@@ -87,21 +87,21 @@ export interface Database {
         Row: {
           id: string
           itinerary_id: string
-          shared_with_user_id: string
+          shared_with_email: string
           permission: 'view' | 'edit'
           created_at: string
         }
         Insert: {
           id?: string
           itinerary_id: string
-          shared_with_user_id: string
+          shared_with_email: string
           permission?: 'view' | 'edit'
           created_at?: string
         }
         Update: {
           id?: string
           itinerary_id?: string
-          shared_with_user_id?: string
+          shared_with_email?: string
           permission?: 'view' | 'edit'
           created_at?: string
         }

@@ -24,6 +24,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
 - [x] 2. Supabase Backend Setup
   - Initialize Supabase project
   - Create database schema with migrations (profiles, itineraries, itinerary_shares tables)
+  - Use email-based sharing in itinerary_shares to support unregistered users
   - Implement Row Level Security (RLS) policies
   - Set up Google OAuth authentication
   - Create database indexes for performance
