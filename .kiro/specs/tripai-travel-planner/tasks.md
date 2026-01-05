@@ -154,7 +154,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Verify landing page renders correctly
   - Ask the user if questions arise
 
-- [ ] 12. Itinerary Data Layer
+- [x] 12. Itinerary Data Layer
   - Create Supabase database client functions for itineraries
   - Implement saveItinerary function
   - Implement loadItinerary function
@@ -163,15 +163,15 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Handle free tier limit enforcement
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 12.1 Write property test for itinerary persistence
+- [x] 12.1 Write property test for itinerary persistence
   - **Property 22: Itinerary Database Persistence**
   - **Validates: Requirements 10.1**
 
-- [ ] 12.2 Write property test for save-load round-trip
+- [x] 12.2 Write property test for save-load round-trip
   - **Property 23: Itinerary Save-Load Round-trip**
   - **Validates: Requirements 10.3**
 
-- [ ] 12.3 Write property test for itinerary deletion
+- [x] 12.3 Write property test for itinerary deletion
   - **Property 24: Itinerary Deletion**
   - **Validates: Requirements 10.4**
 

@@ -42,7 +42,9 @@ export const activityArbitrary = fc.record({
  */
 export const dayArbitrary = fc.record({
   day_number: fc.integer({ min: 1, max: 30 }),
-  date: fc.date().map((d) => d.toISOString().split("T")[0]),
+  date: fc
+    .integer({ min: new Date("2020-01-01").getTime(), max: new Date("2030-12-31").getTime() })
+    .map((ts) => new Date(ts).toISOString().split("T")[0]),
   activities: fc.array(activityArbitrary, { minLength: 0, maxLength: 10 }),
 });
 
@@ -54,11 +56,19 @@ export const itineraryArbitrary = fc.record({
   user_id: fc.uuid(),
   title: fc.string({ minLength: 1, maxLength: 100 }),
   destination: fc.string({ minLength: 1, maxLength: 100 }),
-  start_date: fc.date().map((d) => d.toISOString().split("T")[0]),
-  end_date: fc.date().map((d) => d.toISOString().split("T")[0]),
+  start_date: fc
+    .integer({ min: new Date("2020-01-01").getTime(), max: new Date("2030-12-31").getTime() })
+    .map((ts) => new Date(ts).toISOString().split("T")[0]),
+  end_date: fc
+    .integer({ min: new Date("2020-01-01").getTime(), max: new Date("2030-12-31").getTime() })
+    .map((ts) => new Date(ts).toISOString().split("T")[0]),
   days: fc.array(dayArbitrary, { minLength: 1, maxLength: 30 }),
-  created_at: fc.date().map((d) => d.toISOString()),
-  updated_at: fc.date().map((d) => d.toISOString()),
+  created_at: fc
+    .integer({ min: new Date("2020-01-01").getTime(), max: new Date("2030-12-31").getTime() })
+    .map((ts) => new Date(ts).toISOString()),
+  updated_at: fc
+    .integer({ min: new Date("2020-01-01").getTime(), max: new Date("2030-12-31").getTime() })
+    .map((ts) => new Date(ts).toISOString()),
   shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
 });
 

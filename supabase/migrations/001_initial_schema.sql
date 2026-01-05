@@ -98,19 +98,20 @@ CREATE POLICY "Users can insert own profile"
 -- ITINERARIES POLICIES
 -- -----------------------------------------------------------------------------
 
--- Users can view their own itineraries
-CREATE POLICY "Users can view own itineraries"
-  ON itineraries FOR SELECT
-  USING (auth.uid() = user_id);
-
--- Users can view shared itineraries
-CREATE POLICY "Users can view shared itineraries"
+-- Users can view their own itineraries AND shared itineraries
+-- NOTE: This policy combines two separate policies to avoid circular dependency
+-- with itinerary_shares table. Using IN instead of EXISTS prevents infinite recursion.
+CREATE POLICY "Users can view own and shared itineraries"
   ON itineraries FOR SELECT
   USING (
-    EXISTS (
-      SELECT 1 FROM itinerary_shares
-      WHERE itinerary_id = itineraries.id
-      AND shared_with_user_id = auth.uid()
+    -- Condition A: User owns the itinerary
+    auth.uid() = user_id
+    OR
+    -- Condition B: Itinerary is shared with user (using IN to avoid circular dependency)
+    id IN (
+      SELECT itinerary_id 
+      FROM itinerary_shares 
+      WHERE shared_with_user_id = auth.uid()
     )
   );
 
@@ -119,15 +120,14 @@ CREATE POLICY "Users can create itineraries"
   ON itineraries FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
--- Users can update their own itineraries
-CREATE POLICY "Users can update own itineraries"
-  ON itineraries FOR UPDATE
-  USING (auth.uid() = user_id);
-
--- Users can update shared itineraries with edit permission
-CREATE POLICY "Users can update shared itineraries"
+-- Users can update their own itineraries OR shared itineraries with edit permission
+CREATE POLICY "Users can update own and shared itineraries"
   ON itineraries FOR UPDATE
   USING (
+    -- Condition A: User owns the itinerary
+    auth.uid() = user_id
+    OR
+    -- Condition B: User has edit permission on shared itinerary
     EXISTS (
       SELECT 1 FROM itinerary_shares
       WHERE itinerary_id = itineraries.id
