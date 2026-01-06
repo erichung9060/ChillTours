@@ -20,6 +20,12 @@ import { ErrorMessage } from '@/components/ui/error-message';
 import { useSessionContext } from '@/lib/session/session-provider';
 import type { Itinerary } from '@/types/itinerary';
 
+// Panel width constraints
+const MIN_ITINERARY_PANEL_WIDTH = 200;
+const MIN_CHAT_PANEL_WIDTH = 200;
+const DEFAULT_ITINERARY_PANEL_WIDTH = 500;
+const DEFAULT_CHAT_PANEL_WIDTH = 400;
+
 export default function PlanningPage() {
   const params = useParams();
   const itineraryId = params.id as string;
@@ -28,9 +34,12 @@ export default function PlanningPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isMapVisible, setIsMapVisible] = useState(true);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
-  const [itineraryPanelWidth, setItineraryPanelWidth] = useState(400); // Default width in pixels
-  const [isResizing, setIsResizing] = useState(false);
+  const [itineraryPanelWidth, setItineraryPanelWidth] = useState(DEFAULT_ITINERARY_PANEL_WIDTH);
+  const [chatPanelWidth, setChatPanelWidth] = useState(DEFAULT_CHAT_PANEL_WIDTH);
+  const [isResizingItinerary, setIsResizingItinerary] = useState(false);
+  const [isResizingChat, setIsResizingChat] = useState(false);
 
   // Load itinerary data
   useEffect(() => {
@@ -456,30 +465,48 @@ export default function PlanningPage() {
   };
 
   // Handle resizing of itinerary panel
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleItineraryPanelResize = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsResizing(true);
+    setIsResizingItinerary(true);
+  };
+
+  // Handle resizing of chat panel
+  const handleChatPanelResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingChat(true);
   };
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
+      const windowWidth = window.innerWidth;
 
-      // Calculate new width based on mouse position
-      const newWidth = e.clientX;
-      
-      // Set min and max width constraints
-      const minWidth = 300;
-      const maxWidth = 1000;
-      
-      if (newWidth >= minWidth && newWidth <= maxWidth) {
-        setItineraryPanelWidth(newWidth);
+      // Handle itinerary panel resizing
+      if (isResizingItinerary) {
+        const newItineraryWidth = e.clientX;
+        
+        // Only enforce minimum width
+        if (newItineraryWidth >= MIN_ITINERARY_PANEL_WIDTH) {
+          setItineraryPanelWidth(newItineraryWidth);
+        }
+      }
+
+      // Handle chat panel resizing
+      if (isResizingChat) {
+        const newChatWidth = windowWidth - e.clientX;
+        
+        // Only enforce minimum width
+        if (newChatWidth >= MIN_CHAT_PANEL_WIDTH && e.clientX >= MIN_ITINERARY_PANEL_WIDTH) {
+          setChatPanelWidth(newChatWidth);
+        }
       }
     };
 
     const handleMouseUp = () => {
-      setIsResizing(false);
+      setIsResizingItinerary(false);
+      setIsResizingChat(false);
     };
+
+    const isResizing = isResizingItinerary || isResizingChat;
 
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -495,7 +522,7 @@ export default function PlanningPage() {
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
     };
-  }, [isResizing]);
+  }, [isResizingItinerary, isResizingChat]);
 
   if (isLoading) {
     return (
@@ -529,22 +556,24 @@ export default function PlanningPage() {
       <main className="h-screen flex flex-col pt-16">
         {/* Three-panel layout (Requirement 4.1) */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left Panel: Itinerary (Requirement 4.2) - Resizable */}
+          {/* Itinerary Panel (Requirement 4.2) - Resizable */}
           <div 
-            className="hidden md:block border-r border-border overflow-y-auto relative"
-            style={{ width: `${itineraryPanelWidth}px` }}
+            className={`hidden md:block border-r border-border overflow-y-auto relative ${!isMapVisible ? 'flex-1' : ''}`}
+            style={isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined}
           >
             <ItineraryPanel
               itinerary={itinerary}
               onUpdate={handleItineraryUpdate}
             />
             
-            {/* Resize Handle */}
-            <div
-              className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors group"
-              onMouseDown={handleMouseDown}
-            >
-            </div>
+            {/* Resize Handle - Only show when map is visible */}
+            {isMapVisible && (
+              <div
+                className="absolute top-0 right-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors group"
+                onMouseDown={handleItineraryPanelResize}
+              >
+              </div>
+            )}
           </div>
 
           {/* Mobile: Full-width Itinerary Panel */}
@@ -555,31 +584,37 @@ export default function PlanningPage() {
             />
           </div>
 
-          {/* Center Panel: Map (Requirement 4.3) */}
-          <div className="hidden md:flex flex-1 relative">
-            <MapPanel itinerary={itinerary} />
-          </div>
+          {/* Center Panel: Map (Requirement 4.3) - Conditionally rendered */}
+          {isMapVisible && (
+            <div className="hidden md:flex flex-1 relative">
+              <MapPanel itinerary={itinerary} />
+            </div>
+          )}
 
-          {/* Right Panel: Chat (Collapsible) (Requirement 4.4) */}
-          <div
-            className={`
-              fixed md:relative inset-0 md:inset-auto z-50 md:z-auto
-              transition-transform duration-300 ease-out
-              ${isChatOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-              ${isChatOpen ? 'md:w-96 lg:w-[400px]' : 'md:w-0'}
-              bg-background md:border-l border-border
-            `}
-          >
-            <ChatPanel
-              itinerary={itinerary}
-              isOpen={isChatOpen}
-              onClose={() => setIsChatOpen(false)}
-              onItineraryUpdate={handleItineraryUpdate}
-            />
-          </div>
+          {/* Chat Panel (Collapsible) (Requirement 4.4) - Resizable, Always positioned at right edge */}
+          {/* Only show on desktop (md+) when chat is open */}
+          {isChatOpen && (
+            <div
+              className="hidden md:block relative border-l border-border"
+              style={{ width: `${chatPanelWidth}px` }}
+            >
+              {/* Resize Handle - on the left side of chat panel */}
+              <div
+                className="absolute top-0 left-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors z-10"
+                onMouseDown={handleChatPanelResize}
+              >
+              </div>
+              <ChatPanel
+                itinerary={itinerary}
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                onItineraryUpdate={handleItineraryUpdate}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Desktop: Chat Toggle Button - Only show when chat is closed */}
+        {/* Desktop: Chat Toggle Button - Only show on desktop when chat is closed */}
         {!isChatOpen && (
           <button
             onClick={toggleChat}
