@@ -176,7 +176,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 24: Itinerary Deletion**
   - **Validates: Requirements 10.4**
 
-- [ ] 13. Planning Interface Layout
+- [x] 13. Planning Interface Layout
   - Create planning page (app/plan/[id]/page.tsx)
   - Implement three-panel layout (itinerary, map, chat)
   - Create responsive layout for mobile
@@ -184,7 +184,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Add loading states for data fetching
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 13.1 Write property test for chat panel toggle
+- [x] 13.1 Write property test for chat panel toggle
   - **Property 10: Chat Panel Toggle State**
   - **Validates: Requirements 4.4**
 
