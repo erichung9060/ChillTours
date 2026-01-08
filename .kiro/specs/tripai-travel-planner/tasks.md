@@ -188,7 +188,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 10: Chat Panel Toggle State**
   - **Validates: Requirements 4.4**
 
-- [ ] 14. Itinerary Panel Components
+- [x] 14. Itinerary Panel Components
   - Create ItineraryPanel component
   - Create DaySection component with expand/collapse
   - Create ActivityItem component
@@ -196,11 +196,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Display activity details (time, location, description)
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 14.1 Write property test for day section toggle
+- [x] 14.1 Write property test for day section toggle
   - **Property 11: Day Section Expand/Collapse**
   - **Validates: Requirements 5.2**
 
-- [ ] 14.2 Write property test for activity display completeness
+- [x] 14.2 Write property test for activity display completeness
   - **Property 12: Activity Display Completeness**
   - **Validates: Requirements 5.5**
 

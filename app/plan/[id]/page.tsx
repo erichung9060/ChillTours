@@ -23,8 +23,24 @@ import type { Itinerary } from '@/types/itinerary';
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 200;
 const MIN_CHAT_PANEL_WIDTH = 200;
-const DEFAULT_ITINERARY_PANEL_WIDTH = 500;
-const DEFAULT_CHAT_PANEL_WIDTH = 400;
+const DAY_CARD_WIDTH = 320; // Width of each day card in side-by-side view
+const DAY_CARD_GAP = 16; // Gap between day cards
+const PANEL_PADDING = 35; // Padding inside the panel
+
+// Calculate initial itinerary panel width based on number of days
+const calculateInitialItineraryWidth = (numDays: number): number => {
+  if (typeof window === 'undefined') return 500; // SSR fallback
+  
+  const windowWidth = window.innerWidth;
+  const minMapWidth = windowWidth * 0.25; // Map must be at least 1/4 of screen
+  const maxItineraryWidth = windowWidth - minMapWidth;
+  
+  // Calculate width needed to show all days
+  const neededWidth = (numDays * DAY_CARD_WIDTH) + ((numDays - 1) * DAY_CARD_GAP) + PANEL_PADDING;
+  
+  // Return the smaller of needed width or max allowed width
+  return Math.min(neededWidth, maxItineraryWidth);
+};
 
 export default function PlanningPage() {
   const params = useParams();
@@ -36,8 +52,8 @@ export default function PlanningPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
-  const [itineraryPanelWidth, setItineraryPanelWidth] = useState(DEFAULT_ITINERARY_PANEL_WIDTH);
-  const [chatPanelWidth, setChatPanelWidth] = useState(DEFAULT_CHAT_PANEL_WIDTH);
+  const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
+  const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
 
@@ -453,10 +469,23 @@ export default function PlanningPage() {
     loadItinerary();
   }, [itineraryId, session.current_itinerary, setCurrentItinerary]);
 
+  // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
+  useEffect(() => {
+    if (itinerary) {
+      const initialWidth = calculateInitialItineraryWidth(itinerary.days.length);
+      setItineraryPanelWidth(initialWidth);
+    }
+  }, [itinerary?.days.length]); // Only recalculate when days count changes
+
   // Handle itinerary updates
   const handleItineraryUpdate = (updatedItinerary: Itinerary) => {
     setItinerary(updatedItinerary);
     setCurrentItinerary(updatedItinerary);
+  };
+
+  // Handle fullscreen mode change
+  const handleFullscreenChange = (isFullscreen: boolean) => {
+    setIsMapVisible(!isFullscreen);
   };
 
   // Toggle chat panel (Requirement 4.4)
@@ -564,6 +593,7 @@ export default function PlanningPage() {
             <ItineraryPanel
               itinerary={itinerary}
               onUpdate={handleItineraryUpdate}
+              onFullscreenChange={handleFullscreenChange}
             />
             
             {/* Resize Handle - Only show when map is visible */}
@@ -581,6 +611,7 @@ export default function PlanningPage() {
             <ItineraryPanel
               itinerary={itinerary}
               onUpdate={handleItineraryUpdate}
+              onFullscreenChange={handleFullscreenChange}
             />
           </div>
 
