@@ -22,10 +22,25 @@ interface ItineraryPanelProps {
   itinerary: Itinerary;
   onUpdate: (itinerary: Itinerary) => void;
   onFullscreenChange?: (isFullscreen: boolean) => void;
+  onToggleChat?: () => void;
+  isChatOpen?: boolean;
+  viewMode?: 'expandable' | 'single-day' | 'side-by-side';
+  onViewModeChange?: (mode: 'expandable' | 'single-day' | 'side-by-side') => void;
 }
 
-export function ItineraryPanel({ itinerary, onUpdate, onFullscreenChange }: ItineraryPanelProps) {
-  const [viewMode, setViewMode] = useState<ViewMode>('side-by-side');
+export function ItineraryPanel({ 
+  itinerary, 
+  onUpdate, 
+  onFullscreenChange, 
+  onToggleChat, 
+  isChatOpen,
+  viewMode: externalViewMode,
+  onViewModeChange
+}: ItineraryPanelProps) {
+  const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
+  const viewMode = externalViewMode ?? internalViewMode;
+  const setViewMode = onViewModeChange ?? setInternalViewMode;
+  
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(
@@ -379,12 +394,12 @@ export function ItineraryPanel({ itinerary, onUpdate, onFullscreenChange }: Itin
             </Button>
           </div>
 
-          {/* Fullscreen Toggle - Always visible */}
+          {/* Fullscreen Toggle - Always visible, hidden on mobile */}
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleFullscreen}
-            className="h-8 w-8 p-0"
+            className="hidden md:flex h-8 w-8 p-0"
             title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
           >
             {isFullscreen ? (
@@ -424,6 +439,29 @@ export function ItineraryPanel({ itinerary, onUpdate, onFullscreenChange }: Itin
       {viewMode === 'expandable' && renderExpandableView()}
       {viewMode === 'single-day' && renderSingleDayView()}
       {viewMode === 'side-by-side' && renderSideBySideView()}
+
+      {/* Chat Toggle Button - Fixed at bottom right corner, hidden on mobile */}
+      {onToggleChat && (
+        <button
+          onClick={onToggleChat}
+          className="hidden md:flex absolute bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 items-center justify-center"
+          aria-label={isChatOpen ? "Close chat" : "Open chat"}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }

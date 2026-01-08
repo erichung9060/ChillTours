@@ -52,6 +52,7 @@ export default function PlanningPage() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
+  const [viewMode, setViewMode] = useState<'expandable' | 'single-day' | 'side-by-side'>('side-by-side');
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
@@ -594,6 +595,10 @@ export default function PlanningPage() {
               itinerary={itinerary}
               onUpdate={handleItineraryUpdate}
               onFullscreenChange={handleFullscreenChange}
+              onToggleChat={toggleChat}
+              isChatOpen={isChatOpen}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
             
             {/* Resize Handle - Only show when map is visible */}
@@ -612,6 +617,10 @@ export default function PlanningPage() {
               itinerary={itinerary}
               onUpdate={handleItineraryUpdate}
               onFullscreenChange={handleFullscreenChange}
+              onToggleChat={toggleChat}
+              isChatOpen={isChatOpen}
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
             />
           </div>
 
@@ -644,29 +653,6 @@ export default function PlanningPage() {
             </div>
           )}
         </div>
-
-        {/* Desktop: Chat Toggle Button - Only show on desktop when chat is closed */}
-        {!isChatOpen && (
-          <button
-            onClick={toggleChat}
-            className="hidden md:flex fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 items-center justify-center"
-            aria-label="Open chat"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
-        )}
       </main>
     </>
   );
