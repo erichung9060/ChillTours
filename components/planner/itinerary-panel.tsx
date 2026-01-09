@@ -74,66 +74,71 @@ export function ItineraryPanel({
     onFullscreenChange?.(newFullscreenState);
   };
 
-  // Render activity item (shared across view modes)
+  // Render activity item as a draggable card (shared across view modes)
   const renderActivity = (activity: any) => (
-    <div
+    <Card
       key={activity.id}
-      className="p-4 hover:bg-accent/30 transition-colors cursor-pointer"
+      className="mb-3 hover:shadow-md transition-all cursor-move border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary"
     >
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-16 text-sm font-medium text-muted-foreground">
-          {activity.time}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-sm mb-1">
-            {activity.title}
-          </h4>
-          
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
-            <span className="truncate">{activity.location.name}</span>
+      <CardContent className="p-4">
+        <div className="flex items-start gap-3">
+          {/* Time Badge */}
+          <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
+            {activity.time}
           </div>
           
-          {activity.description && (
-            <p className="text-xs text-muted-foreground line-clamp-2">
-              {activity.description}
-            </p>
-          )}
-          
-          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span>{activity.duration_minutes} min</span>
+          <div className="flex-1 min-w-0">
+            <h4 className="font-semibold text-sm mb-2">
+              {activity.title}
+            </h4>
+            
+            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <span className="truncate">{activity.location.name}</span>
+            </div>
+            
+            {activity.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                {activity.description}
+              </p>
+            )}
+            
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>{activity.duration_minutes} min</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 
   // Render expandable view (original view)
@@ -181,8 +186,8 @@ export function ItineraryPanel({
             </CardHeader>
 
             {isExpanded && (
-              <CardContent className="p-0">
-                <div className="divide-y divide-border">
+              <CardContent className="p-4 pt-0">
+                <div className="space-y-0">
                   {day.activities.map(renderActivity)}
                 </div>
               </CardContent>
@@ -259,14 +264,10 @@ export function ItineraryPanel({
         </div>
 
         {/* Day Content */}
-        <div className="flex-1 overflow-y-auto">
-          <Card className="m-4">
-            <CardContent className="p-0">
-              <div className="divide-y divide-border">
-                {day.activities.map(renderActivity)}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-0">
+            {day.activities.map(renderActivity)}
+          </div>
         </div>
       </div>
     );
@@ -292,8 +293,8 @@ export function ItineraryPanel({
                     {dayName}, {dateStr}
                   </p>
                 </CardHeader>
-                <CardContent className="p-0 flex-1 overflow-y-auto">
-                  <div className="divide-y divide-border">
+                <CardContent className="p-4 flex-1 overflow-y-auto">
+                  <div className="space-y-0">
                     {day.activities.map(renderActivity)}
                   </div>
                 </CardContent>
