@@ -57,6 +57,9 @@ export default function PlanningPage() {
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
+  
+  const [hoveredDayNumber, setHoveredDayNumber] = useState<number | null>(null);
+  const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(null);
 
   // Load itinerary data
   useEffect(() => {
@@ -599,6 +602,8 @@ export default function PlanningPage() {
               isChatOpen={isChatOpen}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onDayHover={setHoveredDayNumber}
+              onActivityHover={setHoveredActivityId}
             />
             
             {/* Resize Handle - Only show when map is visible */}
@@ -621,13 +626,19 @@ export default function PlanningPage() {
               isChatOpen={isChatOpen}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              onDayHover={setHoveredDayNumber}
+              onActivityHover={setHoveredActivityId}
             />
           </div>
 
           {/* Center Panel: Map (Requirement 4.3) - Conditionally rendered */}
           {isMapVisible && (
             <div className="hidden md:flex flex-1 relative">
-              <MapPanel itinerary={itinerary} />
+              <MapPanel 
+                itinerary={itinerary}
+                hoveredDayNumber={hoveredDayNumber}
+                hoveredActivityId={hoveredActivityId}
+              />
             </div>
           )}
 

@@ -204,7 +204,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 12: Activity Display Completeness**
   - **Validates: Requirements 5.5**
 
-- [ ] 15. Google Maps Integration
+- [x] 15. Google Maps Integration
   - Create Maps client in lib/maps/client.ts
   - Initialize Google Maps in MapPanel component
   - Implement pin placement for activities
@@ -213,11 +213,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Generate navigation links for mobile
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 12.1, 12.2_
 
-- [ ] 15.1 Write property test for map pin placement
+- [x] 15.1 Write property test for map pin placement
   - **Property 13: Map Pin Placement**
   - **Validates: Requirements 6.1**
 
-- [ ] 15.2 Write property test for pin click details
+- [x] 15.2 Write property test for pin click details
   - **Property 14: Pin Click Details Display**
   - **Validates: Requirements 6.2**
 

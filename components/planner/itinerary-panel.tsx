@@ -26,6 +26,8 @@ interface ItineraryPanelProps {
   isChatOpen?: boolean;
   viewMode?: 'expandable' | 'single-day' | 'side-by-side';
   onViewModeChange?: (mode: 'expandable' | 'single-day' | 'side-by-side') => void;
+  onDayHover?: (dayNumber: number | null) => void;
+  onActivityHover?: (activityId: string | null) => void;
 }
 
 export function ItineraryPanel({ 
@@ -35,7 +37,9 @@ export function ItineraryPanel({
   onToggleChat, 
   isChatOpen,
   viewMode: externalViewMode,
-  onViewModeChange
+  onViewModeChange,
+  onDayHover,
+  onActivityHover
 }: ItineraryPanelProps) {
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
   const viewMode = externalViewMode ?? internalViewMode;
@@ -75,10 +79,12 @@ export function ItineraryPanel({
   };
 
   // Render activity item as a draggable card (shared across view modes)
-  const renderActivity = (activity: any) => (
+  const renderActivity = (activity: any, dayNumber: number) => (
     <Card
       key={activity.id}
       className="mb-3 hover:shadow-md transition-all cursor-move border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary"
+      onMouseEnter={() => onActivityHover?.(activity.id)}
+      onMouseLeave={() => onActivityHover?.(null)}
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
@@ -151,10 +157,15 @@ export function ItineraryPanel({
         const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
         return (
-          <Card key={day.day_number} className="overflow-hidden">
+          <Card 
+            key={day.day_number} 
+            className="overflow-hidden"
+          >
             <CardHeader
               className="cursor-pointer hover:bg-accent/50 transition-colors p-4"
               onClick={() => toggleDay(day.day_number)}
+              onMouseEnter={() => onDayHover?.(day.day_number)}
+              onMouseLeave={() => onDayHover?.(null)}
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -188,7 +199,7 @@ export function ItineraryPanel({
             {isExpanded && (
               <CardContent className="p-4 pt-0">
                 <div className="space-y-0">
-                  {day.activities.map(renderActivity)}
+                  {day.activities.map(activity => renderActivity(activity, day.day_number))}
                 </div>
               </CardContent>
             )}
@@ -210,7 +221,11 @@ export function ItineraryPanel({
     return (
       <div className="flex-1 flex flex-col">
         {/* Navigation Controls */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div 
+          className="flex items-center justify-between p-4 border-b border-border"
+          onMouseEnter={() => onDayHover?.(day.day_number)}
+          onMouseLeave={() => onDayHover?.(null)}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -266,7 +281,7 @@ export function ItineraryPanel({
         {/* Day Content */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-0">
-            {day.activities.map(renderActivity)}
+            {day.activities.map(activity => renderActivity(activity, day.day_number))}
           </div>
         </div>
       </div>
@@ -283,9 +298,16 @@ export function ItineraryPanel({
           const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
           return (
-            <div key={day.day_number} className="w-80 flex-shrink-0">
+            <div 
+              key={day.day_number} 
+              className="w-80 flex-shrink-0"
+            >
               <Card className="h-full flex flex-col">
-                <CardHeader className="p-4 border-b border-border">
+                <CardHeader 
+                  className="p-4 border-b border-border"
+                  onMouseEnter={() => onDayHover?.(day.day_number)}
+                  onMouseLeave={() => onDayHover?.(null)}
+                >
                   <CardTitle className="text-base font-semibold">
                     Day {day.day_number}
                   </CardTitle>
@@ -295,7 +317,7 @@ export function ItineraryPanel({
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
                   <div className="space-y-0">
-                    {day.activities.map(renderActivity)}
+                    {day.activities.map(activity => renderActivity(activity, day.day_number))}
                   </div>
                 </CardContent>
               </Card>
