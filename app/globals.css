@@ -80,3 +80,19 @@
     animation: gradient 3s ease infinite;
   }
 }
+
+/* Mapbox Popup 關閉按鈕樣式 */
+.mapboxgl-popup-close-button {
+  font-size: 28px !important;
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
