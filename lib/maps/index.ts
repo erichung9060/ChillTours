@@ -1,13 +1,32 @@
 /**
  * Maps Library
  * 
- * Exports all maps-related utilities
+ * Public API for map functionality.
+ * Use MapProvider interface for all map operations.
  */
 
+// Provider abstraction (recommended way to use maps)
 export {
-  geocodeAddress,
-  getPlaceDetails,
-  createNavigationLink,
-  createDirectionsLink,
-  calculateMapBounds,
-} from './client';
+  getMapProvider,
+  getConfiguredProviderType,
+  resetProviders,
+} from './provider-factory';
+
+export type {
+  MapProvider,
+  MapProviderType,
+  MapConfig,
+  MarkerConfig,
+  MarkerIcon,
+  InfoWindowConfig,
+  PlaceDetails,
+} from './types';
+
+// Pin icon utilities
+export {
+  generatePinIcon,
+  PIN_CONFIGS,
+  clearIconCache,
+  type PinIconOptions,
+  type PinIconResult,
+} from './pin-icons';

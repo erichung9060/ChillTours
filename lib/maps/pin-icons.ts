@@ -3,27 +3,32 @@
  * 
  * Generates SVG pin icons with different colors and sizes
  * Uses memoization to avoid regenerating the same icons
+ * Provider-agnostic implementation
  */
 
 // Cache for generated pin icons
 const iconCache = new Map<string, string>();
 
-interface PinIconOptions {
+export interface PinIconOptions {
   color: string;
   width: number;
   height: number;
   activityId: string;
 }
 
+export interface PinIconResult {
+  url: string;
+  width: number;
+  height: number;
+  anchorX: number;
+  anchorY: number;
+}
+
 /**
- * Generate a pin icon SVG data URL
+ * Generate a pin icon SVG data URL (provider-agnostic)
  * Results are cached to improve performance
  */
-export function generatePinIcon(options: PinIconOptions): {
-  url: string;
-  scaledSize: google.maps.Size;
-  anchor: google.maps.Point;
-} {
+export function generatePinIcon(options: PinIconOptions): PinIconResult {
   const { color, width, height, activityId } = options;
   const cacheKey = `${color}-${width}-${height}`;
   
@@ -39,8 +44,10 @@ export function generatePinIcon(options: PinIconOptions): {
   
   return {
     url: svgDataUrl,
-    scaledSize: new google.maps.Size(width, height),
-    anchor: new google.maps.Point(width / 2, height - 2),
+    width,
+    height,
+    anchorX: width / 2,
+    anchorY: height - 2,
   };
 }
 
