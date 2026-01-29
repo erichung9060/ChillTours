@@ -224,10 +224,10 @@ export function ItineraryPanel({
     const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     return (
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navigation Controls */}
         <div 
-          className="flex items-center justify-between p-4 border-b border-border"
+          className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border bg-background"
         >
           <Button
             variant="ghost"
