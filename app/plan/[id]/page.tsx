@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ItineraryPanel } from '@/components/planner/itinerary-panel';
@@ -53,6 +53,7 @@ export default function PlanningPage() {
   const [isMapVisible, setIsMapVisible] = useState(true);
   const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [viewMode, setViewMode] = useState<'expandable' | 'single-day' | 'side-by-side'>('side-by-side');
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
@@ -60,6 +61,21 @@ export default function PlanningPage() {
   
   const [hoveredDayNumber, setHoveredDayNumber] = useState<number | null>(null);
   const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(null);
+
+  // Derived state for selected day in single-day view
+  const selectedDayNumber = viewMode === 'single-day' && itinerary 
+    ? itinerary.days[currentDayIndex]?.day_number 
+    : null;
+
+  // Reset currentDayIndex when switching to single-day mode or when itinerary changes
+  useEffect(() => {
+    if (viewMode === 'single-day' && itinerary) {
+      // Ensure currentDayIndex is within valid range
+      if (currentDayIndex >= itinerary.days.length) {
+        setCurrentDayIndex(0);
+      }
+    }
+  }, [viewMode, itinerary, currentDayIndex]);
 
   // Load itinerary data
   useEffect(() => {
@@ -602,6 +618,8 @@ export default function PlanningPage() {
               isChatOpen={isChatOpen}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              currentDayIndex={currentDayIndex}
+              onCurrentDayChange={setCurrentDayIndex}
               onDayHover={setHoveredDayNumber}
               onActivityHover={setHoveredActivityId}
             />
@@ -626,6 +644,8 @@ export default function PlanningPage() {
               isChatOpen={isChatOpen}
               viewMode={viewMode}
               onViewModeChange={setViewMode}
+              currentDayIndex={currentDayIndex}
+              onCurrentDayChange={setCurrentDayIndex}
               onDayHover={setHoveredDayNumber}
               onActivityHover={setHoveredActivityId}
             />
@@ -638,6 +658,7 @@ export default function PlanningPage() {
                 itinerary={itinerary}
                 hoveredDayNumber={hoveredDayNumber}
                 hoveredActivityId={hoveredActivityId}
+                selectedDayNumber={selectedDayNumber}
               />
             </div>
           )}

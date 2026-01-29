@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Itinerary } from '@/types/itinerary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,8 @@ interface ItineraryPanelProps {
   onViewModeChange?: (mode: 'expandable' | 'single-day' | 'side-by-side') => void;
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
+  currentDayIndex: number;
+  onCurrentDayChange: (dayIndex: number) => void;
 }
 
 export function ItineraryPanel({ 
@@ -39,13 +41,14 @@ export function ItineraryPanel({
   viewMode: externalViewMode,
   onViewModeChange,
   onDayHover,
-  onActivityHover
+  onActivityHover,
+  currentDayIndex,
+  onCurrentDayChange,
 }: ItineraryPanelProps) {
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
   const viewMode = externalViewMode ?? internalViewMode;
   const setViewMode = onViewModeChange ?? setInternalViewMode;
   
-  const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(
     new Set(itinerary.days.map(d => d.day_number))
@@ -64,11 +67,13 @@ export function ItineraryPanel({
   };
 
   const goToPreviousDay = () => {
-    setCurrentDayIndex(prev => Math.max(0, prev - 1));
+    const newIndex = Math.max(0, currentDayIndex - 1);
+    onCurrentDayChange(newIndex);
   };
 
   const goToNextDay = () => {
-    setCurrentDayIndex(prev => Math.min(itinerary.days.length - 1, prev + 1));
+    const newIndex = Math.min(itinerary.days.length - 1, currentDayIndex + 1);
+    onCurrentDayChange(newIndex);
   };
 
   const toggleFullscreen = () => {
@@ -223,8 +228,6 @@ export function ItineraryPanel({
         {/* Navigation Controls */}
         <div 
           className="flex items-center justify-between p-4 border-b border-border"
-          onMouseEnter={() => onDayHover?.(day.day_number)}
-          onMouseLeave={() => onDayHover?.(null)}
         >
           <Button
             variant="ghost"

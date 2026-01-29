@@ -28,9 +28,10 @@ import { GoogleMapRenderer } from './map-renderers/google-map-renderer';
 import { MapboxMapRenderer } from './map-renderers/mapbox-map-renderer';
 
 interface MapPanelProps {
-  itinerary: Itinerary;
+  itinerary: Itinerary; 
   hoveredDayNumber?: number | null;
   hoveredActivityId?: string | null;
+  selectedDayNumber?: number | null;
   onActivityClick?: (activityId: string) => void;
 }
 
@@ -43,6 +44,7 @@ export function MapPanel({
   itinerary, 
   hoveredDayNumber, 
   hoveredActivityId,
+  selectedDayNumber,
   onActivityClick 
 }: MapPanelProps) {
   // Get the map provider (abstraction layer)
@@ -88,8 +90,12 @@ export function MapPanel({
     if (hoveredDayNumber) {
       return hoveredDayNumber === activity.dayNumber;
     }
+    // If a day is selected (e.g. in single-day view), highlight it
+    if (selectedDayNumber) {
+      return selectedDayNumber === activity.dayNumber;
+    }
     return false;
-  }, [hoveredActivityId, hoveredDayNumber]);
+  }, [hoveredActivityId, hoveredDayNumber, selectedDayNumber]);
 
   // Determine marker icon based on highlight state (using provider abstraction)
   const getMarkerIcon = useCallback((activity: ActivityWithDay) => {
