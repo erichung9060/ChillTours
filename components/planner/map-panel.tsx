@@ -21,8 +21,8 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import type { Itinerary, Activity } from '@/types/itinerary';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import type { Itinerary, Activity, ActivityWithDay } from '@/types/itinerary';
 import { getMapProvider, getConfiguredProviderType, PIN_CONFIGS } from '@/lib/maps';
 import { GoogleMapRenderer } from './map-renderers/google-map-renderer';
 import { MapboxMapRenderer } from './map-renderers/mapbox-map-renderer';
@@ -53,16 +53,21 @@ export function MapPanel({
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(2);
 
-  // Collect all activities with their locations
-  const allActivities = itinerary.days.flatMap(day => 
-    day.activities.map(activity => ({
-      ...activity,
-      dayNumber: day.day_number,
-    }))
+  // Collect all activities with their day numbers (memoized to prevent unnecessary re-renders)
+  const allActivities = useMemo<ActivityWithDay[]>(() => 
+    itinerary.days.flatMap(day => 
+      day.activities.map(activity => ({
+        ...activity,
+        dayNumber: day.day_number,
+      }))
+    ), [itinerary]
   );
 
   // Get all unique locations
-  const allLocations = allActivities.map(a => a.location);
+  const allLocations = useMemo(() => 
+    allActivities.map(a => a.location), 
+    [allActivities]
+  );
 
   // Calculate map bounds when itinerary changes
   useEffect(() => {
@@ -74,7 +79,7 @@ export function MapPanel({
   }, [itinerary, mapProvider]);
 
   // Determine if an activity should be highlighted
-  const isActivityHighlighted = useCallback((activity: Activity & { dayNumber: number }) => {
+  const isActivityHighlighted = useCallback((activity: ActivityWithDay) => {
     // If hovering over a specific activity, only highlight that one
     if (hoveredActivityId) {
       return hoveredActivityId === activity.id;
@@ -87,7 +92,7 @@ export function MapPanel({
   }, [hoveredActivityId, hoveredDayNumber]);
 
   // Determine marker icon based on highlight state (using provider abstraction)
-  const getMarkerIcon = useCallback((activity: Activity & { dayNumber: number }) => {
+  const getMarkerIcon = useCallback((activity: ActivityWithDay) => {
     const isHighlighted = isActivityHighlighted(activity);
     const config = isHighlighted ? PIN_CONFIGS.highlighted : PIN_CONFIGS.default;
     

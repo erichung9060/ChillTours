@@ -30,6 +30,9 @@ export const ActivitySchema = z.object({
 
 export type Activity = z.infer<typeof ActivitySchema>;
 
+// Activity with day number (for components that need day association)
+export type ActivityWithDay = Activity & { dayNumber: number };
+
 // ============================================================================
 // Day Types
 // ============================================================================

@@ -6,6 +6,7 @@
 export type {
   Location,
   Activity,
+  ActivityWithDay,
   Day,
   Itinerary,
 } from './itinerary';
