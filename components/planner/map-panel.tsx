@@ -80,22 +80,27 @@ export function MapPanel({
     }
   }, [itinerary, mapProvider]);
 
+  // Calculate highlighted activities for highlighting and smart zoom (memoized)
+  const highlightedActivities = useMemo(() => {
+    return allActivities.filter(activity => {
+      if (hoveredActivityId) {
+        return activity.id === hoveredActivityId;
+      }
+      if (hoveredDayNumber) {
+        return activity.dayNumber === hoveredDayNumber;
+      }
+      if (selectedDayNumber) {
+        return activity.dayNumber === selectedDayNumber;
+      }
+      return false;
+    });
+  }, [allActivities, hoveredActivityId, hoveredDayNumber, selectedDayNumber]);
+
   // Determine if an activity should be highlighted
   const isActivityHighlighted = useCallback((activity: ActivityWithDay) => {
-    // If hovering over a specific activity, only highlight that one
-    if (hoveredActivityId) {
-      return hoveredActivityId === activity.id;
-    }
-    // If hovering over a day, highlight all activities in that day
-    if (hoveredDayNumber) {
-      return hoveredDayNumber === activity.dayNumber;
-    }
-    // If a day is selected (e.g. in single-day view), highlight it
-    if (selectedDayNumber) {
-      return selectedDayNumber === activity.dayNumber;
-    }
-    return false;
-  }, [hoveredActivityId, hoveredDayNumber, selectedDayNumber]);
+    // Reuse the same logic: check if activity is in highlightedActivities
+    return highlightedActivities.some(target => target.id === activity.id);
+  }, [highlightedActivities]);
 
   // Determine marker icon based on highlight state (using provider abstraction)
   const getMarkerIcon = useCallback((activity: ActivityWithDay) => {
@@ -125,6 +130,7 @@ export function MapPanel({
     mapCenter,
     mapZoom,
     selectedActivity,
+    highlightedActivities,
     onMarkerClick: handleMarkerClick,
     onInfoWindowClose: handleInfoWindowClose,
     getMarkerIcon,

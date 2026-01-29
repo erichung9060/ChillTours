@@ -17,7 +17,7 @@ export function MapboxMapRenderer({
   mapCenter,
   mapZoom,
   selectedActivity,
-  onMapLoad,
+  highlightedActivities,
   onMarkerClick,
   onInfoWindowClose,
   getMarkerIcon,
@@ -36,10 +36,7 @@ export function MapboxMapRenderer({
 
   const handleMapLoad = useCallback(() => {
     setIsLoaded(true);
-    if (mapRef.current) {
-      onMapLoad?.(mapRef.current.getMap());
-    }
-  }, [onMapLoad]);
+  }, []);
 
   // Handle container resize using ResizeObserver
   useEffect(() => {
@@ -84,6 +81,60 @@ export function MapboxMapRenderer({
       });
     }
   }, [activities, isLoaded]);
+
+  // Check if a location is visible in the current map bounds
+  const isLocationVisible = useCallback((lat: number, lng: number): boolean => {
+    if (!mapRef.current) return true;
+
+    try {
+      const bounds = mapRef.current.getBounds();
+      if (!bounds) return true;
+      
+      const sw = bounds.getSouthWest();
+      const ne = bounds.getNorthEast();
+      
+      return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng;
+    } catch (error) {
+      console.error('Error checking location visibility:', error);
+      return true;
+    }
+  }, []);
+
+  // Smart zoom when hovering over activities or selecting a day
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded || highlightedActivities.length === 0) return;
+
+    // Check if any highlighted activity is outside the visible bounds
+    const hasInvisibleActivity = highlightedActivities.some(activity => 
+      !isLocationVisible(activity.location.lat, activity.location.lng)
+    );
+
+    if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
+
+    // Calculate bounds to include all highlighted activities
+    const locations = highlightedActivities.map(a => a.location);
+    
+    try {
+      const bounds: [[number, number], [number, number]] = [
+        [
+          Math.min(...locations.map(l => l.lng)),
+          Math.min(...locations.map(l => l.lat)),
+        ],
+        [
+          Math.max(...locations.map(l => l.lng)),
+          Math.max(...locations.map(l => l.lat)),
+        ],
+      ];
+
+      mapRef.current.fitBounds(bounds, {
+        padding: 100,
+        duration: 800,
+        maxZoom: 15,
+      });
+    } catch (error) {
+      console.error('Error fitting bounds:', error);
+    }
+  }, [highlightedActivities, isLoaded, isLocationVisible]);
 
   if (loadError || !mapboxToken) {
     return (

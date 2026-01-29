@@ -21,7 +21,7 @@ export function GoogleMapRenderer({
   mapCenter,
   mapZoom,
   selectedActivity,
-  onMapLoad,
+  highlightedActivities,
   onMarkerClick,
   onInfoWindowClose,
   getMarkerIcon,
@@ -35,8 +35,7 @@ export function GoogleMapRenderer({
 
   const handleMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
-    onMapLoad?.(map);
-  }, [onMapLoad]);
+  }, []);
 
   // Fit bounds when map loads or activities change
   useEffect(() => {
@@ -48,6 +47,62 @@ export function GoogleMapRenderer({
       mapRef.current.fitBounds(bounds);
     }
   }, [activities]);
+
+  // Check if a location is visible in the current map bounds
+  const isLocationVisible = useCallback((lat: number, lng: number): boolean => {
+    if (!mapRef.current) return true;
+
+    try {
+      const bounds = mapRef.current.getBounds();
+      if (!bounds) return true;
+      
+      const ne = bounds.getNorthEast();
+      const sw = bounds.getSouthWest();
+      
+      return lat >= sw.lat() && lat <= ne.lat() && lng >= sw.lng() && lng <= ne.lng();
+    } catch (error) {
+      console.error('Error checking location visibility:', error);
+      return true;
+    }
+  }, []);
+
+  // Smart zoom when hovering over activities or selecting a day
+  useEffect(() => {
+    if (!mapRef.current || highlightedActivities.length === 0) return;
+
+    // Check if any highlighted activity is outside the visible bounds
+    const hasInvisibleActivity = highlightedActivities.some(activity => 
+      !isLocationVisible(activity.location.lat, activity.location.lng)
+    );
+
+    if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
+
+    // Calculate bounds to include all highlighted activities
+    const locations = highlightedActivities.map(a => a.location);
+    
+    try {
+      const bounds = new google.maps.LatLngBounds();
+      locations.forEach(location => {
+        bounds.extend({ lat: location.lat, lng: location.lng });
+      });
+      
+      mapRef.current.fitBounds(bounds, 100);
+      
+      // Limit max zoom for single points
+      if (locations.length === 1) {
+        setTimeout(() => {
+          if (mapRef.current) {
+            const currentZoom = mapRef.current.getZoom();
+            if (currentZoom && currentZoom > 15) {
+              mapRef.current.setZoom(15);
+            }
+          }
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error fitting bounds:', error);
+    }
+  }, [highlightedActivities, isLocationVisible]);
 
   if (loadError) {
     return (

@@ -12,7 +12,7 @@ export interface MapRendererProps {
   mapCenter: { lat: number; lng: number };
   mapZoom: number;
   selectedActivity: Activity | null;
-  onMapLoad?: (map: any) => void;
+  highlightedActivities: ActivityWithDay[];
   onMarkerClick: (activity: Activity) => void;
   onInfoWindowClose: () => void;
   getMarkerIcon: (activity: ActivityWithDay) => PinIconResult;
