@@ -23,7 +23,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           'hover:-translate-y-0.5',
           // Variant styles
           {
-            'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'default',
+            'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md': variant === 'default',
+            'dark:shadow-primary/30': variant === 'default',
             
             'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground': variant === 'primary',
             'hover:from-primary/90 hover:to-primary/70': variant === 'primary',
@@ -50,8 +51,9 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'dark:border-border/50 dark:hover:border-border dark:hover:bg-accent/50': variant === 'outline',
             'dark:hover:shadow-md dark:hover:shadow-primary/10': variant === 'outline',
             
-            'hover:bg-accent hover:text-accent-foreground': variant === 'ghost',
-            'dark:hover:bg-accent/50': variant === 'ghost',
+            'hover:bg-accent hover:text-accent-foreground text-muted-foreground/60': variant === 'ghost',
+            'dark:hover:bg-accent/50 dark:text-muted-foreground/60': variant === 'ghost',
+            'opacity-60 hover:opacity-100': variant === 'ghost',
           },
           // Size styles
           {
