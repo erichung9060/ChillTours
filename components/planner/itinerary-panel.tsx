@@ -18,7 +18,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { Itinerary, Activity, Day } from '@/types/itinerary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,8 @@ import {
   DragOverEvent,
   DragEndEvent,
   useDroppable,
+  Active,
+  Over,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -146,7 +148,10 @@ interface DayActivitiesListProps {
 }
 
 function DayActivitiesList({ day, activeId, crossDayDragInfo, onActivityHover }: DayActivitiesListProps) {
-  if (day.activities.length === 0) {
+  const activities = day.activities;
+  const itemIds = useMemo(() => activities.map((a) => a.id), [activities]);
+
+  if (activities.length === 0) {
     return (
       <DroppableDay
         dayNumber={day.day_number}
@@ -157,7 +162,7 @@ function DayActivitiesList({ day, activeId, crossDayDragInfo, onActivityHover }:
 
   return (
     <SortableContext
-      items={day.activities.map((a) => a.id)}
+      items={itemIds}
       strategy={verticalListSortingStrategy}
     >
       <div className="space-y-0">
@@ -301,6 +306,154 @@ function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimati
   );
 }
 
+const handleEmptyDayDrop = (
+  activeId: string,
+  overData: any,
+  newItinerary: Itinerary,
+  sourceDayNumber: number,
+  cloneDay: (index: number) => Day
+) => {
+  const targetDayNumber = overData.dayNumber;
+  const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
+  const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
+
+  if (sourceDayIndex === -1 || targetDayIndex === -1) return null;
+
+  const sourceDay = cloneDay(sourceDayIndex);
+  const targetDay = cloneDay(targetDayIndex);
+
+  const activeIndex = sourceDay.activities.findIndex(a => a.id === activeId);
+  if (activeIndex === -1) return null;
+
+  const crossDayInfo = { sourceDayNumber, targetDayNumber };
+  const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
+  targetDay.activities = [movedActivity];
+  movedActivity.order = 0;
+
+  sourceDay.activities.forEach((activity, index) => { activity.order = index; });
+
+  return { newItinerary, crossDayInfo };
+};
+
+const handleSameDayDrag = (
+  activeId: string,
+  overId: string,
+  newItinerary: Itinerary,
+  sourceDayNumber: number,
+  cloneDay: (index: number) => Day
+) => {
+  const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
+  if (sourceDayIndex === -1) return null;
+
+  const sourceDay = cloneDay(sourceDayIndex);
+  const activeIndex = sourceDay.activities.findIndex(a => a.id === activeId);
+  const overIndex = sourceDay.activities.findIndex(a => a.id === overId);
+
+  if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return null;
+
+  const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
+  sourceDay.activities.splice(overIndex, 0, movedActivity);
+
+  sourceDay.activities.forEach((activity, index) => { activity.order = index; });
+
+  return { newItinerary, crossDayInfo: null };
+};
+
+const handleCrossDayDrag = (
+  active: Active,
+  over: Over,
+  newItinerary: Itinerary,
+  sourceDayNumber: number,
+  targetDayNumber: number,
+  cloneDay: (index: number) => Day
+) => {
+  const activeId = active.id as string;
+  const overId = over.id as string;
+
+  const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
+  const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
+
+  if (sourceDayIndex === -1 || targetDayIndex === -1) return null;
+
+  const sourceDay = cloneDay(sourceDayIndex);
+  const targetDay = cloneDay(targetDayIndex);
+
+  const activeIndex = sourceDay.activities.findIndex(a => a.id === activeId);
+  if (activeIndex === -1) return null;
+
+  const crossDayInfo = { sourceDayNumber, targetDayNumber };
+  const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
+
+  const overIndex = targetDay.activities.findIndex(a => a.id === overId);
+
+  if (overIndex !== -1) {
+    let newIndex = overIndex;
+
+    const isBelowOverItem =
+      over &&
+      active.rect.current.translated &&
+      active.rect.current.translated.top >
+      over.rect.top + over.rect.height;
+
+    const modifier = isBelowOverItem ? 1 : 0;
+
+    newIndex = overIndex >= 0 ? overIndex + modifier : targetDay.activities.length + 1;
+
+    targetDay.activities.splice(newIndex, 0, movedActivity);
+  } else {
+    targetDay.activities.push(movedActivity);
+  }
+
+  sourceDay.activities.forEach((activity, index) => { activity.order = index; });
+  targetDay.activities.forEach((activity, index) => { activity.order = index; });
+
+  return { newItinerary, crossDayInfo };
+};
+
+// Helper to calculate new itinerary state during drag over
+const calculateDragOverUpdate = (
+  active: Active,
+  over: Over,
+  activeData: any,
+  overData: any,
+  itinerary: Itinerary
+): { newItinerary: Itinerary; crossDayInfo: { sourceDayNumber: number; targetDayNumber: number } | null } | null => {
+  const activeId = active.id as string;
+  const overId = over.id as string;
+  const sourceDayNumber = activeData.dayNumber;
+  const newItinerary = { ...itinerary };
+  newItinerary.days = [...newItinerary.days];
+
+  const cloneDay = (dayIndex: number) => {
+    newItinerary.days[dayIndex] = {
+      ...newItinerary.days[dayIndex],
+      activities: [...newItinerary.days[dayIndex].activities],
+    };
+    return newItinerary.days[dayIndex];
+  };
+
+  if (overData?.isEmpty) {
+    return handleEmptyDayDrop(activeId, overData, newItinerary, sourceDayNumber, cloneDay);
+  }
+
+  if (!overData) return null;
+
+  const targetDayNumber = overData.dayNumber;
+
+  if (sourceDayNumber === targetDayNumber) {
+    return handleSameDayDrag(activeId, overId, newItinerary, sourceDayNumber, cloneDay);
+  } else {
+    return handleCrossDayDrag(
+      active,
+      over,
+      newItinerary,
+      sourceDayNumber,
+      targetDayNumber,
+      cloneDay
+    );
+  }
+};
+
 interface ItineraryPanelProps {
   itinerary: Itinerary;
   onUpdate: (itinerary: Itinerary) => void;
@@ -399,117 +552,23 @@ export function ItineraryPanel({
       return;
     }
 
-    // Get source and target information
     const activeData = active.data.current;
     const overData = over.data.current;
 
-    if (!activeData) return;
+    if (!activeData || !overData) return;
     if (active.id === over.id) return;
 
-    const sourceDayNumber = activeData.dayNumber;
+    const result = calculateDragOverUpdate(
+      active,
+      over,
+      activeData,
+      overData,
+      itinerary
+    );
 
-    // Handle dropping on empty day
-    if (overData?.isEmpty) {
-      const targetDayNumber = overData.dayNumber;
-
-      const newItinerary = { ...itinerary };
-      const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
-      const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
-
-      if (sourceDayIndex === -1 || targetDayIndex === -1) return;
-
-      const sourceDay = newItinerary.days[sourceDayIndex];
-      const targetDay = newItinerary.days[targetDayIndex];
-
-      // Find the activity being dragged
-      const activeIndex = sourceDay.activities.findIndex(a => a.id === active.id);
-      if (activeIndex === -1) return;
-
-      // Cross-day: disable animation for target day
-      setCrossDayDragInfo({
-        sourceDayNumber,
-        targetDayNumber,
-      });
-
-      // Remove from source day
-      const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
-
-      // Add to empty target day
-      targetDay.activities = [movedActivity];
-      movedActivity.order = 0;
-
-      // Update order property for source day
-      sourceDay.activities.forEach((activity, index) => {
-        activity.order = index;
-      });
-
-      onUpdate(newItinerary);
-      return;
-    }
-
-    if (!overData) return;
-
-    const targetDayNumber = overData.dayNumber;
-
-    const newItinerary = { ...itinerary };
-    const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
-    const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
-
-    if (sourceDayIndex === -1 || targetDayIndex === -1) return;
-
-    const sourceDay = newItinerary.days[sourceDayIndex];
-    const targetDay = newItinerary.days[targetDayIndex];
-
-    // Find the activity being dragged
-    const activeIndex = sourceDay.activities.findIndex(a => a.id === active.id);
-    if (activeIndex === -1) return;
-
-    if (sourceDayNumber === targetDayNumber) {
-      // Same day: enable animation
-      setCrossDayDragInfo(null);
-
-      const overIndex = sourceDay.activities.findIndex(a => a.id === over.id);
-      if (overIndex === -1 || activeIndex === overIndex) return;
-
-      // Create a new array with the reordered items
-      const reorderedActivities = [...sourceDay.activities];
-      const [movedActivity] = reorderedActivities.splice(activeIndex, 1);
-      reorderedActivities.splice(overIndex, 0, movedActivity);
-
-      // Update order property
-      reorderedActivities.forEach((activity, index) => {
-        activity.order = index;
-      });
-
-      sourceDay.activities = reorderedActivities;
-      onUpdate(newItinerary);
-    } else {
-      // Cross-day: disable animation for target day
-      setCrossDayDragInfo({
-        sourceDayNumber,
-        targetDayNumber,
-      });
-
-      // Remove from source day
-      const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
-
-      // Find insertion position in target day
-      const overIndex = targetDay.activities.findIndex(a => a.id === over.id);
-      if (overIndex !== -1) {
-        targetDay.activities.splice(overIndex, 0, movedActivity);
-      } else {
-        targetDay.activities.push(movedActivity);
-      }
-
-      // Update order property for all activities in both days
-      sourceDay.activities.forEach((activity, index) => {
-        activity.order = index;
-      });
-      targetDay.activities.forEach((activity, index) => {
-        activity.order = index;
-      });
-
-      onUpdate(newItinerary);
+    if (result) {
+      setCrossDayDragInfo(result.crossDayInfo);
+      onUpdate(result.newItinerary);
     }
   };
 
