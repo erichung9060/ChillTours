@@ -19,7 +19,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Itinerary } from '@/types/itinerary';
+import type { Itinerary, Activity, Day } from '@/types/itinerary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -139,7 +139,7 @@ function DroppableDay({ dayNumber, isOver }: DroppableDayProps) {
 
 // Day Activities List Component - Handles both empty and populated days
 interface DayActivitiesListProps {
-  day: any;
+  day: Day;
   activeId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
   onActivityHover?: (activityId: string | null) => void;
@@ -157,11 +157,11 @@ function DayActivitiesList({ day, activeId, crossDayDragInfo, onActivityHover }:
 
   return (
     <SortableContext
-      items={day.activities.map((a: any) => a.id)}
+      items={day.activities.map((a) => a.id)}
       strategy={verticalListSortingStrategy}
     >
       <div className="space-y-0">
-        {day.activities.map((activity: any) => (
+        {day.activities.map((activity) => (
           <SortableActivity
             key={activity.id}
             activity={activity}
@@ -177,7 +177,7 @@ function DayActivitiesList({ day, activeId, crossDayDragInfo, onActivityHover }:
 
 // Activity Card Component - Shared between SortableActivity and DragOverlay
 interface ActivityCardProps {
-  activity: any;
+  activity: Activity;
   className?: string;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -254,7 +254,7 @@ function ActivityCard({ activity, className, onMouseEnter, onMouseLeave }: Activ
 
 // Sortable Activity Item Component
 interface SortableActivityProps {
-  activity: any;
+  activity: Activity;
   dayNumber: number;
   onActivityHover?: (activityId: string | null) => void;
   disableAnimation?: boolean;
