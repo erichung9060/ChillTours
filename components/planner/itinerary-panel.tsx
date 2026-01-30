@@ -65,7 +65,7 @@ function DroppableDay({ dayNumber, isOver }: DroppableDayProps) {
       ref={setNodeRef}
       className={`min-h-[120px] transition-all ${
         isOver ? 'bg-primary/5' : ''
-      }`}
+        }`}
     />
   );
 }
@@ -86,7 +86,7 @@ function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimati
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
+  } = useSortable({
     id: activity.id,
     data: {
       activity,
@@ -110,7 +110,7 @@ function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimati
       <Card
         className={`mb-3 transition-all border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary ${
           isDragging ? 'shadow-2xl cursor-grabbing' : 'hover:shadow-md cursor-grab'
-        }`}
+          }`}
         onMouseEnter={() => onActivityHover?.(activity.id)}
         onMouseLeave={() => onActivityHover?.(null)}
       >
@@ -120,12 +120,12 @@ function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimati
             <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
               {activity.time}
             </div>
-            
+
             <div className="flex-1 min-w-0">
               <h4 className="font-semibold text-sm mb-2">
                 {activity.title}
               </h4>
-              
+
               <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -143,13 +143,13 @@ function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimati
                 </svg>
                 <span className="truncate">{activity.location.name}</span>
               </div>
-              
+
               {activity.description && (
                 <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
                   {activity.description}
                 </p>
               )}
-              
+
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <svg
@@ -191,11 +191,11 @@ interface ItineraryPanelProps {
   onCurrentDayChange: (dayIndex: number) => void;
 }
 
-export function ItineraryPanel({ 
-  itinerary, 
-  onUpdate, 
-  onFullscreenChange, 
-  onToggleChat, 
+export function ItineraryPanel({
+  itinerary,
+  onUpdate,
+  onFullscreenChange,
+  onToggleChat,
   isChatOpen,
   viewMode: externalViewMode,
   onViewModeChange,
@@ -207,7 +207,7 @@ export function ItineraryPanel({
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
   const viewMode = externalViewMode ?? internalViewMode;
   const setViewMode = onViewModeChange ?? setInternalViewMode;
-  
+
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(
     new Set(itinerary.days.map(d => d.day_number))
@@ -269,7 +269,7 @@ export function ItineraryPanel({
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-    
+
     if (!over) {
       setCrossDayDragInfo(null);
       return;
@@ -287,7 +287,7 @@ export function ItineraryPanel({
     // Handle dropping on empty day
     if (overData?.isEmpty) {
       const targetDayNumber = overData.dayNumber;
-      
+
       const newItinerary = { ...itinerary };
       const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
       const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
@@ -343,7 +343,7 @@ export function ItineraryPanel({
     if (sourceDayNumber === targetDayNumber) {
       // Same day: enable animation
       setCrossDayDragInfo(null);
-      
+
       const overIndex = sourceDay.activities.findIndex(a => a.id === over.id);
       if (overIndex === -1 || activeIndex === overIndex) return;
 
@@ -394,11 +394,19 @@ export function ItineraryPanel({
     setCrossDayDragInfo(null);
   };
 
+  // Helper function to format day information
+  const formatDayInfo = (date: string) => {
+    const dayDate = new Date(date);
+    const weekday = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
+    const monthDay = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return `${weekday}, ${monthDay}`;
+  };
+
   // Get the active activity for drag overlay
   const activeActivity = activeId
     ? itinerary.days
-        .flatMap(day => day.activities.map(activity => ({ activity, dayNumber: day.day_number })))
-        .find(({ activity }) => activity.id === activeId)
+      .flatMap(day => day.activities.map(activity => ({ activity, dayNumber: day.day_number })))
+      .find(({ activity }) => activity.id === activeId)
     : null;
 
   // Render expandable view (original view)
@@ -406,13 +414,11 @@ export function ItineraryPanel({
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {itinerary.days.map((day) => {
         const isExpanded = expandedDays.has(day.day_number);
-        const dayDate = new Date(day.date);
-        const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
-        const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const formattedDate = formatDayInfo(day.date);
 
         return (
-          <Card 
-            key={day.day_number} 
+          <Card
+            key={day.day_number}
             className="overflow-hidden"
           >
             <CardHeader
@@ -427,7 +433,7 @@ export function ItineraryPanel({
                     Day {day.day_number}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {dayName}, {dateStr}
+                    {formattedDate}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {day.activities.length} {day.activities.length === 1 ? 'activity' : 'activities'}
@@ -453,7 +459,7 @@ export function ItineraryPanel({
             {isExpanded && (
               <CardContent className="p-4 pt-0">
                 {day.activities.length === 0 ? (
-                  <DroppableDay 
+                  <DroppableDay
                     dayNumber={day.day_number}
                     isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
                   />
@@ -488,14 +494,12 @@ export function ItineraryPanel({
     const day = itinerary.days[currentDayIndex];
     if (!day) return null;
 
-    const dayDate = new Date(day.date);
-    const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'long' });
-    const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const formattedDate = formatDayInfo(day.date);
 
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navigation Controls */}
-        <div 
+        <div
           className="flex-shrink-0 flex items-center justify-between p-4 border-b border-border bg-background"
         >
           <Button
@@ -523,7 +527,7 @@ export function ItineraryPanel({
           <div className="text-center">
             <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
             <p className="text-sm text-muted-foreground">
-              {dayName}, {dateStr}
+              {formattedDate}
             </p>
           </div>
 
@@ -553,7 +557,7 @@ export function ItineraryPanel({
         {/* Day Content */}
         <div className="flex-1 overflow-y-auto p-4">
           {day.activities.length === 0 ? (
-            <DroppableDay 
+            <DroppableDay
               dayNumber={day.day_number}
               isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
             />
@@ -585,17 +589,15 @@ export function ItineraryPanel({
     <div className="flex-1 overflow-x-auto overflow-y-auto">
       <div className="flex gap-4 p-4 min-w-max">
         {itinerary.days.map((day) => {
-          const dayDate = new Date(day.date);
-          const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' });
-          const dateStr = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const formattedDate = formatDayInfo(day.date);
 
           return (
-            <div 
-              key={day.day_number} 
+            <div
+              key={day.day_number}
               className="w-80 flex-shrink-0"
             >
               <Card className="h-full flex flex-col">
-                <CardHeader 
+                <CardHeader
                   className="p-4 border-b border-border"
                   onMouseEnter={() => onDayHover?.(day.day_number)}
                   onMouseLeave={() => onDayHover?.(null)}
@@ -604,12 +606,12 @@ export function ItineraryPanel({
                     Day {day.day_number}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {dayName}, {dateStr}
+                    {formattedDate}
                   </p>
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
                   {day.activities.length === 0 ? (
-                    <DroppableDay 
+                    <DroppableDay
                       dayNumber={day.day_number}
                       isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
                     />
