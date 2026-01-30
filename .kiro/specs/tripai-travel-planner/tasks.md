@@ -221,7 +221,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 14: Pin Click Details Display**
   - **Validates: Requirements 6.2**
 
-- [ ] 16. Drag-and-Drop Itinerary Editing
+- [x] 16. Drag-and-Drop Itinerary Editing
   - Install and configure drag-and-drop library (dnd-kit or react-beautiful-dnd)
   - Implement drag handles on ActivityItem components
   - Add visual feedback during drag operations

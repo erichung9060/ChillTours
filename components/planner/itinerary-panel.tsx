@@ -6,17 +6,176 @@
  * - Single Day: One day at a time with navigation arrows
  * - Side-by-Side: All days in columns with fullscreen option
  * 
- * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5
+ * Features drag-and-drop reordering using dnd-kit:
+ * - Entire activity cards are draggable
+ * - Visual feedback during drag (elevated, semi-transparent)
+ * - Reorder within same day or move between days
+ * - Smooth animations for position changes
+ * - Insert between activities anywhere
+ * 
+ * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Itinerary } from '@/types/itinerary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragStartEvent,
+  DragOverEvent,
+  DragEndEvent,
+  useDroppable,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 type ViewMode = 'expandable' | 'single-day' | 'side-by-side';
+
+// Droppable Empty Day Component
+interface DroppableDayProps {
+  dayNumber: number;
+  isOver?: boolean;
+}
+
+function DroppableDay({ dayNumber, isOver }: DroppableDayProps) {
+  const { setNodeRef } = useDroppable({
+    id: `empty-day-${dayNumber}`,
+    data: {
+      dayNumber,
+      isEmpty: true,
+    },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[120px] transition-all ${
+        isOver ? 'bg-primary/5' : ''
+      }`}
+    />
+  );
+}
+
+// Sortable Activity Item Component
+interface SortableActivityProps {
+  activity: any;
+  dayNumber: number;
+  onActivityHover?: (activityId: string | null) => void;
+  disableAnimation?: boolean;
+}
+
+function SortableActivity({ activity, dayNumber, onActivityHover, disableAnimation }: SortableActivityProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id: activity.id,
+    data: {
+      activity,
+      dayNumber,
+    },
+    transition: disableAnimation ? null : {
+      duration: 200,
+      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    },
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: disableAnimation ? 'none' : transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <Card
+        className={`mb-3 transition-all border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary ${
+          isDragging ? 'shadow-2xl cursor-grabbing' : 'hover:shadow-md cursor-grab'
+        }`}
+        onMouseEnter={() => onActivityHover?.(activity.id)}
+        onMouseLeave={() => onActivityHover?.(null)}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            {/* Time Badge */}
+            <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
+              {activity.time}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-sm mb-2">
+                {activity.title}
+              </h4>
+              
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span className="truncate">{activity.location.name}</span>
+              </div>
+              
+              {activity.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                  {activity.description}
+                </p>
+              )}
+              
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>{activity.duration_minutes} min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
 
 interface ItineraryPanelProps {
   itinerary: Itinerary;
@@ -54,6 +213,25 @@ export function ItineraryPanel({
     new Set(itinerary.days.map(d => d.day_number))
   );
 
+  // Drag and drop state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [crossDayDragInfo, setCrossDayDragInfo] = useState<{
+    sourceDayNumber: number;
+    targetDayNumber: number;
+  } | null>(null);
+
+  // Configure sensors for drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px movement required to start drag
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const toggleDay = (dayNumber: number) => {
     setExpandedDays(prev => {
       const next = new Set(prev);
@@ -83,74 +261,145 @@ export function ItineraryPanel({
     onFullscreenChange?.(newFullscreenState);
   };
 
-  // Render activity item as a draggable card (shared across view modes)
-  const renderActivity = (activity: any, dayNumber: number) => (
-    <Card
-      key={activity.id}
-      className="mb-3 hover:shadow-md transition-all cursor-move border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary"
-      onMouseEnter={() => onActivityHover?.(activity.id)}
-      onMouseLeave={() => onActivityHover?.(null)}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          {/* Time Badge */}
-          <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
-            {activity.time}
-          </div>
-          
-          <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-sm mb-2">
-              {activity.title}
-            </h4>
-            
-            <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              <span className="truncate">{activity.location.name}</span>
-            </div>
-            
-            {activity.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                {activity.description}
-              </p>
-            )}
-            
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <span>{activity.duration_minutes} min</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  // Drag and drop handlers
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+    setCrossDayDragInfo(null);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    
+    if (!over) {
+      setCrossDayDragInfo(null);
+      return;
+    }
+
+    // Get source and target information
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    if (!activeData) return;
+    if (active.id === over.id) return;
+
+    const sourceDayNumber = activeData.dayNumber;
+
+    // Handle dropping on empty day
+    if (overData?.isEmpty) {
+      const targetDayNumber = overData.dayNumber;
+      
+      const newItinerary = { ...itinerary };
+      const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
+      const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
+
+      if (sourceDayIndex === -1 || targetDayIndex === -1) return;
+
+      const sourceDay = newItinerary.days[sourceDayIndex];
+      const targetDay = newItinerary.days[targetDayIndex];
+
+      // Find the activity being dragged
+      const activeIndex = sourceDay.activities.findIndex(a => a.id === active.id);
+      if (activeIndex === -1) return;
+
+      // Cross-day: disable animation for target day
+      setCrossDayDragInfo({
+        sourceDayNumber,
+        targetDayNumber,
+      });
+
+      // Remove from source day
+      const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
+
+      // Add to empty target day
+      targetDay.activities = [movedActivity];
+      movedActivity.order = 0;
+
+      // Update order property for source day
+      sourceDay.activities.forEach((activity, index) => {
+        activity.order = index;
+      });
+
+      onUpdate(newItinerary);
+      return;
+    }
+
+    if (!overData) return;
+
+    const targetDayNumber = overData.dayNumber;
+
+    const newItinerary = { ...itinerary };
+    const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
+    const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
+
+    if (sourceDayIndex === -1 || targetDayIndex === -1) return;
+
+    const sourceDay = newItinerary.days[sourceDayIndex];
+    const targetDay = newItinerary.days[targetDayIndex];
+
+    // Find the activity being dragged
+    const activeIndex = sourceDay.activities.findIndex(a => a.id === active.id);
+    if (activeIndex === -1) return;
+
+    if (sourceDayNumber === targetDayNumber) {
+      // Same day: enable animation
+      setCrossDayDragInfo(null);
+      
+      const overIndex = sourceDay.activities.findIndex(a => a.id === over.id);
+      if (overIndex === -1 || activeIndex === overIndex) return;
+
+      // Create a new array with the reordered items
+      const reorderedActivities = [...sourceDay.activities];
+      const [movedActivity] = reorderedActivities.splice(activeIndex, 1);
+      reorderedActivities.splice(overIndex, 0, movedActivity);
+
+      // Update order property
+      reorderedActivities.forEach((activity, index) => {
+        activity.order = index;
+      });
+
+      sourceDay.activities = reorderedActivities;
+      onUpdate(newItinerary);
+    } else {
+      // Cross-day: disable animation for target day
+      setCrossDayDragInfo({
+        sourceDayNumber,
+        targetDayNumber,
+      });
+
+      // Remove from source day
+      const [movedActivity] = sourceDay.activities.splice(activeIndex, 1);
+
+      // Find insertion position in target day
+      const overIndex = targetDay.activities.findIndex(a => a.id === over.id);
+      if (overIndex !== -1) {
+        targetDay.activities.splice(overIndex, 0, movedActivity);
+      } else {
+        targetDay.activities.push(movedActivity);
+      }
+
+      // Update order property for all activities in both days
+      sourceDay.activities.forEach((activity, index) => {
+        activity.order = index;
+      });
+      targetDay.activities.forEach((activity, index) => {
+        activity.order = index;
+      });
+
+      onUpdate(newItinerary);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    setCrossDayDragInfo(null);
+  };
+
+  // Get the active activity for drag overlay
+  const activeActivity = activeId
+    ? itinerary.days
+        .flatMap(day => day.activities.map(activity => ({ activity, dayNumber: day.day_number })))
+        .find(({ activity }) => activity.id === activeId)
+    : null;
 
   // Render expandable view (original view)
   const renderExpandableView = () => (
@@ -203,9 +452,29 @@ export function ItineraryPanel({
 
             {isExpanded && (
               <CardContent className="p-4 pt-0">
-                <div className="space-y-0">
-                  {day.activities.map(activity => renderActivity(activity, day.day_number))}
-                </div>
+                {day.activities.length === 0 ? (
+                  <DroppableDay 
+                    dayNumber={day.day_number}
+                    isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
+                  />
+                ) : (
+                  <SortableContext
+                    items={day.activities.map(a => a.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-0">
+                      {day.activities.map(activity => (
+                        <SortableActivity
+                          key={activity.id}
+                          activity={activity}
+                          dayNumber={day.day_number}
+                          onActivityHover={onActivityHover}
+                          disableAnimation={crossDayDragInfo?.targetDayNumber === day.day_number}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                )}
               </CardContent>
             )}
           </Card>
@@ -283,9 +552,29 @@ export function ItineraryPanel({
 
         {/* Day Content */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-0">
-            {day.activities.map(activity => renderActivity(activity, day.day_number))}
-          </div>
+          {day.activities.length === 0 ? (
+            <DroppableDay 
+              dayNumber={day.day_number}
+              isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
+            />
+          ) : (
+            <SortableContext
+              items={day.activities.map(a => a.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-0">
+                {day.activities.map(activity => (
+                  <SortableActivity
+                    key={activity.id}
+                    activity={activity}
+                    dayNumber={day.day_number}
+                    onActivityHover={onActivityHover}
+                    disableAnimation={crossDayDragInfo?.targetDayNumber === day.day_number}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          )}
         </div>
       </div>
     );
@@ -319,9 +608,29 @@ export function ItineraryPanel({
                   </p>
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
-                  <div className="space-y-0">
-                    {day.activities.map(activity => renderActivity(activity, day.day_number))}
-                  </div>
+                  {day.activities.length === 0 ? (
+                    <DroppableDay 
+                      dayNumber={day.day_number}
+                      isOver={activeId !== null && crossDayDragInfo?.targetDayNumber === day.day_number}
+                    />
+                  ) : (
+                    <SortableContext
+                      items={day.activities.map(a => a.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-0">
+                        {day.activities.map(activity => (
+                          <SortableActivity
+                            key={activity.id}
+                            activity={activity}
+                            dayNumber={day.day_number}
+                            onActivityHover={onActivityHover}
+                            disableAnimation={crossDayDragInfo?.targetDayNumber === day.day_number}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -332,162 +641,231 @@ export function ItineraryPanel({
   );
 
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <div className="flex-1">
-          <h1 className="text-xl font-semibold">{itinerary.title}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {itinerary.destination}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {new Date(itinerary.start_date).toLocaleDateString()} - {new Date(itinerary.end_date).toLocaleDateString()}
-          </p>
-        </div>
-
-        {/* View Mode Controls */}
-        <div className="flex items-center gap-2">
-          {/* View Mode Selector */}
-          <div className="flex gap-1 bg-muted rounded-lg p-1">
-            <Button
-              variant={viewMode === 'expandable' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('expandable')}
-              className="h-8 px-3"
-              title="Expandable View"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <line x1="3" y1="9" x2="21" y2="9" />
-                <line x1="3" y1="15" x2="21" y2="15" />
-              </svg>
-            </Button>
-            <Button
-              variant={viewMode === 'single-day' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('single-day')}
-              className="h-8 px-3"
-              title="Single Day View"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-            </Button>
-            <Button
-              variant={viewMode === 'side-by-side' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('side-by-side')}
-              className="h-8 px-3"
-              title="Side-by-Side View"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="3" width="7" height="18" rx="1" />
-                <rect x="14" y="3" width="7" height="18" rx="1" />
-              </svg>
-            </Button>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="h-full flex flex-col bg-background">
+        {/* Header */}
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <div className="flex-1">
+            <h1 className="text-xl font-semibold">{itinerary.title}</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {itinerary.destination}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {new Date(itinerary.start_date).toLocaleDateString()} - {new Date(itinerary.end_date).toLocaleDateString()}
+            </p>
           </div>
 
-          {/* Fullscreen Toggle - Always visible, hidden on mobile */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleFullscreen}
-            className="hidden md:flex h-8 w-8 p-0"
-            title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-          >
-            {isFullscreen ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+          {/* View Mode Controls */}
+          <div className="flex items-center gap-2">
+            {/* View Mode Selector */}
+            <div className="flex gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={viewMode === 'expandable' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('expandable')}
+                className="h-8 px-3"
+                title="Expandable View"
               >
-                <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="3" y1="15" x2="21" y2="15" />
+                </svg>
+              </Button>
+              <Button
+                variant={viewMode === 'single-day' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('single-day')}
+                className="h-8 px-3"
+                title="Single Day View"
               >
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-              </svg>
-            )}
-          </Button>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </Button>
+              <Button
+                variant={viewMode === 'side-by-side' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('side-by-side')}
+                className="h-8 px-3"
+                title="Side-by-Side View"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="3" width="7" height="18" rx="1" />
+                  <rect x="14" y="3" width="7" height="18" rx="1" />
+                </svg>
+              </Button>
+            </div>
+
+            {/* Fullscreen Toggle - Always visible, hidden on mobile */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFullscreen}
+              className="hidden md:flex h-8 w-8 p-0"
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            >
+              {isFullscreen ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                </svg>
+              )}
+            </Button>
+          </div>
         </div>
+
+        {/* Content based on view mode */}
+        {viewMode === 'expandable' && renderExpandableView()}
+        {viewMode === 'single-day' && renderSingleDayView()}
+        {viewMode === 'side-by-side' && renderSideBySideView()}
+
+        {/* Chat Toggle Button - Fixed at bottom right corner, hidden on mobile */}
+        {onToggleChat && (
+          <button
+            onClick={onToggleChat}
+            className="hidden md:flex absolute bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 items-center justify-center"
+            aria-label={isChatOpen ? "Close chat" : "Open chat"}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        )}
       </div>
 
-      {/* Content based on view mode */}
-      {viewMode === 'expandable' && renderExpandableView()}
-      {viewMode === 'single-day' && renderSingleDayView()}
-      {viewMode === 'side-by-side' && renderSideBySideView()}
-
-      {/* Chat Toggle Button - Fixed at bottom right corner, hidden on mobile */}
-      {onToggleChat && (
-        <button
-          onClick={onToggleChat}
-          className="hidden md:flex absolute bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 items-center justify-center"
-          aria-label={isChatOpen ? "Close chat" : "Open chat"}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
-        </button>
-      )}
-    </div>
+      {/* Drag Overlay - Shows the dragged item following the cursor */}
+      <DragOverlay>
+        {activeActivity && (
+          <Card className="shadow-2xl border-b-4 border-r-4 border-b-primary border-r-primary opacity-90">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
+                  {activeActivity.activity.time}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm mb-2">
+                    {activeActivity.activity.title}
+                  </h4>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span className="truncate">{activeActivity.activity.location.name}</span>
+                  </div>
+                  {activeActivity.activity.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                      {activeActivity.activity.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      <span>{activeActivity.activity.duration_minutes} min</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 }
