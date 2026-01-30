@@ -45,6 +45,73 @@ import { CSS } from '@dnd-kit/utilities';
 
 type ViewMode = 'expandable' | 'single-day' | 'side-by-side';
 
+// View mode configuration
+const VIEW_MODES = [
+  {
+    id: 'expandable' as ViewMode,
+    title: 'Expandable View',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+        <line x1="3" y1="9" x2="21" y2="9" />
+        <line x1="3" y1="15" x2="21" y2="15" />
+      </svg>
+    ),
+  },
+  {
+    id: 'single-day' as ViewMode,
+    title: 'Single Day View',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    ),
+  },
+  {
+    id: 'side-by-side' as ViewMode,
+    title: 'Side-by-Side View',
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="3" width="7" height="18" rx="1" />
+        <rect x="14" y="3" width="7" height="18" rx="1" />
+      </svg>
+    ),
+  },
+] as const;
+
 // Droppable Empty Day Component
 interface DroppableDayProps {
   dayNumber: number;
@@ -648,6 +715,13 @@ export function ItineraryPanel({
     </div>
   );
 
+  // View renderers mapping
+  const viewRenderers: Record<ViewMode, () => React.ReactElement | null> = {
+    'expandable': renderExpandableView,
+    'single-day': renderSingleDayView,
+    'side-by-side': renderSideBySideView,
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -673,75 +747,18 @@ export function ItineraryPanel({
           <div className="flex items-center gap-2">
             {/* View Mode Selector */}
             <div className="flex gap-1 bg-muted rounded-lg p-1">
-              <Button
-                variant={viewMode === 'expandable' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('expandable')}
-                className="h-8 px-3"
-                title="Expandable View"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+              {VIEW_MODES.map((mode) => (
+                <Button
+                  key={mode.id}
+                  variant={viewMode === mode.id ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode(mode.id)}
+                  className="h-8 px-3"
+                  title={mode.title}
                 >
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="3" y1="15" x2="21" y2="15" />
-                </svg>
-              </Button>
-              <Button
-                variant={viewMode === 'single-day' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('single-day')}
-                className="h-8 px-3"
-                title="Single Day View"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                  <line x1="16" y1="2" x2="16" y2="6" />
-                  <line x1="8" y1="2" x2="8" y2="6" />
-                  <line x1="3" y1="10" x2="21" y2="10" />
-                </svg>
-              </Button>
-              <Button
-                variant={viewMode === 'side-by-side' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('side-by-side')}
-                className="h-8 px-3"
-                title="Side-by-Side View"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect x="3" y="3" width="7" height="18" rx="1" />
-                  <rect x="14" y="3" width="7" height="18" rx="1" />
-                </svg>
-              </Button>
+                  {mode.icon}
+                </Button>
+              ))}
             </div>
 
             {/* Fullscreen Toggle - Always visible, hidden on mobile */}
@@ -786,9 +803,7 @@ export function ItineraryPanel({
         </div>
 
         {/* Content based on view mode */}
-        {viewMode === 'expandable' && renderExpandableView()}
-        {viewMode === 'single-day' && renderSingleDayView()}
-        {viewMode === 'side-by-side' && renderSideBySideView()}
+        {viewRenderers[viewMode]()}
 
         {/* Chat Toggle Button - Fixed at bottom right corner, hidden on mobile */}
         {onToggleChat && (
