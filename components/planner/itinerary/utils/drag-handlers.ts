@@ -23,15 +23,29 @@ const cloneDayInItinerary = (
 };
 
 /**
+ * Context object for drag handlers
+ */
+interface DragHandlerContext {
+    active: Active;
+    over: Over;
+    activeData: any;
+    overData: any;
+    newItinerary: Itinerary;
+    cloneDay: (index: number) => Day;
+}
+
+/**
  * Handle dropping an activity on an empty day
  */
-export const handleEmptyDayDrop = (
-    draggingActivityId: string,
-    overData: any,
-    newItinerary: Itinerary,
-    sourceDayNumber: number,
-    cloneDay: (index: number) => Day
-) => {
+export const handleEmptyDayDrop = ({
+    active,
+    overData,
+    newItinerary,
+    activeData,
+    cloneDay
+}: DragHandlerContext) => {
+    const draggingActivityId = active.id as string;
+    const sourceDayNumber = activeData.dayNumber;
     const targetDayNumber = overData.dayNumber;
     const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
     const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
@@ -57,13 +71,17 @@ export const handleEmptyDayDrop = (
 /**
  * Handle dragging within the same day (reordering)
  */
-export const handleSameDayDrag = (
-    draggingActivityId: string,
-    overId: string,
-    newItinerary: Itinerary,
-    sourceDayNumber: number,
-    cloneDay: (index: number) => Day
-) => {
+export const handleSameDayDrag = ({
+    active,
+    over,
+    newItinerary,
+    activeData,
+    cloneDay
+}: DragHandlerContext) => {
+    const draggingActivityId = active.id as string;
+    const overId = over.id as string;
+    const sourceDayNumber = activeData.dayNumber;
+
     const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
     if (sourceDayIndex === -1) return null;
 
@@ -84,16 +102,18 @@ export const handleSameDayDrag = (
 /**
  * Handle dragging between different days
  */
-export const handleCrossDayDrag = (
-    active: Active,
-    over: Over,
-    newItinerary: Itinerary,
-    sourceDayNumber: number,
-    targetDayNumber: number,
-    cloneDay: (index: number) => Day
-) => {
+export const handleCrossDayDrag = ({
+    active,
+    over,
+    newItinerary,
+    activeData,
+    overData,
+    cloneDay
+}: DragHandlerContext) => {
     const draggingActivityId = active.id as string;
     const overId = over.id as string;
+    const sourceDayNumber = activeData.dayNumber;
+    const targetDayNumber = overData.dayNumber;
 
     const sourceDayIndex = newItinerary.days.findIndex(d => d.day_number === sourceDayNumber);
     const targetDayIndex = newItinerary.days.findIndex(d => d.day_number === targetDayNumber);
@@ -146,35 +166,36 @@ export const calculateDragOverUpdate = (
     overData: any,
     itinerary: Itinerary
 ): { newItinerary: Itinerary; crossDayInfo: { sourceDayNumber: number; targetDayNumber: number } | null } | null => {
-    const draggingActivityId = active.id as string;
-    const overId = over.id as string;
-    const sourceDayNumber = activeData.dayNumber;
     const newItinerary = { ...itinerary };
     newItinerary.days = [...newItinerary.days];
 
     const cloneDay = (dayIndex: number) => cloneDayInItinerary(newItinerary, dayIndex);
 
+    // Create context object
+    const context: DragHandlerContext = {
+        active,
+        over,
+        activeData,
+        overData,
+        newItinerary,
+        cloneDay
+    };
+
     // Handle dropping on empty day
     if (overData?.isEmpty) {
-        return handleEmptyDayDrop(draggingActivityId, overData, newItinerary, sourceDayNumber, cloneDay);
+        return handleEmptyDayDrop(context);
     }
 
     if (!overData) return null;
 
+    const sourceDayNumber = activeData.dayNumber;
     const targetDayNumber = overData.dayNumber;
 
     // Handle same-day reordering
     if (sourceDayNumber === targetDayNumber) {
-        return handleSameDayDrag(draggingActivityId, overId, newItinerary, sourceDayNumber, cloneDay);
+        return handleSameDayDrag(context);
     } else {
         // Handle cross-day drag
-        return handleCrossDayDrag(
-            active,
-            over,
-            newItinerary,
-            sourceDayNumber,
-            targetDayNumber,
-            cloneDay
-        );
+        return handleCrossDayDrag(context);
     }
 };
