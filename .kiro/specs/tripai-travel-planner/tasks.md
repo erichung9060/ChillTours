@@ -254,7 +254,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 15: Itinerary-Map Synchronization**
   - **Validates: Requirements 6.3, 7.3**
 
-- [ ] 18. Checkpoint - Core Planning Interface Complete
+- [x] 18. Checkpoint - Core Planning Interface Complete
   - Ensure all tests pass
   - Verify itinerary display works correctly
   - Verify map integration works
