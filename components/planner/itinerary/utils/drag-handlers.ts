@@ -17,7 +17,10 @@ const cloneDayInItinerary = (
 ): Day => {
     newItinerary.days[dayIndex] = {
         ...newItinerary.days[dayIndex],
-        activities: [...newItinerary.days[dayIndex].activities],
+        activities: newItinerary.days[dayIndex].activities.map(activity => ({
+            ...activity,
+            location: { ...activity.location },
+        })),
     };
     return newItinerary.days[dayIndex];
 };

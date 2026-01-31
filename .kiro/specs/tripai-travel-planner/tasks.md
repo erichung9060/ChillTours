@@ -231,15 +231,15 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Persist changes to session memory
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 16.1 Write property test for drag-drop reordering
+- [x] 16.1 Write property test for drag-drop reordering
   - **Property 16: Drag-Drop Reordering**
   - **Validates: Requirements 7.2**
 
-- [ ] 16.2 Write property test for cross-day movement
+- [x] 16.2 Write property test for cross-day movement
   - **Property 17: Cross-Day Activity Movement**
   - **Validates: Requirements 7.4**
 
-- [ ] 16.3 Write property test for reordering persistence
+- [x] 16.3 Write property test for reordering persistence
   - **Property 18: Reordering Persistence**
   - **Validates: Requirements 7.5**
 
