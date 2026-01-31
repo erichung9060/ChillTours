@@ -1,0 +1,88 @@
+/**
+ * Type definitions for Itinerary Panel components
+ */
+
+import type { Itinerary, Activity, Day } from '@/types/itinerary';
+
+export type ViewMode = 'expandable' | 'single-day' | 'side-by-side';
+
+export interface DroppableDayProps {
+    dayNumber: number;
+    isOver?: boolean;
+}
+
+export interface DayActivitiesListProps {
+    day: Day;
+    draggingActivityId: string | null;
+    crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
+    onActivityHover?: (activityId: string | null) => void;
+}
+
+export interface ActivityCardProps {
+    activity: Activity;
+    className?: string;
+    onMouseEnter?: () => void;
+    onMouseLeave?: () => void;
+}
+
+export interface SortableActivityProps {
+    activity: Activity;
+    dayNumber: number;
+    onActivityHover?: (activityId: string | null) => void;
+    disableAnimation?: boolean;
+}
+
+export interface ItineraryPanelProps {
+    itinerary: Itinerary;
+    onUpdate: (itinerary: Itinerary) => void;
+    onFullscreenChange?: (isFullscreen: boolean) => void;
+    onToggleChat?: () => void;
+    isChatOpen?: boolean;
+    viewMode?: ViewMode;
+    onViewModeChange?: (mode: ViewMode) => void;
+    onDayHover?: (dayNumber: number | null) => void;
+    onActivityHover?: (activityId: string | null) => void;
+    currentDayIndex: number;
+    onCurrentDayChange: (dayIndex: number) => void;
+}
+
+export interface PanelHeaderProps {
+    itinerary: Itinerary;
+    viewMode: ViewMode;
+    setViewMode: (mode: ViewMode) => void;
+    isFullscreen: boolean;
+    toggleFullscreen: () => void;
+}
+
+export interface ChatToggleButtonProps {
+    onToggleChat?: () => void;
+    isChatOpen?: boolean;
+}
+
+export interface ExpandableViewProps {
+    itinerary: Itinerary;
+    draggingActivityId: string | null;
+    crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
+    expandedDays: Set<number>;
+    toggleDay: (dayNumber: number) => void;
+    onDayHover?: (dayNumber: number | null) => void;
+    onActivityHover?: (activityId: string | null) => void;
+}
+
+export interface SingleDayViewProps {
+    itinerary: Itinerary;
+    currentDayIndex: number;
+    draggingActivityId: string | null;
+    crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
+    goToPreviousDay: () => void;
+    goToNextDay: () => void;
+    onActivityHover?: (activityId: string | null) => void;
+}
+
+export interface SideBySideViewProps {
+    itinerary: Itinerary;
+    draggingActivityId: string | null;
+    crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
+    onDayHover?: (dayNumber: number | null) => void;
+    onActivityHover?: (activityId: string | null) => void;
+}
