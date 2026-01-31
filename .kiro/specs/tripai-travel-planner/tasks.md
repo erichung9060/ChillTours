@@ -243,14 +243,14 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 18: Reordering Persistence**
   - **Validates: Requirements 7.5**
 
-- [ ] 17. Map-Itinerary Synchronization
+- [x] 17. Map-Itinerary Synchronization
   - Implement itinerary change observer
   - Update map pins when itinerary changes
-  - Highlight pin when itinerary item is clicked
+  - Highlight pin when itinerary item is hover
   - Maintain pin-activity correspondence
   - _Requirements: 6.3, 7.3_
 
-- [ ] 17.1 Write property test for itinerary-map synchronization
+- [x] 17.1 Write property test for itinerary-map synchronization
   - **Property 15: Itinerary-Map Synchronization**
   - **Validates: Requirements 6.3, 7.3**
 
