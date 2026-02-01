@@ -53,18 +53,74 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     setInput('');
     setIsStreaming(true);
 
-    // TODO: Implement actual chat API call in task 19
-    // For now, simulate a response
-    setTimeout(() => {
-      const assistantMessage: ChatMessage = {
+    try {
+      // Import AI client
+      const { aiClient } = await import('@/lib/ai/client');
+      
+      // Create streaming assistant message
+      const assistantMessageId = crypto.randomUUID();
+      let streamingContent = '';
+      
+      const streamingMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: '',
+        timestamp: Date.now(),
+        streaming: true,
+      };
+      
+      addMessage(streamingMessage);
+
+      // Call chat API with streaming
+      const result = await aiClient.chat(
+        {
+          message: userMessage.content,
+          history: chatHistory,
+          context: itinerary,
+        },
+        (chunk) => {
+          // Update streaming message content
+          streamingContent += chunk;
+          const updatedMessage: ChatMessage = {
+            ...streamingMessage,
+            content: streamingContent,
+          };
+          // Update the message in session
+          addMessage(updatedMessage);
+        }
+      );
+
+      // Mark message as complete
+      const finalMessage: ChatMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        content: result.message,
+        timestamp: Date.now(),
+        streaming: false,
+      };
+      
+      addMessage(finalMessage);
+
+      // Apply itinerary updates if present
+      if (result.updates && Object.keys(result.updates).length > 0) {
+        const updatedItinerary = {
+          ...itinerary,
+          ...result.updates,
+        };
+        onItineraryUpdate(updatedItinerary);
+      }
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: "I'm here to help you plan your trip! Chat functionality will be fully implemented soon.",
+        content: 'Sorry, I encountered an error. Please try again.',
         timestamp: Date.now(),
       };
-      addMessage(assistantMessage);
+      addMessage(errorMessage);
+    } finally {
       setIsStreaming(false);
-    }, 1000);
+    }
   };
 
   return (

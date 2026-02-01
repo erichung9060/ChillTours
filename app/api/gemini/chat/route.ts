@@ -49,10 +49,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get auth token from request header or use anon key
+    // 從請求中獲取用戶的 session token
     const authHeader = request.headers.get('authorization');
-    const token = authHeader?.replace('Bearer ', '') || supabaseAnonKey;
-
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Unauthorized. Please log in to use this feature.',
+          code: 'UNAUTHORIZED'
+        }),
+        { 
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     console.log('🔑 Proxying chat request to Edge Function');
     console.log('💬 Message:', message.substring(0, 50) + '...');
 
@@ -64,7 +75,7 @@ export async function POST(request: NextRequest) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': authHeader,
         },
         body: JSON.stringify({
           message,

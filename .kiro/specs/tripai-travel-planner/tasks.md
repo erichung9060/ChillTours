@@ -261,7 +261,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Verify drag-and-drop reordering works
   - Ask the user if questions arise
 
-- [ ] 19. Supabase Edge Function: Chat
+- [x] 19. Supabase Edge Function: Chat
   - Create Edge Function in supabase/functions/chat/
   - Implement chat endpoint with conversation history
   - Include itinerary context in API requests
@@ -270,11 +270,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Handle errors and retries
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 14.2, 14.3_
 
-- [ ] 19.1 Write property test for context inclusion
+- [x] 19.1 Write property test for context inclusion
   - **Property 6: Gemini API Request Context Inclusion**
   - **Validates: Requirements 3.1, 8.1**
 
-- [ ] 19.2 Write property test for itinerary update parsing
+- [x] 19.2 Write property test for itinerary update parsing
   - **Property 19: Itinerary Update Parsing and Application**
   - **Validates: Requirements 8.3**
 

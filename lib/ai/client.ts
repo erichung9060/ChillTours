@@ -150,7 +150,7 @@ export class AIClient {
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/AI/chat', {
+    const response = await fetch('/api/gemini/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -181,6 +181,7 @@ export class AIClient {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let fullMessage = '';
+    let updates: Partial<Itinerary> | undefined;
 
     try {
       while (true) {
@@ -188,17 +189,38 @@ export class AIClient {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        fullMessage += chunk;
-
-        // Notify callback
-        if (onChunk) {
-          onChunk(chunk);
+        
+        // Check for update marker
+        const updateMarkerIndex = chunk.indexOf('__UPDATES__:');
+        if (updateMarkerIndex !== -1) {
+          // Extract the message part before the marker
+          const messagePart = chunk.substring(0, updateMarkerIndex);
+          if (messagePart) {
+            fullMessage += messagePart;
+            if (onChunk) {
+              onChunk(messagePart);
+            }
+          }
+          
+          // Extract and parse the updates
+          const updatesJSON = chunk.substring(updateMarkerIndex + '__UPDATES__:'.length);
+          try {
+            const parsedUpdates = JSON.parse(updatesJSON);
+            if (parsedUpdates.changes) {
+              updates = parseItineraryUpdate(parsedUpdates.changes);
+            }
+          } catch (error) {
+            console.error('Failed to parse itinerary updates:', error);
+          }
+        } else {
+          fullMessage += chunk;
+          
+          // Notify callback
+          if (onChunk) {
+            onChunk(chunk);
+          }
         }
       }
-
-      // Check for itinerary updates in response
-      const jsonContent = extractJSON(fullMessage);
-      const updates = jsonContent ? parseItineraryUpdate(jsonContent) : undefined;
 
       return {
         message: fullMessage,
@@ -256,6 +278,7 @@ export class AIClient {
       const supabase = createClient(supabaseUrl, supabaseKey);
       const { data: { session } } = await supabase.auth.getSession();
 
+      // 返回用戶的 access token（這是真正的 JWT）
       return session?.access_token || null;
     } catch (error) {
       console.warn('Failed to get auth token:', error);
