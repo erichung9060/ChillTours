@@ -33,7 +33,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: ChatPanelProps) {
-  const { messages, addMessage } = useItineraryChat(itinerary.id);
+  const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -164,26 +164,57 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
           </svg>
           <h2 className="font-semibold">Chat</h2>
         </div>
-        {/* Close button - right arrow icon */}
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-accent rounded-lg transition-colors"
-          aria-label="Close chat"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <div className="flex items-center gap-2">
+          {/* Delete chat history button */}
+          {messages.length > 0 && (
+            <button
+              onClick={() => {
+                if (confirm('Delete all chat history for this itinerary?')) {
+                  clearMessages();
+                }
+              }}
+              className="p-2 hover:bg-accent rounded-lg transition-colors text-muted-foreground hover:text-destructive"
+              aria-label="Delete chat history"
+              title="Delete chat history"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 6h18" />
+                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+              </svg>
+            </button>
+          )}
+          {/* Close button - right arrow icon */}
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-accent rounded-lg transition-colors"
+            aria-label="Close chat"
           >
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Messages (Requirement 8.4) */}
