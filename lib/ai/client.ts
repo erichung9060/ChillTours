@@ -228,9 +228,9 @@ export class AIClient {
           }
         } catch (error) {
           console.error('Failed to parse itinerary updates:', error);
-          console.error('json part:', fullResponse);
         }
-        
+
+        console.log('ai response:', fullResponse);
         fullResponse = cleanMessage;
       } else {
         // Stream any remaining buffered content if no marker was found
