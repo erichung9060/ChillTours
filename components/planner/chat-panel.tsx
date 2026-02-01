@@ -22,6 +22,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useItineraryChat } from '@/hooks/use-itinerary-chat';
+import { MarkdownMessage } from './markdown-message';
 import type { Itinerary } from '@/types/itinerary';
 import type { ChatMessage } from '@/types/chat';
 
@@ -258,7 +259,12 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
                       : 'bg-muted text-foreground'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  {/* Render message content with Markdown support for assistant messages */}
+                  {message.role === 'assistant' ? (
+                    <MarkdownMessage content={message.content} />
+                  ) : (
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  )}
                   {/* Show streaming indicator for streaming messages (Requirement 18.2) */}
                   {message.streaming && (
                     <div className="flex items-center gap-1 mt-2">
