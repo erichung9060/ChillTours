@@ -75,7 +75,7 @@ export class AIClient {
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/AI/generate-itinerary', {
+    const response = await fetch('/api/gemini/generate-itinerary', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
