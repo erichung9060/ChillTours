@@ -35,7 +35,6 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
   const { session, addMessage, getChatHistory } = useSessionContext();
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const chatHistory = getChatHistory();
@@ -78,7 +77,6 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
       
       // Create streaming assistant message (Requirement 18.2)
       const assistantMessageId = crypto.randomUUID();
-      setStreamingMessageId(assistantMessageId);
       let streamingContent = '';
       
       const streamingMessage: ChatMessage = {
@@ -142,7 +140,6 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
       addMessage(errorMessage);
     } finally {
       setIsStreaming(false);
-      setStreamingMessageId(null);
     }
   }, [input, isStreaming, chatHistory, itinerary, addMessage, onItineraryUpdate]);
 
