@@ -60,13 +60,30 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
   /**
    * Add a message to chat history
+   * If a message with the same ID exists, it will be updated
    * Stored in memory only (Requirement 9.2)
    */
   const addMessage = useCallback((message: ChatMessage) => {
-    setSession((prev) => ({
-      ...prev,
-      chat_history: [...prev.chat_history, message],
-    }));
+    setSession((prev) => {
+      // Check if message with this ID already exists
+      const existingIndex = prev.chat_history.findIndex(m => m.id === message.id);
+      
+      if (existingIndex !== -1) {
+        // Update existing message
+        const updatedHistory = [...prev.chat_history];
+        updatedHistory[existingIndex] = message;
+        return {
+          ...prev,
+          chat_history: updatedHistory,
+        };
+      } else {
+        // Add new message
+        return {
+          ...prev,
+          chat_history: [...prev.chat_history, message],
+        };
+      }
+    });
   }, []);
 
   /**

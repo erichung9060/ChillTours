@@ -278,7 +278,7 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - **Property 19: Itinerary Update Parsing and Application**
   - **Validates: Requirements 8.3**
 
-- [ ] 20. Chat Interface Implementation
+- [x] 20. Chat Interface Implementation
   - Create ChatPanel component
   - Implement message display with user/assistant roles
   - Create message input component
@@ -288,11 +288,11 @@ This implementation plan breaks down the TripAI travel planner into discrete, in
   - Apply itinerary updates from AI responses
   - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 18.1, 18.2, 18.3_
 
-- [ ] 20.1 Write property test for streaming completion marking
+- [x] 20.1 Write property test for streaming completion marking
   - **Property 36: Streaming Completion Marking**
   - **Validates: Requirements 18.3**
 
-- [ ] 20.2 Write property test for session memory storage
+- [x] 20.2 Write property test for session memory storage
   - **Property 9: Session Memory Storage**
   - **Validates: Requirements 3.6, 8.5**
 
