@@ -163,47 +163,6 @@ Respond to the user's message:`;
   return prompt;
 }
 
-/**
- * Parse AI response to extract itinerary updates
- */
-function parseItineraryUpdates(response: string): {
-  message: string;
-  hasUpdates: boolean;
-  updates?: any;
-} {
-  // Look for ITINERARY_UPDATE marker
-  const updateMarker = 'ITINERARY_UPDATE:';
-  const markerIndex = response.indexOf(updateMarker);
-  
-  if (markerIndex === -1) {
-    return {
-      message: response,
-      hasUpdates: false,
-    };
-  }
-
-  // Split message and update JSON
-  const message = response.substring(0, markerIndex).trim();
-  const jsonPart = response.substring(markerIndex + updateMarker.length).trim();
-
-  try {
-    // Try to parse the JSON
-    const updates = JSON.parse(jsonPart);
-    return {
-      message,
-      hasUpdates: true,
-      updates,
-    };
-  } catch (error) {
-    console.error('Failed to parse itinerary updates:', error);
-    // If parsing fails, return the full response as message
-    return {
-      message: response,
-      hasUpdates: false,
-    };
-  }
-}
-
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -286,24 +245,12 @@ Deno.serve(async (req) => {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          let fullResponse = '';
-          
-          // Stream chunks from Gemini
+          // Stream chunks from Gemini directly to client
           for await (const chunk of result.stream) {
             const text = chunk.text();
             if (text) {
-              fullResponse += text;
               controller.enqueue(new TextEncoder().encode(text));
             }
-          }
-
-          // After streaming completes, check for itinerary updates
-          // and send a special marker if updates are present
-          const parsed = parseItineraryUpdates(fullResponse);
-          if (parsed.hasUpdates) {
-            // Send a special marker with the updates
-            const updateMarker = `\n\n__UPDATES__:${JSON.stringify(parsed.updates)}`;
-            controller.enqueue(new TextEncoder().encode(updateMarker));
           }
 
           controller.close();

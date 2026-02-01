@@ -143,7 +143,7 @@ export class AIClient {
    */
   async chat(
     options: ChatOptions,
-    onChunk?: (chunk: string) => void
+    onChunk: (chunk: string) => void
   ): Promise<{ message: string; updates?: Partial<Itinerary> }> {
     const { message, history, context } = options;
 
@@ -180,7 +180,11 @@ export class AIClient {
     // Stream response
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    let fullMessage = '';
+    const MARKER = 'ITINERARY_UPDATE:';
+    
+    let fullResponse = '';
+    let streamedUpTo = 0;
+    let markerFound = false;
     let updates: Partial<Itinerary> | undefined;
 
     try {
@@ -189,41 +193,52 @@ export class AIClient {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
+        fullResponse += chunk;
         
-        // Check for update marker
-        const updateMarkerIndex = chunk.indexOf('__UPDATES__:');
-        if (updateMarkerIndex !== -1) {
-          // Extract the message part before the marker
-          const messagePart = chunk.substring(0, updateMarkerIndex);
-          if (messagePart) {
-            fullMessage += messagePart;
-            if (onChunk) {
-              onChunk(messagePart);
-            }
-          }
-          
-          // Extract and parse the updates
-          const updatesJSON = chunk.substring(updateMarkerIndex + '__UPDATES__:'.length);
-          try {
-            const parsedUpdates = JSON.parse(updatesJSON);
-            if (parsedUpdates.changes) {
-              updates = parseItineraryUpdate(parsedUpdates.changes);
-            }
-          } catch (error) {
-            console.error('Failed to parse itinerary updates:', error);
-          }
+        if (markerFound) {
+          // Already found marker, just accumulate remaining content
+          continue;
+        }
+
+        const markerIndex = fullResponse.indexOf(MARKER);
+        
+        if (markerIndex !== -1) {
+          // Marker found - stream everything before it
+          this.streamContent(fullResponse, streamedUpTo, markerIndex, onChunk);
+          streamedUpTo = markerIndex;
+          markerFound = true;
         } else {
-          fullMessage += chunk;
-          
-          // Notify callback
-          if (onChunk) {
-            onChunk(chunk);
-          }
+          // No marker yet - stream safe content (keep buffer for potential split marker)
+          const safeUpTo = Math.max(0, fullResponse.length - MARKER.length);
+          this.streamContent(fullResponse, streamedUpTo, safeUpTo, onChunk);
+          streamedUpTo = safeUpTo;
         }
       }
 
+      // Parse updates if marker was found
+      if (markerFound) {
+        const markerIndex = fullResponse.indexOf(MARKER);
+        const cleanMessage = fullResponse.substring(0, markerIndex).trim();
+        const jsonPart = fullResponse.substring(markerIndex + MARKER.length).trim();
+        
+        try {
+          const parsedUpdates = JSON.parse(jsonPart);
+          if (parsedUpdates.changes) {
+            updates = parseItineraryUpdate(parsedUpdates.changes);
+          }
+        } catch (error) {
+          console.error('Failed to parse itinerary updates:', error);
+          console.error('json part:', fullResponse);
+        }
+        
+        fullResponse = cleanMessage;
+      } else {
+        // Stream any remaining buffered content if no marker was found
+        this.streamContent(fullResponse, streamedUpTo, fullResponse.length, onChunk);
+      }
+
       return {
-        message: fullMessage,
+        message: fullResponse,
         updates,
       };
     } catch (error) {
@@ -231,6 +246,22 @@ export class AIClient {
         `Failed to process chat response: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'CHAT_ERROR'
       );
+    }
+  }
+
+  /**
+   * Stream content from startIndex to endIndex
+   * Helper method to avoid code duplication
+   */
+  private streamContent(
+    content: string,
+    startIndex: number,
+    endIndex: number,
+    onChunk: (chunk: string) => void
+  ): void {
+    if (endIndex > startIndex) {
+      const toStream = content.substring(startIndex, endIndex);
+      onChunk(toStream);
     }
   }
 
