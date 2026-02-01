@@ -6,8 +6,9 @@
 
 'use client';
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
+import { useTheme } from '@/hooks/use-theme';
 import type { Activity } from '@/types/itinerary';
 import type { MapRendererProps } from './types';
 
@@ -168,6 +169,7 @@ export function GoogleMapRenderer({
   getMarkerIcon,
 }: MapRendererProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const { resolvedTheme } = useTheme();
 
   if (!apiKey) {
     return (
@@ -209,6 +211,7 @@ export function GoogleMapRenderer({
         gestureHandling="greedy"
         disableDefaultUI={false}
         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
+        colorScheme={resolvedTheme === 'dark' ? 'DARK' : 'LIGHT'}
       >
         <MapContent
           activities={activities}

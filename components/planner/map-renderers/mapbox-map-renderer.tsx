@@ -9,6 +9,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Map, { Marker, Popup } from 'react-map-gl/mapbox';
 import type { MapRef } from 'react-map-gl/mapbox';
+import { useTheme } from '@/hooks/use-theme';
 import type { Activity } from '@/types/itinerary';
 import type { MapRendererProps } from './types';
 
@@ -25,8 +26,14 @@ export function MapboxMapRenderer({
   const mapRef = useRef<MapRef>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<Error | null>(null);
+  const { resolvedTheme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
+
+  // Choose map style based on theme
+  const mapStyle = resolvedTheme === 'dark' 
+    ? 'mapbox://styles/mapbox/dark-v11' 
+    : 'mapbox://styles/mapbox/streets-v12';
 
   useEffect(() => {
     if (!mapboxToken) {
@@ -177,7 +184,7 @@ export function MapboxMapRenderer({
         zoom: mapZoom,
       }}
       style={{ width: '100%', height: '100%' }}
-      mapStyle="mapbox://styles/mapbox/streets-v12"
+      mapStyle={mapStyle}
       onLoad={handleMapLoad}
     >
       {/* Render markers for all activities */}
