@@ -162,7 +162,7 @@ export class AIClient {
           role: msg.role,
           content: msg.content,
         })),
-        context,
+        itinerary_context: context,
       }),
     });
 
