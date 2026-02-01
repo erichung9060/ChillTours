@@ -17,7 +17,6 @@ import { MapPanel } from '@/components/planner/map-panel';
 import { ChatPanel } from '@/components/planner/chat-panel';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
-import { useSessionContext } from '@/lib/session/session-provider';
 import type { Itinerary } from '@/types/itinerary';
 
 // Panel width constraints
@@ -45,7 +44,6 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
 export default function PlanningPage() {
   const params = useParams();
   const itineraryId = params.id as string;
-  const { session, setCurrentItinerary } = useSessionContext();
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,13 +83,8 @@ export default function PlanningPage() {
         setError(null);
 
         // TODO: Implement actual itinerary loading from database
-        // For now, use mock data or session data
-        if (session.current_itinerary) {
-          setItinerary(session.current_itinerary);
-          setIsLoading(false);
-          return;
-        }
-
+        // For now, use mock data
+        
         // Simulate loading
         await new Promise(resolve => setTimeout(resolve, 1000));
         
@@ -477,7 +470,6 @@ export default function PlanningPage() {
         };
 
         setItinerary(mockItinerary);
-        setCurrentItinerary(mockItinerary);
         setIsLoading(false);
       } catch (err) {
         console.error('Failed to load itinerary:', err);
@@ -487,7 +479,7 @@ export default function PlanningPage() {
     }
 
     loadItinerary();
-  }, [itineraryId, session.current_itinerary, setCurrentItinerary]);
+  }, [itineraryId]);
 
   // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
   useEffect(() => {
@@ -500,7 +492,6 @@ export default function PlanningPage() {
   // Handle itinerary updates
   const handleItineraryUpdate = (updatedItinerary: Itinerary) => {
     setItinerary(updatedItinerary);
-    setCurrentItinerary(updatedItinerary);
   };
 
   // Handle fullscreen mode change

@@ -11,6 +11,7 @@
  * - Message submission handling
  * - Auto-scroll to bottom
  * - Apply itinerary updates from AI responses
+ * - Persistent chat history per itinerary (localStorage)
  * 
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 18.1, 18.2, 18.3
  */
@@ -20,7 +21,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useSessionContext } from '@/lib/session/session-provider';
+import { useItineraryChat } from '@/hooks/use-itinerary-chat';
 import type { Itinerary } from '@/types/itinerary';
 import type { ChatMessage } from '@/types/chat';
 
@@ -32,17 +33,16 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: ChatPanelProps) {
-  const { session, addMessage, getChatHistory } = useSessionContext();
+  const { messages, addMessage } = useItineraryChat(itinerary.id);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const chatHistory = getChatHistory();
 
   // Auto-scroll to bottom when new messages arrive (Requirement 8.5)
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatHistory, isStreaming]);
+  }, [messages, isStreaming]);
 
   // Focus textarea when panel opens
   useEffect(() => {
@@ -66,7 +66,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
       timestamp: Date.now(),
     };
 
-    // Add user message to session memory (Requirement 8.5)
+    // Add user message to localStorage (Requirement 8.5)
     addMessage(userMessage);
     setInput('');
     setIsStreaming(true);
@@ -93,7 +93,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
       const result = await aiClient.chat(
         {
           message: userMessage.content,
-          history: chatHistory,
+          history: messages,
           context: itinerary,
         },
         (chunk) => {
@@ -104,7 +104,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
             content: streamingContent,
             streaming: true,
           };
-          // Update the message in session
+          // Update the message in localStorage
           addMessage(updatedMessage);
         }
       );
@@ -141,7 +141,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     } finally {
       setIsStreaming(false);
     }
-  }, [input, isStreaming, chatHistory, itinerary, addMessage, onItineraryUpdate]);
+  }, [input, isStreaming, messages, itinerary, addMessage, onItineraryUpdate]);
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -188,7 +188,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
 
       {/* Messages (Requirement 8.4) */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {chatHistory.length === 0 ? (
+        {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-sm">
               <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
@@ -215,7 +215,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
           </div>
         ) : (
           <>
-            {chatHistory.map((message) => (
+            {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}

@@ -33,16 +33,6 @@ export {
   StreamingResponseMetadataSchema,
 } from './chat';
 
-// Session types
-export type {
-  SessionState,
-  SessionContextValue,
-} from './session';
-
-export {
-  SessionStateSchema,
-} from './session';
-
 // Collaboration types
 export type {
   UserPresence,
