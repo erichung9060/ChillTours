@@ -74,12 +74,13 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     setInput('');
     setIsStreaming(true);
 
+    const assistantMessageId = crypto.randomUUID();
+
     try {
       // Import AI client
       const { aiClient } = await import('@/lib/ai/client');
       
       // Create streaming assistant message (Requirement 18.2)
-      const assistantMessageId = crypto.randomUUID();
       let streamingContent = '';
       
       const streamingMessage: ChatMessage = {
@@ -131,7 +132,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: ChatMessage = {
-        id: crypto.randomUUID(),
+        id: assistantMessageId,
         role: 'assistant',
         content: 'Sorry, I encountered an error. Please try again.',
         timestamp: Date.now(),
