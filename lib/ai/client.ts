@@ -12,7 +12,8 @@
 
 import type { Itinerary, ChatMessage } from '@/types';
 import { StreamingJSONParser } from './streaming-parser';
-import { parseItinerary, parseItineraryUpdate, extractJSON } from './parser';
+import { parseItinerary, extractJSON } from './parser';
+import { parseOperations, type OperationsUpdate } from './operations';
 
 /**
  * Error types for AI API
@@ -144,7 +145,7 @@ export class AIClient {
   async chat(
     options: ChatOptions,
     onChunk: (chunk: string) => void
-  ): Promise<{ message: string; updates?: Partial<Itinerary> }> {
+  ): Promise<{ message: string; operations?: OperationsUpdate }> {
     const { message, history, context } = options;
 
     // Get auth token if user is logged in
@@ -180,12 +181,12 @@ export class AIClient {
     // Stream response
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    const MARKER = 'ITINERARY_UPDATE:';
+    const OPERATIONS_MARKER = 'ITINERARY_OPERATIONS:';
     
     let fullResponse = '';
     let streamedUpTo = 0;
     let markerFound = false;
-    let updates: Partial<Itinerary> | undefined;
+    let operations: OperationsUpdate | undefined;
 
     try {
       while (true) {
@@ -200,34 +201,35 @@ export class AIClient {
           continue;
         }
 
-        const markerIndex = fullResponse.indexOf(MARKER);
-        
+        // Check for operations marker
+        const markerIndex = fullResponse.indexOf(OPERATIONS_MARKER);
         if (markerIndex !== -1) {
           // Marker found - stream everything before it
           this.streamContent(fullResponse, streamedUpTo, markerIndex, onChunk);
           streamedUpTo = markerIndex;
           markerFound = true;
-        } else {
-          // No marker yet - stream safe content (keep buffer for potential split marker)
-          const safeUpTo = Math.max(0, fullResponse.length - MARKER.length);
-          this.streamContent(fullResponse, streamedUpTo, safeUpTo, onChunk);
-          streamedUpTo = safeUpTo;
+          continue;
         }
+
+        // No marker yet - stream safe content (keep buffer for potential split marker)
+        const safeUpTo = Math.max(0, fullResponse.length - OPERATIONS_MARKER.length);
+        this.streamContent(fullResponse, streamedUpTo, safeUpTo, onChunk);
+        streamedUpTo = safeUpTo;
       }
 
-      // Parse updates if marker was found
+      // Parse operations if marker was found
       if (markerFound) {
-        const markerIndex = fullResponse.indexOf(MARKER);
+        const markerIndex = fullResponse.indexOf(OPERATIONS_MARKER);
         const cleanMessage = fullResponse.substring(0, markerIndex).trim();
-        const jsonPart = fullResponse.substring(markerIndex + MARKER.length).trim();
+        const jsonPart = fullResponse.substring(markerIndex + OPERATIONS_MARKER.length).trim();
         
         try {
-          const parsedUpdates = JSON.parse(jsonPart);
-          if (parsedUpdates.changes) {
-            updates = parseItineraryUpdate(parsedUpdates.changes);
+          const parsedOperations = parseOperations(JSON.parse(jsonPart));
+          if (parsedOperations) {
+            operations = parsedOperations;
           }
         } catch (error) {
-          console.error('Failed to parse itinerary updates:', error);
+          console.error('Failed to parse itinerary operations:', error);
         }
 
         console.log('ai response:', fullResponse);
@@ -239,7 +241,7 @@ export class AIClient {
 
       return {
         message: fullResponse,
-        updates,
+        operations,
       };
     } catch (error) {
       throw new AIError(

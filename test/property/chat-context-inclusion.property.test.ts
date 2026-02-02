@@ -18,19 +18,16 @@ import { itineraryArbitrary, chatMessageArbitrary } from "../utils/property-test
 function buildChatRequest(
   message: string,
   history: Array<{ role: string; content: string }>,
-  context: any,
-  customRequirements?: string
+  context: any
 ): {
   message: string;
   history: Array<{ role: string; content: string }>;
   context: any;
-  custom_requirements?: string;
 } {
   return {
     message,
     history,
     context,
-    ...(customRequirements !== undefined && { custom_requirements: customRequirements }),
   };
 }
 
@@ -105,33 +102,6 @@ describe("Chat Context Inclusion Properties", () => {
               itinerary.days[dayIndex].activities.length
             );
           });
-        }
-      ),
-      { numRuns: 20 }
-    );
-  });
-
-  test("Property 6.2: For any user message with custom requirements, the request should include them", async () => {
-    await fc.assert(
-      fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 200 }),
-        fc.array(chatMessageArbitrary, { minLength: 0, maxLength: 5 }),
-        fc.option(fc.string({ minLength: 1, maxLength: 500 }), { nil: undefined }),
-        async (message, history, customRequirements) => {
-          // Build request as Edge Function would
-          const request = buildChatRequest(
-            message,
-            history.map((msg) => ({ role: msg.role, content: msg.content })),
-            null,
-            customRequirements
-          );
-
-          // Property: Request should include custom requirements if provided
-          if (customRequirements !== undefined) {
-            expect(request.custom_requirements).toBe(customRequirements);
-          } else {
-            expect(request.custom_requirements).toBeUndefined();
-          }
         }
       ),
       { numRuns: 20 }

@@ -34,7 +34,6 @@ interface ChatRequest {
       }>;
     }>;
   };
-  custom_requirements?: string;
 }
 
 /**
@@ -88,8 +87,7 @@ async function verifyUser(req: Request): Promise<{ userId: string; email: string
  */
 function buildChatPrompt(
   message: string,
-  itineraryContext?: ChatRequest['itinerary_context'],
-  customRequirements?: string
+  itineraryContext?: ChatRequest['itinerary_context']
 ): string {
   let prompt = `You are a helpful travel planning assistant. The user is planning a trip and may ask you to modify their itinerary, suggest activities, or answer questions about their travel plans.
 
@@ -102,61 +100,122 @@ function buildChatPrompt(
 - Trip Duration: ${itineraryContext.start_date} to ${itineraryContext.end_date}
 - Title: ${itineraryContext.title}
 
-Days and Activities:
+Days and Activities (Note: Activity indices are 0-based, starting from 0):
 `;
     
     itineraryContext.days.forEach((day) => {
       prompt += `\nDay ${day.day_number} (${day.date}):\n`;
-      day.activities.forEach((activity) => {
-        prompt += `  - ${activity.time}: ${activity.title} at ${activity.location.name}\n`;
-        prompt += `    Description: ${activity.description}\n`;
-        prompt += `    Duration: ${activity.duration_minutes} minutes\n`;
+      day.activities.forEach((activity, index) => {
+        prompt += `  [${index}] ${activity.time}: ${activity.title} at ${activity.location.name}\n`;
+        prompt += `      Description: ${activity.description}\n`;
+        prompt += `      Duration: ${activity.duration_minutes} minutes\n`;
       });
     });
     
     prompt += '\n';
   }
 
-  // Include custom requirements if available
-  if (customRequirements) {
-    prompt += `Original Custom Requirements: ${customRequirements}\n\n`;
-  }
-
   prompt += `User Message: ${message}
 
-IMPORTANT INSTRUCTIONS:
-1. If the user asks to modify the itinerary (add/remove/change activities), respond with your suggestions in natural language.
-2. If you suggest itinerary changes, include a JSON block at the END of your response with the following format:
+IMPORTANT BEHAVIOR RULES
+1. If the user asks to add, remove, change, move, or rearrange itinerary activities, you MUST:
+   - First respond with a brief natural-language explanation of your suggestions.
+   - Then include a JSON block at the END of your response describing the exact operations.
+2. If the user does NOT request itinerary modifications, respond normally in natural language ONLY.
+3. Never output a JSON block unless itinerary changes are being suggested.
 
-ITINERARY_UPDATE:
+NON-NEGOTIABLE RULES
+- All activity_index and insert_at values are 0-based
+- Use MOVE instead of REMOVE + ADD when relocating activities
+- Operations are applied in sequence; order matters
+- Only include ITINERARY_OPERATIONS when suggesting specific changes
+- Do not include explanations inside the JSON block
+
+--------------------------------
+OPERATIONS FORMAT
+--------------------------------
+
+ITINERARY_OPERATIONS:
 {
-  "action": "update",
-  "changes": {
-    "days": [
-      {
-        "day_number": 1,
-        "activities": [
-          {
-            "time": "HH:MM",
-            "title": "Activity name",
-            "description": "Description",
-            "location": {
-              "name": "Location name",
-              "address": "Full address",
-              "lat": 0.0,
-              "lng": 0.0
-            },
-            "duration_minutes": 120
-          }
-        ]
+  "operations": [
+    {
+      "type": "ADD",
+      "day_number": 2,
+      "activity": {
+        "time": "14:00",
+        "title": "Tokyo Tower",
+        "description": "Visit the iconic tower",
+        "location": {
+          "name": "Tokyo Tower",
+          "address": "4-2-8 Shibakoen, Minato City, Tokyo",
+          "lat": 35.6586,
+          "lng": 139.7454
+        },
+        "duration_minutes": 90,
+        "insert_at": 2
       }
-    ]
+    },
+    {
+      "type": "REMOVE",
+      "day_number": 1,
+      "activity_index": 1
+    },
+    {
+      "type": "UPDATE",
+      "day_number": 3,
+      "activity_index": 0,
+      "changes": {
+        "time": "15:00",
+        "title": "Updated Title"
+      }
+    },
+    {
+      "type": "MOVE",
+      "from_day_number": 2,
+      "from_activity_index": 2,
+      "to_day_number": 3,
+      "insert_at": 0
+    },
+    {
+      "type": "REORDER",
+      "day_number": 1,
+      "activity_order": [1, 0, 2]
+    }
+  ],
+  "metadata": {
+    "title": "Optional new trip title",
+    "end_date": "Optional new end date"
   }
 }
 
-3. Only include the ITINERARY_UPDATE block if you are suggesting specific changes to the itinerary.
-4. For general questions or conversation, respond naturally without the JSON block.
-5. Be helpful, friendly, and provide accurate travel information.
+--------------------------------
+AVAILABLE OPERATION TYPES
+--------------------------------
+
+1. ADD
+- Use when creating a completely new activity.
+- Required: type, day_number, activity (time, title, location with name/address/lat/lng)
+- Optional: description, duration_minutes (default: 60), insert_at (0-based, default: append)
+
+2. REMOVE
+- Use when deleting an activity without adding it elsewhere.
+- Required: type, day_number, activity_index (0-based)
+
+3. UPDATE
+- Use when modifying an existing activity.
+- Required: type, day_number, activity_index (0-based), changes
+- Changes may include: time, title, description, location (partial), duration_minutes
+
+4. MOVE
+- Use when relocating an existing activity to a different day.
+- Required: type, from_day_number, from_activity_index (0-based), to_day_number
+- Optional: insert_at (0-based, default: append)
+- IMPORTANT: MOVE preserves all activity details.
+
+5. REORDER
+- Use when changing the order of activities within the same day.
+- Required: type, day_number, activity_order (array of 0-based indices)
+- Example: [1, 0, 2] moves the second activity to first position.
 
 Respond to the user's message:`;
 
@@ -189,7 +248,7 @@ Deno.serve(async (req) => {
     console.log("🔑 Authenticated user:", user.email);
     
     // Parse request body
-    const { message, history, itinerary_context, custom_requirements }: ChatRequest =
+    const { message, history, itinerary_context }: ChatRequest =
       await req.json();
 
     // Validate required fields
@@ -234,8 +293,7 @@ Deno.serve(async (req) => {
     // Build prompt with context
     const prompt = buildChatPrompt(
       message,
-      itinerary_context,
-      custom_requirements
+      itinerary_context
     );
 
     // Generate response with streaming

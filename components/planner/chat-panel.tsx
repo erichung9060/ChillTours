@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useItineraryChat } from '@/hooks/use-itinerary-chat';
 import { MarkdownMessage } from './markdown-message';
+import { applyOperations } from '@/lib/ai/operations';
 import type { Itinerary } from '@/types/itinerary';
 import type { ChatMessage } from '@/types/chat';
 
@@ -121,12 +122,9 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
       
       addMessage(finalMessage);
 
-      // Apply itinerary updates if present (Requirement 8.3)
-      if (result.updates && Object.keys(result.updates).length > 0) {
-        const updatedItinerary = {
-          ...itinerary,
-          ...result.updates,
-        };
+      // Apply itinerary operations if present
+      if (result.operations) {
+        const updatedItinerary = applyOperations(itinerary, result.operations);
         onItineraryUpdate(updatedItinerary);
       }
     } catch (error) {

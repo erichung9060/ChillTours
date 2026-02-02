@@ -12,7 +12,17 @@ export { StreamingJSONParser } from './streaming-parser';
 
 export {
   parseItinerary,
-  parseItineraryUpdate,
-  detectItineraryModification,
   extractJSON,
 } from './parser';
+
+export {
+  parseOperations,
+  applyOperations,
+  type Operation,
+  type OperationsUpdate,
+  type AddOperation,
+  type RemoveOperation,
+  type UpdateOperation,
+  type MoveOperation,
+  type ReorderOperation,
+} from './operations';

@@ -128,62 +128,6 @@ function parseLocation(location: any): Location {
 }
 
 /**
- * Parse partial itinerary update from AI response
- * 
- * Used for chat-based itinerary modifications
- * 
- * @param response - AI response containing updates
- * @returns Partial itinerary with updates
- */
-export function parseItineraryUpdate(
-  response: string | Record<string, any>
-): Partial<Itinerary> {
-  try {
-    const data = typeof response === 'string' ? JSON.parse(response) : response;
-
-    const update: Partial<Itinerary> = {};
-
-    if (data.title) update.title = data.title;
-    if (data.destination) update.destination = data.destination;
-    if (data.start_date) update.start_date = data.start_date;
-    if (data.end_date) update.end_date = data.end_date;
-    if (data.days) {
-      // Use start_date if available, otherwise use today
-      const startDate = data.start_date || new Date().toISOString().split('T')[0];
-      update.days = parseDays(data.days, startDate);
-    }
-
-    return update;
-  } catch (error) {
-    console.error('Failed to parse itinerary update:', error);
-    return {};
-  }
-}
-
-/**
- * Detect if AI response contains itinerary modification intent
- * 
- * @param message - AI message content
- * @returns True if message contains modification intent
- */
-export function detectItineraryModification(message: string): boolean {
-  const modificationKeywords = [
-    'updated',
-    'modified',
-    'changed',
-    'added',
-    'removed',
-    'replaced',
-    'moved',
-    'rescheduled',
-    'adjusted',
-  ];
-
-  const lowerMessage = message.toLowerCase();
-  return modificationKeywords.some((keyword) => lowerMessage.includes(keyword));
-}
-
-/**
  * Extract JSON from AI response that may contain text
  * 
  * @param response - AI response potentially containing JSON

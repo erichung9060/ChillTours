@@ -5,8 +5,6 @@
 import { describe, test, expect } from 'vitest';
 import {
   parseItinerary,
-  parseItineraryUpdate,
-  detectItineraryModification,
   extractJSON,
 } from '@/lib/ai/parser';
 
@@ -106,53 +104,6 @@ describe('parseItinerary', () => {
     };
 
     expect(() => parseItinerary(invalidJson, userId)).toThrow();
-  });
-});
-
-describe('parseItineraryUpdate', () => {
-  test('should parse partial update', () => {
-    const update = {
-      title: 'Updated Title',
-      days: [
-        {
-          day_number: 1,
-          date: '2024-01-01',
-          activities: [],
-        },
-      ],
-    };
-
-    const result = parseItineraryUpdate(update);
-
-    expect(result.title).toBe('Updated Title');
-    expect(result.days).toHaveLength(1);
-    expect(result.destination).toBeUndefined();
-  });
-
-  test('should handle empty update', () => {
-    const result = parseItineraryUpdate({});
-
-    expect(Object.keys(result)).toHaveLength(0);
-  });
-
-  test('should handle invalid JSON gracefully', () => {
-    const result = parseItineraryUpdate('invalid json');
-
-    expect(result).toEqual({});
-  });
-});
-
-describe('detectItineraryModification', () => {
-  test('should detect modification keywords', () => {
-    expect(detectItineraryModification('I updated the itinerary')).toBe(true);
-    expect(detectItineraryModification('I added a new activity')).toBe(true);
-    expect(detectItineraryModification('I removed the museum visit')).toBe(true);
-    expect(detectItineraryModification('I changed the time')).toBe(true);
-  });
-
-  test('should return false for non-modification messages', () => {
-    expect(detectItineraryModification('Here is your itinerary')).toBe(false);
-    expect(detectItineraryModification('What would you like to do?')).toBe(false);
   });
 });
 
