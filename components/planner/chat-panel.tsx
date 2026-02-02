@@ -38,6 +38,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
   const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isComposing, setIsComposing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -266,9 +267,9 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
                   {/* Show streaming indicator for streaming messages (Requirement 18.2) */}
                   {message.streaming && (
                     <div className="flex items-center gap-1 mt-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '0ms' }} />
+                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '200ms' }} />
+                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '400ms' }} />
                     </div>
                   )}
                   {/* Show timestamp only for completed messages */}
@@ -298,8 +299,10 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
             placeholder="Ask me anything about your trip..."
             disabled={isStreaming}
             className="min-h-[60px] max-h-[120px] resize-none"
+            onCompositionStart={() => setIsComposing(true)}
+            onCompositionEnd={() => setIsComposing(false)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
+              if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
                 e.preventDefault();
                 handleSubmit(e);
               }
