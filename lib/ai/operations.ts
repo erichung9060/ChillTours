@@ -49,7 +49,7 @@ export interface AddOperation {
 export interface RemoveOperation {
   type: 'REMOVE';
   day_number: number;
-  activity_index: number; // 0-based index (0 = first activity, 1 = second, etc.)
+  activity_index?: number; // Optional. If omitted, removes the entire day
 }
 
 /**
@@ -353,13 +353,36 @@ async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promis
 }
 
 /**
- * Remove activity from a day
+ * Remove activity from a day or remove the entire day
  */
 function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itinerary {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
   
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
+    return itinerary;
+  }
+
+  // If activity_index is omitted, remove the entire day
+  if (op.activity_index === undefined) {
+    // Remove the day
+    itinerary.days.splice(dayIndex, 1);
+    
+    // Renumber remaining days
+    itinerary.days.forEach((day, index) => {
+      day.day_number = index + 1;
+    });
+
+    // Update dates for all days to maintain continuity
+    updateDayDates(itinerary.days, itinerary.start_date);
+
+    // Update end_date based on new duration
+    if (itinerary.days.length > 0) {
+      itinerary.end_date = itinerary.days[itinerary.days.length - 1].date;
+    } else {
+      itinerary.end_date = itinerary.start_date;
+    }
+
     return itinerary;
   }
 

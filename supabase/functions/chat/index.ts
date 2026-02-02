@@ -121,6 +121,8 @@ IMPORTANT BEHAVIOR RULES
 3. Never output a JSON block unless itinerary changes are being suggested.
 
 NON-NEGOTIABLE RULES
+- Metadata changes are applied FIRST, then operations are applied in sequence
+- All day_number values in operations must refer to the state AFTER metadata changes are applied
 - All activity_index and insert_at values are 0-based
 - Use MOVE instead of REMOVE + ADD when relocating activities
 - Operations are applied in sequence; order matters
@@ -196,7 +198,8 @@ AVAILABLE OPERATION TYPES
 
 2. REMOVE
 - Use when deleting an activity without adding it elsewhere.
-- Required: type, day_number, activity_index (0-based)
+- Required: type, day_number
+- Optional: activity_index (0-based). IF OMITTED, THE ENTIRE DAY WILL BE REMOVED.
 
 3. UPDATE
 - Use when modifying an existing activity.
