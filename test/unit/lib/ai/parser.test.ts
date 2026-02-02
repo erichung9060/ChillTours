@@ -11,7 +11,7 @@ import {
 describe('parseItinerary', () => {
   const userId = '550e8400-e29b-41d4-a716-446655440000'; // Valid UUID
 
-  test('should parse valid itinerary JSON', () => {
+  test('should parse valid itinerary JSON', async () => {
     const json = {
       title: 'Tokyo Trip',
       destination: 'Tokyo',
@@ -38,7 +38,7 @@ describe('parseItinerary', () => {
       ],
     };
 
-    const result = parseItinerary(json, userId);
+    const result = await parseItinerary(json, userId);
 
     expect(result.title).toBe('Tokyo Trip');
     expect(result.destination).toBe('Tokyo');
@@ -47,7 +47,7 @@ describe('parseItinerary', () => {
     expect(result.days[0].activities).toHaveLength(1);
   });
 
-  test('should parse JSON string', () => {
+  test('should parse JSON string', async () => {
     const jsonString = JSON.stringify({
       destination: 'Paris',
       start_date: '2024-02-01',
@@ -61,12 +61,12 @@ describe('parseItinerary', () => {
       ],
     });
 
-    const result = parseItinerary(jsonString, userId);
+    const result = await parseItinerary(jsonString, userId);
 
     expect(result.destination).toBe('Paris');
   });
 
-  test('should generate IDs for missing fields', () => {
+  test('should generate IDs for missing fields', async () => {
     const json = {
       destination: 'London',
       start_date: '2024-03-01',
@@ -89,19 +89,19 @@ describe('parseItinerary', () => {
       ],
     };
 
-    const result = parseItinerary(json, userId);
+    const result = await parseItinerary(json, userId);
 
     expect(result.id).toBeDefined();
     expect(result.days[0].activities[0].id).toBeDefined();
   });
 
-  test('should throw error for invalid data', () => {
+  test('should throw error for invalid data', async () => {
     const invalidJson = {
       // Missing required fields
       destination: 'Test',
     };
 
-    expect(() => parseItinerary(invalidJson, userId)).toThrow();
+    await expect(parseItinerary(invalidJson, userId)).rejects.toThrow();
   });
 });
 
