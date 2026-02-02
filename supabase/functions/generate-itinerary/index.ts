@@ -135,8 +135,6 @@ Deno.serve(async (req) => {
         }
       );
     }
-
-    console.log("🔑 Authenticated user:", user.email);
     
     // Parse request body
     const { destination, startDate, endDate, custom_requirements }: GenerateItineraryRequest =

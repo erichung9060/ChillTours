@@ -68,8 +68,6 @@ async function verifyUser(req: Request): Promise<{ userId: string; email: string
       console.log("❌ Invalid token or user not found:", error?.message);
       return null;
     }
-
-    console.log("✅ User authenticated:", user.email);
     
     return {
       userId: user.id,
@@ -242,8 +240,6 @@ Deno.serve(async (req) => {
         }
       );
     }
-
-    console.log("🔑 Authenticated user:", user.email);
     
     // Parse request body
     const { message, history, itinerary_context }: ChatRequest =
