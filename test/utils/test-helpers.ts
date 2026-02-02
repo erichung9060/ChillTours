@@ -46,7 +46,6 @@ export function createMockItinerary() {
             description: "Test Description",
             location: {
               name: "Test Location",
-              address: "123 Test St",
               lat: 0,
               lng: 0,
             },

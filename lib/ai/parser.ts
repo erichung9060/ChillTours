@@ -120,7 +120,6 @@ function parseActivities(activities: any[]): Activity[] {
 function parseLocation(location: any): Location {
   return {
     name: location.name,
-    address: location.address,
     lat: location.lat,
     lng: location.lng,
     place_id: location.place_id,

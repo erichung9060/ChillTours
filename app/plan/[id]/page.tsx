@@ -108,7 +108,6 @@ export default function PlanningPage() {
                   description: 'Take the Narita Express to Tokyo Station',
                   location: {
                     name: 'Narita International Airport',
-                    address: '1-1 Furugome, Narita, Chiba 282-0004, Japan',
                     lat: 35.7647,
                     lng: 140.3864,
                   },
@@ -122,7 +121,6 @@ export default function PlanningPage() {
                   description: 'Drop off luggage and freshen up',
                   location: {
                     name: 'Shibuya Hotel',
-                    address: 'Shibuya, Tokyo, Japan',
                     lat: 35.6595,
                     lng: 139.7004,
                   },
@@ -136,7 +134,6 @@ export default function PlanningPage() {
                   description: 'Visit the famous scramble crossing and surrounding area',
                   location: {
                     name: 'Shibuya Crossing',
-                    address: '2 Chome-2-1 Dogenzaka, Shibuya City, Tokyo 150-0043, Japan',
                     lat: 35.6595,
                     lng: 139.7004,
                   },
@@ -150,7 +147,6 @@ export default function PlanningPage() {
                   description: 'Try authentic tonkotsu ramen at this famous chain',
                   location: {
                     name: 'Ichiran Shibuya',
-                    address: '1-22-7 Jinnan, Shibuya City, Tokyo 150-0041, Japan',
                     lat: 35.6627,
                     lng: 139.6989,
                   },
@@ -170,7 +166,6 @@ export default function PlanningPage() {
                   description: 'Fresh sushi breakfast and explore the market',
                   location: {
                     name: 'Tsukiji Outer Market',
-                    address: '4 Chome-16-2 Tsukiji, Chuo City, Tokyo 104-0045, Japan',
                     lat: 35.6654,
                     lng: 139.7707,
                   },
@@ -184,7 +179,6 @@ export default function PlanningPage() {
                   description: 'Visit Tokyo\'s oldest temple in Asakusa',
                   location: {
                     name: 'Senso-ji Temple',
-                    address: '2 Chome-3-1 Asakusa, Taito City, Tokyo 111-0032, Japan',
                     lat: 35.7148,
                     lng: 139.7967,
                   },
@@ -198,7 +192,6 @@ export default function PlanningPage() {
                   description: 'Try traditional Japanese street food',
                   location: {
                     name: 'Nakamise Shopping Street',
-                    address: '1 Chome-36-3 Asakusa, Taito City, Tokyo 111-0032, Japan',
                     lat: 35.7119,
                     lng: 139.7965,
                   },
@@ -212,7 +205,6 @@ export default function PlanningPage() {
                   description: 'Panoramic views from the observation deck',
                   location: {
                     name: 'Tokyo Skytree',
-                    address: '1 Chome-1-2 Oshiage, Sumida City, Tokyo 131-0045, Japan',
                     lat: 35.7101,
                     lng: 139.8107,
                   },
@@ -226,7 +218,6 @@ export default function PlanningPage() {
                   description: 'Explore the electric town and have dinner at a themed cafe',
                   location: {
                     name: 'Akihabara Electric Town',
-                    address: 'Sotokanda, Chiyoda City, Tokyo 101-0021, Japan',
                     lat: 35.7022,
                     lng: 139.7744,
                   },
@@ -246,7 +237,6 @@ export default function PlanningPage() {
                   description: 'Peaceful shrine surrounded by forest in the heart of Tokyo',
                   location: {
                     name: 'Meiji Shrine',
-                    address: '1-1 Yoyogikamizonocho, Shibuya City, Tokyo 151-8557, Japan',
                     lat: 35.6764,
                     lng: 139.6993,
                   },
@@ -260,7 +250,6 @@ export default function PlanningPage() {
                   description: 'Explore trendy fashion and unique shops',
                   location: {
                     name: 'Takeshita Street',
-                    address: '1 Chome-17 Jingumae, Shibuya City, Tokyo 150-0001, Japan',
                     lat: 35.6702,
                     lng: 139.7037,
                   },
@@ -274,7 +263,6 @@ export default function PlanningPage() {
                   description: 'Upscale dining in Tokyo\'s Champs-Élysées',
                   location: {
                     name: 'Omotesando',
-                    address: 'Jingumae, Shibuya City, Tokyo 150-0001, Japan',
                     lat: 35.6652,
                     lng: 139.7125,
                   },
@@ -288,7 +276,6 @@ export default function PlanningPage() {
                   description: 'Immersive digital art museum experience',
                   location: {
                     name: 'teamLab Borderless',
-                    address: '1-3-8 Aomi, Koto City, Tokyo 135-0064, Japan',
                     lat: 35.6251,
                     lng: 139.7753,
                   },
@@ -302,7 +289,6 @@ export default function PlanningPage() {
                   description: 'Waterfront dining with Rainbow Bridge views',
                   location: {
                     name: 'Odaiba Seaside Park',
-                    address: '1 Chome Daiba, Minato City, Tokyo 135-0091, Japan',
                     lat: 35.6297,
                     lng: 139.7744,
                   },
@@ -322,7 +308,6 @@ export default function PlanningPage() {
                   description: 'Scenic bus tour to Japan\'s iconic mountain',
                   location: {
                     name: 'Mount Fuji 5th Station',
-                    address: 'Narusawa, Minamitsuru District, Yamanashi 401-0320, Japan',
                     lat: 35.3606,
                     lng: 138.7274,
                   },
@@ -336,7 +321,6 @@ export default function PlanningPage() {
                   description: 'Local cuisine with lake and mountain views',
                   location: {
                     name: 'Lake Kawaguchi',
-                    address: 'Fujikawaguchiko, Minamitsuru District, Yamanashi 401-0301, Japan',
                     lat: 35.5131,
                     lng: 138.7634,
                   },
@@ -350,7 +334,6 @@ export default function PlanningPage() {
                   description: 'Eight sacred ponds with crystal clear spring water',
                   location: {
                     name: 'Oshino Hakkai',
-                    address: 'Shibokusa, Oshino, Minamitsuru District, Yamanashi 401-0511, Japan',
                     lat: 35.4564,
                     lng: 138.8419,
                   },
@@ -364,7 +347,6 @@ export default function PlanningPage() {
                   description: 'Bus ride back to the city',
                   location: {
                     name: 'Shinjuku Station',
-                    address: '3 Chome-38-1 Shinjuku, Shinjuku City, Tokyo 160-0022, Japan',
                     lat: 35.6896,
                     lng: 139.7006,
                   },
@@ -378,7 +360,6 @@ export default function PlanningPage() {
                   description: 'Explore the vibrant nightlife and dining scene',
                   location: {
                     name: 'Omoide Yokocho',
-                    address: '1 Chome-2 Nishishinjuku, Shinjuku City, Tokyo 160-0023, Japan',
                     lat: 35.6938,
                     lng: 139.7009,
                   },
@@ -398,7 +379,6 @@ export default function PlanningPage() {
                   description: 'Stroll through the beautiful palace gardens',
                   location: {
                     name: 'Imperial Palace East Gardens',
-                    address: '1-1 Chiyoda, Chiyoda City, Tokyo 100-8111, Japan',
                     lat: 35.6852,
                     lng: 139.7528,
                   },
@@ -412,7 +392,6 @@ export default function PlanningPage() {
                   description: 'Luxury shopping and window browsing',
                   location: {
                     name: 'Ginza',
-                    address: 'Ginza, Chuo City, Tokyo 104-0061, Japan',
                     lat: 35.6717,
                     lng: 139.7650,
                   },
@@ -426,7 +405,6 @@ export default function PlanningPage() {
                   description: 'Pick up gifts and souvenirs at Tokyo Station',
                   location: {
                     name: 'Tokyo Station',
-                    address: '1 Chome Marunouchi, Chiyoda City, Tokyo 100-0005, Japan',
                     lat: 35.6812,
                     lng: 139.7671,
                   },
@@ -440,7 +418,6 @@ export default function PlanningPage() {
                   description: 'Collect luggage and head to the airport',
                   location: {
                     name: 'Shibuya Hotel',
-                    address: 'Shibuya, Tokyo, Japan',
                     lat: 35.6595,
                     lng: 139.7004,
                   },
@@ -454,7 +431,6 @@ export default function PlanningPage() {
                   description: 'Check-in and departure',
                   location: {
                     name: 'Narita International Airport',
-                    address: '1-1 Furugome, Narita, Chiba 282-0004, Japan',
                     lat: 35.7647,
                     lng: 140.3864,
                   },

@@ -56,7 +56,7 @@ export class MapboxProvider implements MapProvider {
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   }
 
-  async geocodeAddress(address: string): Promise<Location | null> {
+  async geocodeAddress(locationName: string): Promise<Location | null> {
     // Mapbox Geocoding API implementation
     // Requires: NEXT_PUBLIC_MAPBOX_API_KEY environment variable
     const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
@@ -67,9 +67,9 @@ export class MapboxProvider implements MapProvider {
     }
 
     try {
-      const encodedAddress = encodeURIComponent(address);
+      const encodedLocation = encodeURIComponent(locationName);
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedAddress}.json?access_token=${apiKey}&limit=1`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedLocation}.json?access_token=${apiKey}&limit=1`
       );
 
       if (!response.ok) {
@@ -83,8 +83,7 @@ export class MapboxProvider implements MapProvider {
         const [lng, lat] = feature.center;
 
         return {
-          name: feature.place_name || address,
-          address: feature.place_name || address,
+          name: feature.place_name || locationName,
           lat,
           lng,
           place_id: feature.id,
@@ -109,7 +108,7 @@ export class MapboxProvider implements MapProvider {
     }
 
     try {
-      // Mapbox place IDs have format like "poi.123456789" or "address.123456789"
+      // Mapbox place IDs have format like "poi.123456789"
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(placeId)}.json?access_token=${apiKey}`
       );
@@ -128,7 +127,6 @@ export class MapboxProvider implements MapProvider {
         const details: PlaceDetails = {
           id: feature.id,
           name: feature.text || '',
-          address: feature.place_name || '',
           location: {
             lat,
             lng,

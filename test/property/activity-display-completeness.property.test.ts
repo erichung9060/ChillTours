@@ -146,7 +146,6 @@ describe("Activity Display Completeness Property Tests", () => {
           description: fc.string({ minLength: 0, maxLength: 500 }),
           location: fc.record({
             name: fc.string({ minLength: 1, maxLength: 100 }),
-            address: fc.string({ minLength: 1, maxLength: 200 }),
             lat: fc.double({ min: -90, max: 90 }),
             lng: fc.double({ min: -180, max: 180 }),
             place_id: fc.option(fc.string(), { nil: undefined }),
@@ -236,7 +235,6 @@ describe("Activity Display Completeness Property Tests", () => {
         description: "",
         location: {
           name: "A",
-          address: "B",
           lat: 0,
           lng: 0,
         },
@@ -250,7 +248,6 @@ describe("Activity Display Completeness Property Tests", () => {
         description: "x".repeat(500), // Max length description
         location: {
           name: "X".repeat(100), // Max length name
-          address: "Y".repeat(200), // Max length address
           lat: 90,
           lng: 180,
         },

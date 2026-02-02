@@ -6,7 +6,6 @@ import { z } from 'zod';
 
 export const LocationSchema = z.object({
   name: z.string().min(1, 'Location name is required'),
-  address: z.string().min(1, 'Address is required'),
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   place_id: z.string().optional(),

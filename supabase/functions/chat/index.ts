@@ -26,7 +26,6 @@ interface ChatRequest {
         description: string;
         location: {
           name: string;
-          address: string;
           lat: number;
           lng: number;
         };
@@ -147,7 +146,6 @@ ITINERARY_OPERATIONS:
         "description": "Visit the iconic tower",
         "location": {
           "name": "Tokyo Tower",
-          "address": "4-2-8 Shibakoen, Minato City, Tokyo",
           "lat": 35.6586,
           "lng": 139.7454
         },
@@ -194,7 +192,7 @@ AVAILABLE OPERATION TYPES
 
 1. ADD
 - Use when creating a completely new activity.
-- Required: type, day_number, activity (time, title, location with name/address/lat/lng)
+- Required: type, day_number, activity (time, title, location with name/lat/lng)
 - Optional: description, duration_minutes (default: 60), insert_at (0-based, default: append)
 
 2. REMOVE

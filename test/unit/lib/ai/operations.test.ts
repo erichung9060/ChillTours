@@ -28,7 +28,6 @@ const mockItinerary: Itinerary = {
           description: 'First activity',
           location: {
             name: 'Location 1',
-            address: 'Address 1',
             lat: 35.6762,
             lng: 139.6503,
           },
@@ -42,7 +41,6 @@ const mockItinerary: Itinerary = {
           description: 'Second activity',
           location: {
             name: 'Location 2',
-            address: 'Address 2',
             lat: 35.6812,
             lng: 139.7671,
           },
@@ -62,7 +60,6 @@ const mockItinerary: Itinerary = {
           description: 'Third activity',
           location: {
             name: 'Location 3',
-            address: 'Address 3',
             lat: 35.6595,
             lng: 139.7004,
           },
@@ -96,7 +93,6 @@ describe('Operations System', () => {
               description: 'Added activity',
               location: {
                 name: 'New Location',
-                address: 'New Address',
                 lat: 35.6586,
                 lng: 139.7454,
               },
@@ -123,7 +119,6 @@ describe('Operations System', () => {
               title: 'Inserted Activity',
               location: {
                 name: 'Location',
-                address: 'Address',
                 lat: 35.0,
                 lng: 139.0,
               },
@@ -150,7 +145,6 @@ describe('Operations System', () => {
               title: 'First Activity on Day 3',
               location: {
                 name: 'Location',
-                address: 'Address',
                 lat: 35.0,
                 lng: 139.0,
               },
@@ -243,7 +237,6 @@ describe('Operations System', () => {
       expect(updated.location.name).toBe('Updated Location');
       expect(updated.location.lat).toBe(36.0);
       // Other location fields should remain unchanged
-      expect(updated.location.address).toBe('Address 1');
       expect(updated.location.lng).toBe(139.6503);
     });
   });
@@ -330,7 +323,6 @@ describe('Operations System', () => {
               title: 'New Activity',
               location: {
                 name: 'Location',
-                address: 'Address',
                 lat: 35.0,
                 lng: 139.0,
               },
@@ -415,7 +407,6 @@ describe('Operations System', () => {
               title: 'Test',
               location: {
                 name: 'Test Location',
-                address: 'Test Address',
                 lat: 35.0,
                 lng: 139.0,
               },
@@ -475,7 +466,6 @@ describe('Operations System', () => {
               title: 'New Activity',
               location: {
                 name: 'Location',
-                address: 'Address',
                 lat: 35.0,
                 lng: 139.0,
               },
@@ -499,7 +489,6 @@ describe('Operations System', () => {
               title: 'Test',
               location: {
                 name: 'Location',
-                address: 'Address',
                 lat: 35.0,
                 lng: 139.0,
               },

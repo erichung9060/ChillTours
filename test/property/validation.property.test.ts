@@ -24,22 +24,6 @@ describe('Data Model Validation Properties', () => {
         fc.property(whitespaceStringArbitrary, (emptyName) => {
           const result = LocationSchema.safeParse({
             name: emptyName.trim(),
-            address: '123 Main St',
-            lat: 0,
-            lng: 0,
-          });
-          expect(result.success).toBe(false);
-        }),
-        { numRuns: 100 }
-      );
-    });
-
-    test('LocationSchema rejects empty address', () => {
-      fc.assert(
-        fc.property(whitespaceStringArbitrary, (emptyAddress) => {
-          const result = LocationSchema.safeParse({
-            name: 'Test Location',
-            address: emptyAddress.trim(),
             lat: 0,
             lng: 0,
           });
@@ -59,7 +43,6 @@ describe('Data Model Validation Properties', () => {
             description: 'Test description',
             location: {
               name: 'Test Location',
-              address: '123 Main St',
               lat: 0,
               lng: 0,
             },
@@ -165,7 +148,6 @@ describe('Data Model Validation Properties', () => {
           (invalidLat) => {
             const result = LocationSchema.safeParse({
               name: 'Test Location',
-              address: '123 Main St',
               lat: invalidLat,
               lng: 0,
             });
@@ -186,7 +168,6 @@ describe('Data Model Validation Properties', () => {
           (invalidLng) => {
             const result = LocationSchema.safeParse({
               name: 'Test Location',
-              address: '123 Main St',
               lat: 0,
               lng: invalidLng,
             });
@@ -209,7 +190,6 @@ describe('Data Model Validation Properties', () => {
               description: 'Test description',
               location: {
                 name: 'Test Location',
-                address: '123 Main St',
                 lat: 0,
                 lng: 0,
               },
@@ -238,7 +218,6 @@ describe('Data Model Validation Properties', () => {
               description: 'Test description',
               location: {
                 name: 'Test Location',
-                address: '123 Main St',
                 lat: 0,
                 lng: 0,
               },

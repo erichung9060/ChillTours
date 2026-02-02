@@ -85,9 +85,9 @@ export interface MapProvider {
   createNavigationLink(location: Location): string;
 
   /**
-   * Geocode an address
+   * Geocode a location name
    */
-  geocodeAddress(address: string): Promise<Location | null>;
+  geocodeAddress(locationName: string): Promise<Location | null>;
 
   /**
    * Get place details from a place ID
@@ -102,7 +102,6 @@ export interface MapProvider {
 export interface PlaceDetails {
   id: string;
   name: string;
-  address: string;
   location: {
     lat: number;
     lng: number;

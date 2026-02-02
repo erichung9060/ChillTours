@@ -51,7 +51,7 @@ export class GoogleMapsProvider implements MapProvider {
     return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   }
 
-  async geocodeAddress(address: string): Promise<Location | null> {
+  async geocodeAddress(locationName: string): Promise<Location | null> {
     if (!window.google || !window.google.maps) {
       console.error('Google Maps API not loaded');
       return null;
@@ -60,15 +60,14 @@ export class GoogleMapsProvider implements MapProvider {
     const geocoder = new window.google.maps.Geocoder();
 
     try {
-      const result = await geocoder.geocode({ address });
+      const result = await geocoder.geocode({ address: locationName });
       
       if (result.results && result.results.length > 0) {
         const place = result.results[0];
         const location = place.geometry.location;
         
         return {
-          name: place.formatted_address || address,
-          address: place.formatted_address || address,
+          name: place.formatted_address || locationName,
           lat: location.lat(),
           lng: location.lng(),
           place_id: place.place_id,
@@ -99,7 +98,6 @@ export class GoogleMapsProvider implements MapProvider {
           fields: [
             'place_id',
             'name',
-            'formatted_address',
             'geometry',
             'photos',
             'rating',
@@ -114,7 +112,6 @@ export class GoogleMapsProvider implements MapProvider {
             const details: PlaceDetails = {
               id: place.place_id || placeId,
               name: place.name || '',
-              address: place.formatted_address || '',
               location: {
                 lat: place.geometry?.location?.lat() || 0,
                 lng: place.geometry?.location?.lng() || 0,

@@ -401,7 +401,6 @@ describe('Property 23: Itinerary Save-Load Round-trip', () => {
               const originalLocation = itineraryToSave.days[dayIndex].activities[actIndex].location;
               
               expect(activity.location.name).toBe(originalLocation.name);
-              expect(activity.location.address).toBe(originalLocation.address);
               expect(activity.location.lat).toBe(originalLocation.lat);
               expect(activity.location.lng).toBe(originalLocation.lng);
               expect(activity.location.place_id).toBe(originalLocation.place_id);

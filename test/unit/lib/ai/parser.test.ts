@@ -28,7 +28,6 @@ describe('parseItinerary', () => {
               description: 'Morning temple visit',
               location: {
                 name: 'Senso-ji',
-                address: 'Tokyo, Japan',
                 lat: 35.7148,
                 lng: 139.7967,
               },
@@ -81,7 +80,6 @@ describe('parseItinerary', () => {
               title: 'Activity',
               location: {
                 name: 'Place',
-                address: 'Address',
                 lat: 51.5074,
                 lng: -0.1278,
               },

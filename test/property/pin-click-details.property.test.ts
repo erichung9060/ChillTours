@@ -16,7 +16,6 @@ import type { Activity, Location } from '@/types/itinerary';
 const arbitraryLocation = (): fc.Arbitrary<Location> =>
   fc.record({
     name: fc.string({ minLength: 1, maxLength: 100 }),
-    address: fc.string({ minLength: 1, maxLength: 200 }),
     lat: fc.double({ min: -90, max: 90, noNaN: true }),
     lng: fc.double({ min: -180, max: 180, noNaN: true }),
     place_id: fc.option(fc.string(), { nil: undefined }),
@@ -188,7 +187,6 @@ describe('Pin Click Details Display Property Tests', () => {
           description: fc.string({ minLength: 0, maxLength: 500 }),
           location: fc.record({
             name: fc.string({ minLength: 1, maxLength: 100 }),
-            address: fc.string({ minLength: 1, maxLength: 200 }),
             lat: fc.double({ min: -90, max: 90, noNaN: true }),
             lng: fc.double({ min: -180, max: 180, noNaN: true }),
             place_id: fc.option(fc.string(), { nil: undefined }),

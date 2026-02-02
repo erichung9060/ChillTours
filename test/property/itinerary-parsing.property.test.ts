@@ -35,7 +35,6 @@ function parseItinerary(aiResponse: string): Itinerary | null {
         description: activity.description || "",
         location: {
           name: activity.location?.name || "Unknown Location",
-          address: activity.location?.address || "",
           lat: activity.location?.lat || 0,
           lng: activity.location?.lng || 0,
           place_id: activity.location?.place_id,
@@ -87,7 +86,6 @@ function generateAIResponse(
       description: `Description for activity ${actIndex + 1}`,
       location: {
         name: `Location ${actIndex + 1}`,
-        address: `Address ${actIndex + 1}`,
         lat: 40.7128 + actIndex * 0.01,
         lng: -74.006 + actIndex * 0.01,
       },
@@ -164,7 +162,6 @@ describe("Itinerary Parsing Completeness Properties", () => {
                 expect(activity.description).toBeDefined();
                 expect(activity.location).toBeDefined();
                 expect(activity.location.name).toBeDefined();
-                expect(activity.location.address).toBeDefined();
                 expect(activity.location.lat).toBeDefined();
                 expect(activity.location.lng).toBeDefined();
                 expect(activity.duration_minutes).toBeDefined();

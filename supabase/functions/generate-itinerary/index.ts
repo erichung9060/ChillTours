@@ -84,7 +84,6 @@ IMPORTANT: You must respond with a valid JSON object that follows this exact str
           "description": "Detailed description",
           "location": {
             "name": "Location name",
-            "address": "Full address",
             "lat": 0.0,
             "lng": 0.0
           },
@@ -101,7 +100,6 @@ Requirements:
 - Each day should have 3-5 activities
 - Include realistic times (HH:MM format in 24-hour)
 - Provide accurate GPS coordinates (lat/lng) for each location
-- Include full addresses
 - Duration should be in minutes (typical: 60-240 minutes per activity)
 - Activities should be ordered chronologically within each day
 `;

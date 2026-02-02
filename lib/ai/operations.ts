@@ -33,7 +33,6 @@ export interface AddOperation {
     description?: string;
     location: {
       name: string;
-      address: string;
       lat: number;
       lng: number;
       place_id?: string;
@@ -65,7 +64,6 @@ export interface UpdateOperation {
     description?: string;
     location?: {
       name?: string;
-      address?: string;
       lat?: number;
       lng?: number;
       place_id?: string;
@@ -196,7 +194,6 @@ function applyAddOperation(itinerary: Itinerary, op: AddOperation): Itinerary {
     description: op.activity.description || '',
     location: {
       name: op.activity.location.name,
-      address: op.activity.location.address,
       lat: op.activity.location.lat,
       lng: op.activity.location.lng,
       place_id: op.activity.location.place_id,
@@ -286,7 +283,6 @@ function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Itiner
   // Update location (partial update)
   if (op.changes.location) {
     if (op.changes.location.name !== undefined) activity.location.name = op.changes.location.name;
-    if (op.changes.location.address !== undefined) activity.location.address = op.changes.location.address;
     if (op.changes.location.lat !== undefined) activity.location.lat = op.changes.location.lat;
     if (op.changes.location.lng !== undefined) activity.location.lng = op.changes.location.lng;
     if (op.changes.location.place_id !== undefined) activity.location.place_id = op.changes.location.place_id;

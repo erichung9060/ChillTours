@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MarkdownMessage } from './markdown-message';
+import { MarkdownMessage } from '@/components/planner/markdown-message';
 
 describe('MarkdownMessage', () => {
   it('renders plain text correctly', () => {
