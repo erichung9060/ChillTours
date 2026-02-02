@@ -30,3 +30,11 @@ export {
   type PinIconOptions,
   type PinIconResult,
 } from './pin-icons';
+
+// Geocoding utilities
+export {
+  geocodeLocation,
+  ensureLocationData,
+  batchGeocodeLocations,
+  type PartialLocation,
+} from './geocoding';

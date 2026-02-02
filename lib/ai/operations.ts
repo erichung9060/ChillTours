@@ -14,6 +14,8 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import type { Itinerary, Day, Activity } from '@/types';
+import { ensureLocationData } from '@/lib/maps/geocoding';
+import type { PartialLocation } from '@/lib/maps/geocoding';
 
 // ============================================================================
 // Operation Types
@@ -35,7 +37,6 @@ export interface AddOperation {
       name: string;
       lat: number;
       lng: number;
-      place_id?: string;
     };
     duration_minutes?: number;
     insert_at?: number; // Optional: insert at specific position (default: append)
@@ -63,10 +64,9 @@ export interface UpdateOperation {
     title?: string;
     description?: string;
     location?: {
-      name?: string;
-      lat?: number;
-      lng?: number;
-      place_id?: string;
+      name: string; // Required: location name
+      lat?: number; // Optional: LLM can provide coordinates
+      lng?: number; // Optional: LLM can provide coordinates
     };
     duration_minutes?: number;
   };
@@ -117,16 +117,16 @@ export interface OperationsUpdate {
 // ============================================================================
 
 /**
- * Apply a list of operations to an itinerary
+ * Apply a list of operations to an itinerary with automatic geocoding
  * 
  * @param itinerary - Current itinerary
  * @param operations - List of operations to apply
  * @returns Updated itinerary
  */
-export function applyOperations(
+export async function applyOperations(
   itinerary: Itinerary,
   operationsUpdate: OperationsUpdate
-): Itinerary {
+): Promise<Itinerary> {
   // Deep clone to avoid mutating original
   let updated = JSON.parse(JSON.stringify(itinerary)) as Itinerary;
 
@@ -141,7 +141,7 @@ export function applyOperations(
 
   // Apply each operation in sequence
   for (const operation of operationsUpdate.operations) {
-    updated = applyOperation(updated, operation);
+    updated = await applyOperation(updated, operation);
   }
 
   // Update timestamp
@@ -153,14 +153,14 @@ export function applyOperations(
 /**
  * Apply a single operation to an itinerary
  */
-function applyOperation(itinerary: Itinerary, operation: Operation): Itinerary {
+async function applyOperation(itinerary: Itinerary, operation: Operation): Promise<Itinerary> {
   switch (operation.type) {
     case 'ADD':
-      return applyAddOperation(itinerary, operation);
+      return await applyAddOperation(itinerary, operation);
     case 'REMOVE':
       return applyRemoveOperation(itinerary, operation);
     case 'UPDATE':
-      return applyUpdateOperation(itinerary, operation);
+      return await applyUpdateOperation(itinerary, operation);
     case 'MOVE':
       return applyMoveOperation(itinerary, operation);
     case 'REORDER':
@@ -176,9 +176,9 @@ function applyOperation(itinerary: Itinerary, operation: Operation): Itinerary {
 // ============================================================================
 
 /**
- * Add new activity to a day
+ * Add new activity to a day with automatic geocoding
  */
-function applyAddOperation(itinerary: Itinerary, op: AddOperation): Itinerary {
+async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promise<Itinerary> {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
   
   if (dayIndex === -1) {
@@ -186,18 +186,20 @@ function applyAddOperation(itinerary: Itinerary, op: AddOperation): Itinerary {
     return itinerary;
   }
 
+  // Ensure location has valid coordinates
+  const location = await ensureLocationData({
+    name: op.activity.location.name,
+    lat: op.activity.location.lat,
+    lng: op.activity.location.lng,
+  });
+
   // Create new activity with generated ID
   const newActivity: Activity = {
     id: uuidv4(),
     time: op.activity.time,
     title: op.activity.title,
     description: op.activity.description || '',
-    location: {
-      name: op.activity.location.name,
-      lat: op.activity.location.lat,
-      lng: op.activity.location.lng,
-      place_id: op.activity.location.place_id,
-    },
+    location,
     duration_minutes: op.activity.duration_minutes || 60,
     order: 0, // Will be recalculated
   };
@@ -252,9 +254,10 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
 }
 
 /**
- * Update existing activity
+ * Update existing activity with automatic geocoding for location changes
+ * Note: LLM can optionally provide coordinates; if not provided, geocoding API is used
  */
-function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Itinerary {
+async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Promise<Itinerary> {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
   
   if (dayIndex === -1) {
@@ -274,18 +277,21 @@ function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Itiner
 
   const activity = day.activities[activityIndex];
 
-  // Apply changes
+  // Apply simple field changes
   if (op.changes.time !== undefined) activity.time = op.changes.time;
   if (op.changes.title !== undefined) activity.title = op.changes.title;
   if (op.changes.description !== undefined) activity.description = op.changes.description;
   if (op.changes.duration_minutes !== undefined) activity.duration_minutes = op.changes.duration_minutes;
   
-  // Update location (partial update)
-  if (op.changes.location) {
-    if (op.changes.location.name !== undefined) activity.location.name = op.changes.location.name;
-    if (op.changes.location.lat !== undefined) activity.location.lat = op.changes.location.lat;
-    if (op.changes.location.lng !== undefined) activity.location.lng = op.changes.location.lng;
-    if (op.changes.location.place_id !== undefined) activity.location.place_id = op.changes.location.place_id;
+  // Handle location change
+  // LLM can provide name (required), and optionally name/lat/lng
+  // If coordinates not provided, ensureLocationData will geocode automatically
+  if (op.changes.location !== undefined) {
+    activity.location = await ensureLocationData({
+      name: op.changes.location.name,
+      lat: op.changes.location.lat,
+      lng: op.changes.location.lng,
+    });
   }
 
   return itinerary;

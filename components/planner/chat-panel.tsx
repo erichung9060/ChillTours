@@ -124,7 +124,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
 
       // Apply itinerary operations if present
       if (result.operations) {
-        const updatedItinerary = applyOperations(itinerary, result.operations);
+        const updatedItinerary = await applyOperations(itinerary, result.operations);
         onItineraryUpdate(updatedItinerary);
       }
     } catch (error) {

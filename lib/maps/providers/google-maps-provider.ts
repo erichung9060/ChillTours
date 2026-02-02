@@ -42,13 +42,13 @@ export class GoogleMapsProvider implements MapProvider {
   }
 
   createNavigationLink(location: Location): string {
-    const { lat, lng, name } = location;
+    const { lat, lng, name, place_id } = location;
     
-    if (location.place_id) {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}&query_place_id=${location.place_id}`;
+    if (place_id) {
+      return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
+    } else {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
     }
-    
-    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
   }
 
   async geocodeAddress(locationName: string): Promise<Location | null> {

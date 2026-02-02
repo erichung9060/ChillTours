@@ -125,7 +125,7 @@ export class AIClient {
       // Parse final complete itinerary
       const finalJSON = parser.getBuffer();
       const extracted = extractJSON(finalJSON) || finalJSON;
-      return parseItinerary(extracted, userId, startDate);
+      return await parseItinerary(extracted, userId, startDate);
     } catch (error) {
       throw new AIError(
         `Failed to parse streaming response: ${error instanceof Error ? error.message : 'Unknown error'}`,

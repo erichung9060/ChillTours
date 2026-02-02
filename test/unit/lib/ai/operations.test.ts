@@ -4,7 +4,7 @@
  * Test the operations-based itinerary update system
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { applyOperations, parseOperations } from '@/lib/ai/operations';
 import type { Itinerary } from '@/types';
 
@@ -81,8 +81,8 @@ const mockItinerary: Itinerary = {
 
 describe('Operations System', () => {
   describe('ADD Operation', () => {
-    it('should add activity to a day', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should add activity to a day', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'ADD',
@@ -108,8 +108,8 @@ describe('Operations System', () => {
       expect(result.days[0].activities[2].order).toBe(2);
     });
 
-    it('should insert activity at specific position', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should insert activity at specific position', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'ADD',
@@ -134,8 +134,8 @@ describe('Operations System', () => {
       expect(result.days[0].activities[2].order).toBe(2);
     });
 
-    it('should add activity to empty day', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should add activity to empty day', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'ADD',
@@ -159,8 +159,8 @@ describe('Operations System', () => {
   });
 
   describe('REMOVE Operation', () => {
-    it('should remove activity from a day', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should remove activity from a day', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'REMOVE',
@@ -175,8 +175,8 @@ describe('Operations System', () => {
       expect(result.days[0].activities[0].order).toBe(0);
     });
 
-    it('should handle removing with invalid index', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should handle removing with invalid index', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'REMOVE',
@@ -192,8 +192,8 @@ describe('Operations System', () => {
   });
 
   describe('UPDATE Operation', () => {
-    it('should update activity fields', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should update activity fields', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'UPDATE',
@@ -216,17 +216,69 @@ describe('Operations System', () => {
       expect(updated.location.name).toBe('Location 1');
     });
 
-    it('should partially update location', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should update location with LLM-provided coordinates', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'UPDATE',
             day_number: 1,
-            activity_index: 0, // First activity (0-based)
+            activity_index: 0,
+            changes: {
+              location: {
+                name: 'Tokyo Tower',
+                lat: 35.6586,
+                lng: 139.7454,
+                place_id: 'ChIJCewJkL2LGGAR3Qmk0vCTGkg',
+              },
+            },
+          },
+        ],
+      });
+
+      const updated = result.days[0].activities[0];
+      expect(updated.location.name).toBe('Tokyo Tower');
+      expect(updated.location.lat).toBe(35.6586);
+      expect(updated.location.lng).toBe(139.7454);
+      expect(updated.location.place_id).toBe('ChIJCewJkL2LGGAR3Qmk0vCTGkg');
+    });
+
+    it('should geocode location when coordinates not provided by LLM', async () => {
+      // Mock Google Maps API for this test
+      const mockGeocode = vi.fn().mockResolvedValue({
+        results: [
+          {
+            geometry: {
+              location: {
+                lat: () => 36.0,
+                lng: () => 140.0,
+              },
+            },
+            place_id: 'new_place_id',
+            formatted_address: 'Updated Location',
+          },
+        ],
+      });
+
+      global.window = {
+        google: {
+          maps: {
+            Geocoder: class {
+              geocode = mockGeocode;
+            },
+          },
+        },
+      } as any;
+
+      const result = await applyOperations(mockItinerary, {
+        operations: [
+          {
+            type: 'UPDATE',
+            day_number: 1,
+            activity_index: 0,
             changes: {
               location: {
                 name: 'Updated Location',
-                lat: 36.0,
+                // No lat/lng provided - should trigger geocoding
               },
             },
           },
@@ -236,14 +288,14 @@ describe('Operations System', () => {
       const updated = result.days[0].activities[0];
       expect(updated.location.name).toBe('Updated Location');
       expect(updated.location.lat).toBe(36.0);
-      // Other location fields should remain unchanged
-      expect(updated.location.lng).toBe(139.6503);
+      expect(updated.location.lng).toBe(140.0);
+      expect(mockGeocode).toHaveBeenCalledWith({ address: 'Updated Location' });
     });
   });
 
   describe('MOVE Operation', () => {
-    it('should move activity between days', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should move activity between days', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'MOVE',
@@ -268,8 +320,8 @@ describe('Operations System', () => {
       expect(result.days[1].activities[1].order).toBe(1);
     });
 
-    it('should move activity to specific position', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should move activity to specific position', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'MOVE',
@@ -288,8 +340,8 @@ describe('Operations System', () => {
   });
 
   describe('REORDER Operation', () => {
-    it('should reorder activities within a day', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should reorder activities within a day', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'REORDER',
@@ -307,8 +359,8 @@ describe('Operations System', () => {
   });
 
   describe('Multiple Operations', () => {
-    it('should apply multiple operations in sequence', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should apply multiple operations in sequence', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'REMOVE',
@@ -351,8 +403,8 @@ describe('Operations System', () => {
       expect(result.days[1].activities[1].title).toBe('New Activity');
     });
 
-    it('should handle move and update combination', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should handle move and update combination', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'MOVE',
@@ -380,8 +432,8 @@ describe('Operations System', () => {
   });
 
   describe('Metadata Updates', () => {
-    it('should update metadata fields', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should update metadata fields', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [],
         metadata: {
           title: 'Updated Trip Title',
@@ -453,10 +505,10 @@ describe('Operations System', () => {
   });
 
   describe('Data Integrity', () => {
-    it('should not mutate original itinerary', () => {
+    it('should not mutate original itinerary', async () => {
       const original = JSON.parse(JSON.stringify(mockItinerary));
 
-      applyOperations(mockItinerary, {
+      await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'ADD',
@@ -478,8 +530,8 @@ describe('Operations System', () => {
       expect(mockItinerary).toEqual(original);
     });
 
-    it('should update timestamp', () => {
-      const result = applyOperations(mockItinerary, {
+    it('should update timestamp', async () => {
+      const result = await applyOperations(mockItinerary, {
         operations: [
           {
             type: 'ADD',
