@@ -93,9 +93,9 @@ function buildChatPrompt(
   // Include itinerary context if available
   if (itineraryContext) {
     prompt += `Current Itinerary Context:
+- Title: ${itineraryContext.title}
 - Destination: ${itineraryContext.destination}
 - Trip Duration: ${itineraryContext.start_date} to ${itineraryContext.end_date}
-- Title: ${itineraryContext.title}
 
 Days and Activities (Note: Activity indices are 0-based, starting from 0):
 `;
@@ -112,8 +112,7 @@ Days and Activities (Note: Activity indices are 0-based, starting from 0):
     prompt += '\n';
   }
 
-  prompt += `User Message: ${message}
-
+  prompt += `
 IMPORTANT BEHAVIOR RULES
 1. If the user asks to add, remove, change, move, or rearrange itinerary activities, you MUST:
    - First respond with a brief natural-language explanation of your suggestions.
@@ -228,7 +227,7 @@ Date logic:
 
 Example: {"operations": [], "metadata": {"end_date": "2026-03-03"}}
 
-Respond to the user's message:`;
+Respond to the user's message: ${message}`;
 
   return prompt;
 }
