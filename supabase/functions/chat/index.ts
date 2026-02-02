@@ -179,8 +179,10 @@ ITINERARY_OPERATIONS:
     }
   ],
   "metadata": {
-    "title": "Optional new trip title",
-    "end_date": "Optional new end date"
+    "title": "New trip title",
+    "destination": "New destination",
+    "start_date": "2026-03-01",
+    "end_date": "2026-03-05"
   }
 }
 
@@ -212,6 +214,19 @@ AVAILABLE OPERATION TYPES
 - Use when changing the order of activities within the same day.
 - Required: type, day_number, activity_order (array of 0-based indices)
 - Example: [1, 0, 2] moves the second activity to first position.
+
+--------------------------------
+METADATA (OPTIONAL)
+--------------------------------
+
+Modify trip-level info: title, destination, start_date, end_date (YYYY-MM-DD)
+
+Date logic:
+- Both start & end changed: Move entire trip to new dates, then adjust duration
+- Only start changed: Add/remove days at beginning
+- Only end changed: Add/remove days at end
+
+Example: {"operations": [], "metadata": {"end_date": "2026-03-03"}}
 
 Respond to the user's message:`;
 

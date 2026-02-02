@@ -117,6 +117,143 @@ export interface OperationsUpdate {
 // ============================================================================
 
 /**
+ * Calculate number of days between two dates (inclusive)
+ */
+function calculateDuration(startDate: string, endDate: string): number {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+}
+
+/**
+ * Generate date string for a given day offset from start date
+ */
+function getDateAtOffset(startDate: string, offset: number): string {
+  const date = new Date(startDate);
+  date.setDate(date.getDate() + offset);
+  return date.toISOString().split('T')[0];
+}
+
+/**
+ * Create an empty day at a specific date
+ */
+function createEmptyDay(dayNumber: number, date: string): Day {
+  return {
+    day_number: dayNumber,
+    date,
+    activities: [],
+  };
+}
+
+/**
+ * Update all day dates based on new start date
+ */
+function updateDayDates(days: Day[], startDate: string): void {
+  days.forEach((day, index) => {
+    day.date = getDateAtOffset(startDate, index);
+  });
+}
+
+/**
+ * Adjust trip duration by adding or removing days at the end
+ */
+function adjustEndDuration(
+  itinerary: Itinerary,
+  newEndDate: string
+): void {
+  const newDuration = calculateDuration(itinerary.start_date, newEndDate);
+  const currentDuration = itinerary.days.length;
+  const diff = newDuration - currentDuration;
+
+  itinerary.end_date = newEndDate;
+
+  if (diff > 0) {
+    // Add empty days at the end
+    for (let i = 0; i < diff; i++) {
+      const dayNumber = currentDuration + i + 1;
+      const date = getDateAtOffset(itinerary.start_date, currentDuration + i);
+      itinerary.days.push(createEmptyDay(dayNumber, date));
+    }
+  } else if (diff < 0) {
+    // Remove days from the end
+    itinerary.days = itinerary.days.slice(0, newDuration);
+  }
+}
+
+/**
+ * Adjust trip duration by adding or removing days at the beginning
+ */
+function adjustStartDuration(
+  itinerary: Itinerary,
+  newStartDate: string
+): void {
+  const oldDuration = calculateDuration(itinerary.start_date, itinerary.end_date);
+  const newDuration = calculateDuration(newStartDate, itinerary.end_date);
+  const diff = newDuration - oldDuration;
+
+  itinerary.start_date = newStartDate;
+
+  if (diff > 0) {
+    // Add empty days at the beginning
+    const emptyDays = Array.from({ length: diff }, (_, i) => 
+      createEmptyDay(i + 1, getDateAtOffset(newStartDate, i))
+    );
+
+    // Renumber and update existing days
+    itinerary.days.forEach((day, index) => {
+      day.day_number = diff + index + 1;
+      day.date = getDateAtOffset(newStartDate, diff + index);
+    });
+
+    itinerary.days = [...emptyDays, ...itinerary.days];
+  } else if (diff < 0) {
+    // Remove days from the beginning
+    itinerary.days = itinerary.days.slice(-diff);
+    
+    // Renumber and update remaining days
+    itinerary.days.forEach((day, index) => {
+      day.day_number = index + 1;
+      day.date = getDateAtOffset(newStartDate, index);
+    });
+  }
+}
+
+/**
+ * Apply metadata changes to itinerary (title, destination, dates)
+ */
+function applyMetadata(
+  itinerary: Itinerary,
+  metadata: OperationsUpdate['metadata']
+): Itinerary {
+  if (!metadata) return itinerary;
+
+  const { title, destination, start_date, end_date } = metadata;
+  
+  // Update basic metadata
+  if (title) itinerary.title = title;
+  if (destination) itinerary.destination = destination;
+
+  // Determine which dates changed
+  const startChanged = start_date && start_date !== itinerary.start_date;
+  const endChanged = end_date && end_date !== itinerary.end_date;
+
+  if (startChanged && endChanged) {
+    // Both dates changed: Move interval, then adjust duration
+    itinerary.start_date = start_date;
+    updateDayDates(itinerary.days, start_date);
+    adjustEndDuration(itinerary, end_date);
+  } else if (startChanged) {
+    // Only start changed: Adjust from beginning
+    adjustStartDuration(itinerary, start_date);
+  } else if (endChanged) {
+    // Only end changed: Adjust from end
+    adjustEndDuration(itinerary, end_date);
+  }
+
+  return itinerary;
+}
+
+/**
  * Apply a list of operations to an itinerary with automatic geocoding
  * 
  * @param itinerary - Current itinerary
@@ -131,13 +268,7 @@ export async function applyOperations(
   let updated = JSON.parse(JSON.stringify(itinerary)) as Itinerary;
 
   // Apply metadata changes first
-  if (operationsUpdate.metadata) {
-    const { title, destination, start_date, end_date } = operationsUpdate.metadata;
-    if (title) updated.title = title;
-    if (destination) updated.destination = destination;
-    if (start_date) updated.start_date = start_date;
-    if (end_date) updated.end_date = end_date;
-  }
+  updated = applyMetadata(updated, operationsUpdate.metadata);
 
   // Apply each operation in sequence
   for (const operation of operationsUpdate.operations) {
