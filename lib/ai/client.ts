@@ -14,6 +14,7 @@ import type { Itinerary, ChatMessage } from '@/types';
 import { StreamingJSONParser } from './streaming-parser';
 import { parseItinerary, extractJSON } from './parser';
 import { parseOperations, type OperationsUpdate } from './operations';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * Error types for AI API
@@ -297,20 +298,11 @@ export class AIClient {
    */
   private async getAuthToken(): Promise<string | null> {
     try {
-      // Only import Supabase client when needed (client-side only)
+      // Only run on client-side
       if (typeof window === 'undefined') {
         return null;
       }
 
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-      if (!supabaseUrl || !supabaseKey) {
-        return null;
-      }
-
-      const supabase = createClient(supabaseUrl, supabaseKey);
       const { data: { session } } = await supabase.auth.getSession();
 
       // 返回用戶的 access token（這是真正的 JWT）
