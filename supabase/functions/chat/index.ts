@@ -336,7 +336,7 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: "An unexpected error occurred. Please try again later.",
         retryable: isTransientError,
       }),
       {
