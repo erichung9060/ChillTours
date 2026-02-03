@@ -80,7 +80,7 @@ export class AIClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }), 
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
       body: JSON.stringify({
         destination,
@@ -182,7 +182,7 @@ export class AIClient {
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     const OPERATIONS_MARKER = 'ITINERARY_OPERATIONS:';
-    
+
     let fullResponse = '';
     let streamedUpTo = 0;
     let markerFound = false;
@@ -195,7 +195,7 @@ export class AIClient {
 
         const chunk = decoder.decode(value, { stream: true });
         fullResponse += chunk;
-        
+
         if (markerFound) {
           // Already found marker, just accumulate remaining content
           continue;
@@ -222,9 +222,11 @@ export class AIClient {
         const markerIndex = fullResponse.indexOf(OPERATIONS_MARKER);
         const cleanMessage = fullResponse.substring(0, markerIndex).trim();
         const jsonPart = fullResponse.substring(markerIndex + OPERATIONS_MARKER.length).trim();
-        
+
         try {
-          const parsedOperations = parseOperations(JSON.parse(jsonPart));
+          // Extract JSON from markdown code blocks if present
+          const extractedJSON = extractJSON(jsonPart) || jsonPart;
+          const parsedOperations = parseOperations(JSON.parse(extractedJSON));
           if (parsedOperations) {
             operations = parsedOperations;
           }
