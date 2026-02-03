@@ -164,10 +164,12 @@ async function applyOperation(itinerary: Itinerary, operation: Operation): Promi
  * Add new activity to a day with automatic geocoding
  */
 async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promise<Itinerary> {
+  ensureDayExists(itinerary, op.day_number);
+
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
 
   if (dayIndex === -1) {
-    console.warn(`Day ${op.day_number} not found`);
+    console.warn(`Day ${op.day_number} not found even after creation`);
     return itinerary;
   }
 
@@ -310,6 +312,8 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
  * Move activity from one day to another
  */
 function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary {
+  ensureDayExists(itinerary, op.to_day_number);
+
   const fromDayIndex = itinerary.days.findIndex(d => d.day_number === op.from_day_number);
   const toDayIndex = itinerary.days.findIndex(d => d.day_number === op.to_day_number);
 
@@ -319,7 +323,7 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
   }
 
   if (toDayIndex === -1) {
-    console.warn(`Target day ${op.to_day_number} not found`);
+    console.warn(`Target day ${op.to_day_number} not found even after creation`);
     return itinerary;
   }
 
@@ -398,6 +402,44 @@ function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itin
   });
 
   return itinerary;
+}
+
+/**
+ * Ensure that the itinerary has enough days to cover the target day number.
+ * If not, append new empty days.
+ */
+function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
+  // Current number of days
+  const currentDays = itinerary.days.length;
+
+  // If day already exists, do nothing
+  if (dayNumber <= currentDays) {
+    return;
+  }
+
+  // Calculate how many days to add
+  const daysToAdd = dayNumber - currentDays;
+  const startDate = new Date(itinerary.start_date);
+
+  for (let i = 0; i < daysToAdd; i++) {
+    const newDayNumber = currentDays + i + 1;
+
+    // Calculate date for the new day
+    const date = new Date(startDate);
+    date.setDate(startDate.getDate() + (newDayNumber - 1));
+    const dateStr = date.toISOString().split('T')[0];
+
+    const newDay: Day = {
+      day_number: newDayNumber,
+      date: dateStr,
+      activities: [],
+    };
+
+    itinerary.days.push(newDay);
+  }
+
+  // Update itinerary end_date to match the new last day
+  itinerary.end_date = itinerary.days[itinerary.days.length - 1].date;
 }
 
 // ============================================================================

@@ -118,14 +118,12 @@ IMPORTANT BEHAVIOR RULES
    - First respond with a brief natural-language explanation of your suggestions.
    - Then include a JSON block at the END of your response describing the exact operations.
 2. If the user does NOT request itinerary modifications, respond normally in natural language ONLY.
-3. Never output a JSON block unless itinerary changes are being suggested.
 
 NON-NEGOTIABLE RULES
+- Never output ITINERARY_OPERATIONS and a JSON block unless itinerary changes are being suggested
 - Operations are applied in sequence; order matters
-- All day_number values must refer to valid days in the current itinerary
 - All activity_index and insert_at values are 0-based
 - Use MOVE instead of REMOVE + ADD when relocating activities
-- Only include ITINERARY_OPERATIONS when suggesting specific changes
 - Do not include explanations inside the JSON block
 
 --------------------------------
@@ -210,6 +208,12 @@ AVAILABLE OPERATION TYPES
 - Required: type, day_number, activity_order (array of 0-based indices)
 - Example: [1, 0, 2] moves the second activity to first position.
 
+
+IMPORTANT: METADATA CHANGES NOT ALLOWED
+
+You CANNOT modify trip-level metadata (title, destination, start_date, end_date) 
+through operations. If the user requests to change these details, YOU MUST politely inform 
+them to use the dedicated UI controls by clicking the pencil icon in the top-left corner of the itinerary.
 
 Respond to the user's message: ${message}`;
 
