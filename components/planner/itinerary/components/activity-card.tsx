@@ -7,7 +7,10 @@
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, Navigation2 } from 'lucide-react';
 import type { ActivityCardProps } from '../types';
+import { getMapProvider } from '@/lib/maps/provider-factory';
 
 export function ActivityCard({
     activity,
@@ -15,6 +18,13 @@ export function ActivityCard({
     onMouseEnter,
     onMouseLeave
 }: ActivityCardProps) {
+    const handleNavigationConfig = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const mapProvider = getMapProvider();
+        const url = mapProvider.createNavigationLink(activity.location);
+        window.open(url, '_blank');
+    };
+
     return (
         <Card
             className={className}
@@ -34,20 +44,19 @@ export function ActivityCard({
                         </h4>
 
                         <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 opacity-100 hover:opacity-100 p-0"
+                                onClick={handleNavigationConfig}
+                                title="Navigate with Google Maps"
                             >
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                                <circle cx="12" cy="10" r="3" />
-                            </svg>
+                                <img
+                                    src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico"
+                                    alt="Google Maps"
+                                    className="h-4 w-4 object-contain"
+                                />
+                            </Button>
                             <span className="truncate">{activity.location.name}</span>
                         </div>
 
