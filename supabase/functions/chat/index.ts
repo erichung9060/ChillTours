@@ -42,33 +42,33 @@ interface ChatRequest {
 async function verifyUser(req: Request): Promise<{ userId: string; email: string } | null> {
   try {
     const authHeader = req.headers.get("Authorization");
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.log("❌ No valid Authorization header");
       return null;
     }
 
     const jwt = authHeader.replace("Bearer ", "");
-    
+
     // 建立 Supabase client（使用 anon key 即可）
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    
+
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error("❌ Missing Supabase configuration");
       return null;
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
+
     // 使用 getUser() 驗證 JWT 並取得用戶資訊
     const { data: { user }, error } = await supabase.auth.getUser(jwt);
-    
+
     if (error || !user) {
       console.log("❌ Invalid token or user not found:", error?.message);
       return null;
     }
-    
+
     return {
       userId: user.id,
       email: user.email || "",
@@ -99,7 +99,7 @@ function buildChatPrompt(
 
 Days and Activities (Note: Activity indices are 0-based, starting from 0):
 `;
-    
+
     itineraryContext.days.forEach((day) => {
       prompt += `\nDay ${day.day_number} (${day.date}):\n`;
       day.activities.forEach((activity, index) => {
@@ -108,7 +108,7 @@ Days and Activities (Note: Activity indices are 0-based, starting from 0):
         prompt += `      Duration: ${activity.duration_minutes} minutes\n`;
       });
     });
-    
+
     prompt += '\n';
   }
 
@@ -121,11 +121,10 @@ IMPORTANT BEHAVIOR RULES
 3. Never output a JSON block unless itinerary changes are being suggested.
 
 NON-NEGOTIABLE RULES
-- Metadata changes are applied FIRST, then operations are applied in sequence
-- All day_number values in operations must refer to the state AFTER metadata changes are applied
+- Operations are applied in sequence; order matters
+- All day_number values must refer to valid days in the current itinerary
 - All activity_index and insert_at values are 0-based
 - Use MOVE instead of REMOVE + ADD when relocating activities
-- Operations are applied in sequence; order matters
 - Only include ITINERARY_OPERATIONS when suggesting specific changes
 - Do not include explanations inside the JSON block
 
@@ -178,13 +177,7 @@ ITINERARY_OPERATIONS:
       "day_number": 1,
       "activity_order": [1, 0, 2]
     }
-  ],
-  "metadata": {
-    "title": "New trip title",
-    "destination": "New destination",
-    "start_date": "2026-03-01",
-    "end_date": "2026-03-05"
-  }
+  ]
 }
 
 --------------------------------
@@ -217,18 +210,6 @@ AVAILABLE OPERATION TYPES
 - Required: type, day_number, activity_order (array of 0-based indices)
 - Example: [1, 0, 2] moves the second activity to first position.
 
---------------------------------
-METADATA (OPTIONAL)
---------------------------------
-
-Modify trip-level info: title, destination, start_date, end_date (YYYY-MM-DD)
-
-Date logic:
-- Both start & end changed: Move entire trip to new dates, then adjust duration
-- Only start changed: Add/remove days at beginning
-- Only end changed: Add/remove days at end
-
-Example: {"operations": [], "metadata": {"end_date": "2026-03-03"}}
 
 Respond to the user's message: ${message}`;
 
@@ -244,10 +225,10 @@ Deno.serve(async (req) => {
   try {
     // 驗證用戶是否已登入
     const user = await verifyUser(req);
-    
+
     if (!user) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Unauthorized. Please log in to use this feature.",
           code: "UNAUTHORIZED"
         }),
@@ -257,7 +238,7 @@ Deno.serve(async (req) => {
         }
       );
     }
-    
+
     // Parse request body
     const { message, history, itinerary_context }: ChatRequest =
       await req.json();
@@ -341,7 +322,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in chat function:", error);
-    
+
     // Implement retry logic for transient errors
     const isTransientError = error instanceof Error && (
       error.message.includes('timeout') ||

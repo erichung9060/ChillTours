@@ -429,207 +429,6 @@ describe('Operations System', () => {
     });
   });
 
-  describe('Metadata Updates', () => {
-    it('should update basic metadata fields', async () => {
-      const result = await applyOperations(mockItinerary, {
-        operations: [],
-        metadata: {
-          title: 'Updated Trip Title',
-          destination: 'Osaka, Japan',
-        },
-      });
-
-      expect(result.title).toBe('Updated Trip Title');
-      expect(result.destination).toBe('Osaka, Japan');
-      expect(result.start_date).toBe('2026-03-01'); // Unchanged
-      expect(result.end_date).toBe('2026-03-03'); // Unchanged
-    });
-
-    describe('Date Changes', () => {
-      it('should extend trip when only end_date is changed to later date', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            end_date: '2026-03-05', // Extend by 2 days
-          },
-        });
-
-        expect(result.end_date).toBe('2026-03-05');
-        expect(result.start_date).toBe('2026-03-01'); // Unchanged
-        expect(result.days).toHaveLength(5);
-        
-        // Original days should remain
-        expect(result.days[0].date).toBe('2026-03-01');
-        expect(result.days[1].date).toBe('2026-03-02');
-        expect(result.days[2].date).toBe('2026-03-03');
-        
-        // New empty days added
-        expect(result.days[3].date).toBe('2026-03-04');
-        expect(result.days[3].activities).toHaveLength(0);
-        expect(result.days[4].date).toBe('2026-03-05');
-        expect(result.days[4].activities).toHaveLength(0);
-      });
-
-      it('should shorten trip when only end_date is changed to earlier date', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            end_date: '2026-03-02', // Shorten by 1 day
-          },
-        });
-
-        expect(result.end_date).toBe('2026-03-02');
-        expect(result.start_date).toBe('2026-03-01'); // Unchanged
-        expect(result.days).toHaveLength(2);
-        
-        // Only first 2 days remain
-        expect(result.days[0].date).toBe('2026-03-01');
-        expect(result.days[1].date).toBe('2026-03-02');
-        
-        // Activities preserved
-        expect(result.days[0].activities).toHaveLength(2);
-        expect(result.days[1].activities).toHaveLength(1);
-      });
-
-      it('should extend trip when only start_date is changed to earlier date', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-02-27', // 2 days earlier
-          },
-        });
-
-        expect(result.start_date).toBe('2026-02-27');
-        expect(result.end_date).toBe('2026-03-03'); // Unchanged
-        expect(result.days).toHaveLength(5);
-        
-        // New empty days at beginning
-        expect(result.days[0].date).toBe('2026-02-27');
-        expect(result.days[0].day_number).toBe(1);
-        expect(result.days[0].activities).toHaveLength(0);
-        
-        expect(result.days[1].date).toBe('2026-02-28');
-        expect(result.days[1].day_number).toBe(2);
-        expect(result.days[1].activities).toHaveLength(0);
-        
-        // Original days shifted
-        expect(result.days[2].date).toBe('2026-03-01');
-        expect(result.days[2].day_number).toBe(3);
-        expect(result.days[2].activities).toHaveLength(2);
-      });
-
-      it('should shorten trip when only start_date is changed to later date', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-03-02', // 1 day later
-          },
-        });
-
-        expect(result.start_date).toBe('2026-03-02');
-        expect(result.end_date).toBe('2026-03-03'); // Unchanged
-        expect(result.days).toHaveLength(2);
-        
-        // First day removed, remaining days renumbered
-        expect(result.days[0].date).toBe('2026-03-02');
-        expect(result.days[0].day_number).toBe(1);
-        expect(result.days[0].activities).toHaveLength(1);
-        expect(result.days[0].activities[0].id).toBe('activity-3');
-        
-        expect(result.days[1].date).toBe('2026-03-03');
-        expect(result.days[1].day_number).toBe(2);
-      });
-
-      it('should move entire trip when both dates change', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-04-01',
-            end_date: '2026-04-03',
-          },
-        });
-
-        expect(result.start_date).toBe('2026-04-01');
-        expect(result.end_date).toBe('2026-04-03');
-        expect(result.days).toHaveLength(3);
-        
-        // All dates shifted, activities preserved
-        expect(result.days[0].date).toBe('2026-04-01');
-        expect(result.days[0].activities).toHaveLength(2);
-        expect(result.days[1].date).toBe('2026-04-02');
-        expect(result.days[1].activities).toHaveLength(1);
-        expect(result.days[2].date).toBe('2026-04-03');
-        expect(result.days[2].activities).toHaveLength(0);
-      });
-
-      it('should move and extend trip when both dates change to longer duration', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-04-01',
-            end_date: '2026-04-05', // 5 days instead of 3
-          },
-        });
-
-        expect(result.start_date).toBe('2026-04-01');
-        expect(result.end_date).toBe('2026-04-05');
-        expect(result.days).toHaveLength(5);
-        
-        // Original activities preserved
-        expect(result.days[0].date).toBe('2026-04-01');
-        expect(result.days[0].activities).toHaveLength(2);
-        expect(result.days[1].date).toBe('2026-04-02');
-        expect(result.days[1].activities).toHaveLength(1);
-        expect(result.days[2].date).toBe('2026-04-03');
-        
-        // New empty days added
-        expect(result.days[3].date).toBe('2026-04-04');
-        expect(result.days[3].activities).toHaveLength(0);
-        expect(result.days[4].date).toBe('2026-04-05');
-        expect(result.days[4].activities).toHaveLength(0);
-      });
-
-      it('should move and shorten trip when both dates change to shorter duration', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-04-01',
-            end_date: '2026-04-02', // 2 days instead of 3
-          },
-        });
-
-        expect(result.start_date).toBe('2026-04-01');
-        expect(result.end_date).toBe('2026-04-02');
-        expect(result.days).toHaveLength(2);
-        
-        // Only first 2 days preserved
-        expect(result.days[0].date).toBe('2026-04-01');
-        expect(result.days[0].activities).toHaveLength(2);
-        expect(result.days[1].date).toBe('2026-04-02');
-        expect(result.days[1].activities).toHaveLength(1);
-      });
-
-      it('should handle same date values (no change)', async () => {
-        const result = await applyOperations(mockItinerary, {
-          operations: [],
-          metadata: {
-            start_date: '2026-03-01',
-            end_date: '2026-03-03',
-          },
-        });
-
-        expect(result.start_date).toBe('2026-03-01');
-        expect(result.end_date).toBe('2026-03-03');
-        expect(result.days).toHaveLength(3);
-        
-        // Everything should remain unchanged
-        expect(result.days[0].activities).toHaveLength(2);
-        expect(result.days[1].activities).toHaveLength(1);
-        expect(result.days[2].activities).toHaveLength(0);
-      });
-    });
-  });
-
   describe('parseOperations', () => {
     it('should parse operations from JSON string', () => {
       const json = JSON.stringify({
@@ -665,15 +464,11 @@ describe('Operations System', () => {
             activity_index: 1,
           },
         ],
-        metadata: {
-          title: 'New Title',
-        },
       };
 
       const result = parseOperations(obj);
       expect(result).not.toBeNull();
       expect(result?.operations).toHaveLength(1);
-      expect(result?.metadata?.title).toBe('New Title');
     });
 
     it('should return null for invalid input', () => {
@@ -682,7 +477,7 @@ describe('Operations System', () => {
     });
 
     it('should return null for missing operations array', () => {
-      const result = parseOperations(JSON.stringify({ metadata: { title: 'Test' } }));
+      const result = parseOperations(JSON.stringify({ someOtherField: 'Test' }));
       expect(result).toBeNull();
     });
   });

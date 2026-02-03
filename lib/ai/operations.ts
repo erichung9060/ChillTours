@@ -92,11 +92,11 @@ export interface ReorderOperation {
   activity_order: number[]; // Array of 0-based indices in desired order
 }
 
-export type Operation = 
-  | AddOperation 
-  | RemoveOperation 
-  | UpdateOperation 
-  | MoveOperation 
+export type Operation =
+  | AddOperation
+  | RemoveOperation
+  | UpdateOperation
+  | MoveOperation
   | ReorderOperation;
 
 /**
@@ -104,154 +104,11 @@ export type Operation =
  */
 export interface OperationsUpdate {
   operations: Operation[];
-  metadata?: {
-    title?: string;
-    destination?: string;
-    start_date?: string;
-    end_date?: string;
-  };
 }
 
 // ============================================================================
 // Apply Operations
 // ============================================================================
-
-/**
- * Calculate number of days between two dates (inclusive)
- */
-function calculateDuration(startDate: string, endDate: string): number {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  return Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-}
-
-/**
- * Generate date string for a given day offset from start date
- */
-function getDateAtOffset(startDate: string, offset: number): string {
-  const date = new Date(startDate);
-  date.setDate(date.getDate() + offset);
-  return date.toISOString().split('T')[0];
-}
-
-/**
- * Create an empty day at a specific date
- */
-function createEmptyDay(dayNumber: number, date: string): Day {
-  return {
-    day_number: dayNumber,
-    date,
-    activities: [],
-  };
-}
-
-/**
- * Update all day dates based on new start date
- */
-function updateDayDates(days: Day[], startDate: string): void {
-  days.forEach((day, index) => {
-    day.date = getDateAtOffset(startDate, index);
-  });
-}
-
-/**
- * Adjust trip duration by adding or removing days at the end
- */
-function adjustEndDuration(
-  itinerary: Itinerary,
-  newEndDate: string
-): void {
-  const newDuration = calculateDuration(itinerary.start_date, newEndDate);
-  const currentDuration = itinerary.days.length;
-  const diff = newDuration - currentDuration;
-
-  itinerary.end_date = newEndDate;
-
-  if (diff > 0) {
-    // Add empty days at the end
-    for (let i = 0; i < diff; i++) {
-      const dayNumber = currentDuration + i + 1;
-      const date = getDateAtOffset(itinerary.start_date, currentDuration + i);
-      itinerary.days.push(createEmptyDay(dayNumber, date));
-    }
-  } else if (diff < 0) {
-    // Remove days from the end
-    itinerary.days = itinerary.days.slice(0, newDuration);
-  }
-}
-
-/**
- * Adjust trip duration by adding or removing days at the beginning
- */
-function adjustStartDuration(
-  itinerary: Itinerary,
-  newStartDate: string
-): void {
-  const oldDuration = calculateDuration(itinerary.start_date, itinerary.end_date);
-  const newDuration = calculateDuration(newStartDate, itinerary.end_date);
-  const diff = newDuration - oldDuration;
-
-  itinerary.start_date = newStartDate;
-
-  if (diff > 0) {
-    // Add empty days at the beginning
-    const emptyDays = Array.from({ length: diff }, (_, i) => 
-      createEmptyDay(i + 1, getDateAtOffset(newStartDate, i))
-    );
-
-    // Renumber and update existing days
-    itinerary.days.forEach((day, index) => {
-      day.day_number = diff + index + 1;
-      day.date = getDateAtOffset(newStartDate, diff + index);
-    });
-
-    itinerary.days = [...emptyDays, ...itinerary.days];
-  } else if (diff < 0) {
-    // Remove days from the beginning
-    itinerary.days = itinerary.days.slice(-diff);
-    
-    // Renumber and update remaining days
-    itinerary.days.forEach((day, index) => {
-      day.day_number = index + 1;
-      day.date = getDateAtOffset(newStartDate, index);
-    });
-  }
-}
-
-/**
- * Apply metadata changes to itinerary (title, destination, dates)
- */
-function applyMetadata(
-  itinerary: Itinerary,
-  metadata: OperationsUpdate['metadata']
-): Itinerary {
-  if (!metadata) return itinerary;
-
-  const { title, destination, start_date, end_date } = metadata;
-  
-  // Update basic metadata
-  if (title) itinerary.title = title;
-  if (destination) itinerary.destination = destination;
-
-  // Determine which dates changed
-  const startChanged = start_date && start_date !== itinerary.start_date;
-  const endChanged = end_date && end_date !== itinerary.end_date;
-
-  if (startChanged && endChanged) {
-    // Both dates changed: Move interval, then adjust duration
-    itinerary.start_date = start_date;
-    updateDayDates(itinerary.days, start_date);
-    adjustEndDuration(itinerary, end_date);
-  } else if (startChanged) {
-    // Only start changed: Adjust from beginning
-    adjustStartDuration(itinerary, start_date);
-  } else if (endChanged) {
-    // Only end changed: Adjust from end
-    adjustEndDuration(itinerary, end_date);
-  }
-
-  return itinerary;
-}
 
 /**
  * Apply a list of operations to an itinerary with automatic geocoding
@@ -266,9 +123,6 @@ export async function applyOperations(
 ): Promise<Itinerary> {
   // Deep clone to avoid mutating original
   let updated = JSON.parse(JSON.stringify(itinerary)) as Itinerary;
-
-  // Apply metadata changes first
-  updated = applyMetadata(updated, operationsUpdate.metadata);
 
   // Apply each operation in sequence
   for (const operation of operationsUpdate.operations) {
@@ -311,7 +165,7 @@ async function applyOperation(itinerary: Itinerary, operation: Operation): Promi
  */
 async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promise<Itinerary> {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
-  
+
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
     return itinerary;
@@ -336,7 +190,7 @@ async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promis
   };
 
   const day = itinerary.days[dayIndex];
-  
+
   // Insert at specific position or append
   if (op.activity.insert_at !== undefined) {
     day.activities.splice(op.activity.insert_at, 0, newActivity);
@@ -357,7 +211,7 @@ async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promis
  */
 function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itinerary {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
-  
+
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
     return itinerary;
@@ -367,14 +221,15 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
   if (op.activity_index === undefined) {
     // Remove the day
     itinerary.days.splice(dayIndex, 1);
-    
-    // Renumber remaining days
+
+    // Renumber remaining days and update dates
     itinerary.days.forEach((day, index) => {
       day.day_number = index + 1;
+      // Calculate date from start_date + index
+      const date = new Date(itinerary.start_date);
+      date.setDate(date.getDate() + index);
+      day.date = date.toISOString().split('T')[0];
     });
-
-    // Update dates for all days to maintain continuity
-    updateDayDates(itinerary.days, itinerary.start_date);
 
     // Update end_date based on new duration
     if (itinerary.days.length > 0) {
@@ -387,7 +242,7 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
   }
 
   const day = itinerary.days[dayIndex];
-  
+
   // Use 0-based index directly
   const activityIndex = op.activity_index;
 
@@ -413,14 +268,14 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
  */
 async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Promise<Itinerary> {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
-  
+
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
     return itinerary;
   }
 
   const day = itinerary.days[dayIndex];
-  
+
   // Use 0-based index directly
   const activityIndex = op.activity_index;
 
@@ -436,7 +291,7 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
   if (op.changes.title !== undefined) activity.title = op.changes.title;
   if (op.changes.description !== undefined) activity.description = op.changes.description;
   if (op.changes.duration_minutes !== undefined) activity.duration_minutes = op.changes.duration_minutes;
-  
+
   // Handle location change
   // LLM can provide name (required), and optionally name/lat/lng
   // If coordinates not provided, ensureLocationData will geocode automatically
@@ -457,12 +312,12 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
 function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary {
   const fromDayIndex = itinerary.days.findIndex(d => d.day_number === op.from_day_number);
   const toDayIndex = itinerary.days.findIndex(d => d.day_number === op.to_day_number);
-  
+
   if (fromDayIndex === -1) {
     console.warn(`Source day ${op.from_day_number} not found`);
     return itinerary;
   }
-  
+
   if (toDayIndex === -1) {
     console.warn(`Target day ${op.to_day_number} not found`);
     return itinerary;
@@ -470,7 +325,7 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
 
   const fromDay = itinerary.days[fromDayIndex];
   const toDay = itinerary.days[toDayIndex];
-  
+
   // Use 0-based index directly
   const activityIndex = op.from_activity_index;
 
@@ -494,7 +349,7 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
   fromDay.activities.forEach((a, index) => {
     a.order = index;
   });
-  
+
   toDay.activities.forEach((a, index) => {
     a.order = index;
   });
@@ -507,7 +362,7 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
  */
 function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itinerary {
   const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
-  
+
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
     return itinerary;
@@ -523,14 +378,14 @@ function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itin
 
   // Create reordered array based on 0-based indices
   const reordered: Activity[] = [];
-  
+
   for (const index of op.activity_order) {
     // Use 0-based index directly
     if (index < 0 || index >= day.activities.length) {
       console.warn(`Invalid activity index ${index} in reorder operation`);
       return itinerary;
     }
-    
+
     reordered.push(day.activities[index]);
   }
 
@@ -568,7 +423,6 @@ export function parseOperations(
 
     return {
       operations: data.operations,
-      metadata: data.metadata,
     };
   } catch (error) {
     console.error('Failed to parse operations:', error);
