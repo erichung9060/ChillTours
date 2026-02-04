@@ -15,7 +15,7 @@ export function SortableActivity({
     activity,
     dayNumber,
     onActivityHover,
-    disableAnimation
+    disableAnimation,
 }: SortableActivityProps) {
     const {
         attributes,

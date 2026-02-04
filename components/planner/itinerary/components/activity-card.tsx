@@ -8,7 +8,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Navigation2 } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import type { ActivityCardProps } from '../types';
 import { getMapProvider } from '@/lib/maps/provider-factory';
 
@@ -16,7 +16,7 @@ export function ActivityCard({
     activity,
     className,
     onMouseEnter,
-    onMouseLeave
+    onMouseLeave,
 }: ActivityCardProps) {
     const handleNavigationConfig = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -25,12 +25,31 @@ export function ActivityCard({
         window.open(url, '_blank');
     };
 
+    const handleExternalLinkClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (activity.url) {
+            window.open(activity.url, '_blank');
+        } else {
+            handleNavigationConfig(e);
+        }
+    };
+
     return (
         <Card
-            className={className}
+            className={`group relative ${className}`}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
         >
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-50 cursor-pointer"
+                onClick={handleExternalLinkClick}
+                title="Open Website"
+            >
+                <ExternalLink className="h-4 w-4" />
+            </Button>
+
             <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                     {/* Time Badge */}
@@ -47,7 +66,7 @@ export function ActivityCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-6 w-6 opacity-100 hover:opacity-100 p-0"
+                                className="h-6 w-6 opacity-100 hover:opacity-100 p-0 cursor-pointer"
                                 onClick={handleNavigationConfig}
                                 title="Navigate with Google Maps"
                             >
