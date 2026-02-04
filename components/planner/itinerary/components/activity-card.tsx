@@ -8,7 +8,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Pencil } from 'lucide-react';
 import type { ActivityCardProps } from '../types';
 import { getMapProvider } from '@/lib/maps/provider-factory';
 
@@ -34,6 +34,12 @@ export function ActivityCard({
         }
     };
 
+    const handleEditClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // TODO: Implement edit functionality
+        console.log('Edit activity:', activity.id);
+    };
+
     return (
         <Card
             className={`group relative ${className}`}
@@ -48,6 +54,16 @@ export function ActivityCard({
                 title="Open Website"
             >
                 <ExternalLink className="h-4 w-4" />
+            </Button>
+
+            <Button
+                variant="ghost"
+                size="icon"
+                className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-50 cursor-pointer"
+                onClick={handleEditClick}
+                title="Edit Activity"
+            >
+                <Pencil className="h-4 w-4" />
             </Button>
 
             <CardContent className="p-4">
