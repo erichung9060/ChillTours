@@ -6,18 +6,23 @@
 
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Pencil } from 'lucide-react';
 import type { ActivityCardProps } from '../types';
 import { getMapProvider } from '@/lib/maps/provider-factory';
+import { EditActivityDialog } from './edit-activity-dialog';
 
 export function ActivityCard({
     activity,
     className,
     onMouseEnter,
     onMouseLeave,
+    onActivityUpdate,
 }: ActivityCardProps) {
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
     const handleNavigationConfig = (e: React.MouseEvent) => {
         e.stopPropagation();
         const mapProvider = getMapProvider();
@@ -36,8 +41,7 @@ export function ActivityCard({
 
     const handleEditClick = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // TODO: Implement edit functionality
-        console.log('Edit activity:', activity.id);
+        setIsEditDialogOpen(true);
     };
 
     return (
@@ -123,6 +127,13 @@ export function ActivityCard({
                     </div>
                 </div>
             </CardContent>
-        </Card>
+
+            <EditActivityDialog
+                activity={activity}
+                isOpen={isEditDialogOpen}
+                onClose={() => setIsEditDialogOpen(false)}
+                onSave={(updatedActivity) => onActivityUpdate?.(updatedActivity)}
+            />
+        </Card >
     );
 }

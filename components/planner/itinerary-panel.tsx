@@ -14,7 +14,6 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
-  KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -22,7 +21,6 @@ import {
   DragOverEvent,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import {
   ActivityCard,
   PanelHeader,
@@ -33,6 +31,7 @@ import {
   calculateDragOverUpdate,
 } from './itinerary';
 import type { ItineraryPanelProps, ViewMode } from './itinerary';
+import type { Activity } from '@/types/itinerary';
 
 export function ItineraryPanel({
   itinerary,
@@ -71,9 +70,6 @@ export function ItineraryPanel({
       activationConstraint: {
         distance: 8, // 8px movement required to start drag
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
@@ -145,6 +141,27 @@ export function ItineraryPanel({
     setCrossDayDragInfo(null);
   };
 
+  const handleActivityUpdate = (updatedActivity: Activity) => {
+    const newDays = itinerary.days.map((day) => {
+      const activityIndex = day.activities.findIndex((a) => a.id === updatedActivity.id);
+      if (activityIndex === -1) return day;
+
+      const newActivities = [...day.activities];
+      newActivities[activityIndex] = updatedActivity;
+
+      return {
+        ...day,
+        activities: newActivities,
+      };
+    });
+
+    onUpdate({
+      ...itinerary,
+      days: newDays,
+      updated_at: new Date().toISOString(),
+    });
+  };
+
   // Get the active activity for drag overlay
   const activeActivity = draggingActivityId
     ? itinerary.days
@@ -163,6 +180,7 @@ export function ItineraryPanel({
         toggleDay={toggleDay}
         onDayHover={onDayHover}
         onActivityHover={onActivityHover}
+        onActivityUpdate={handleActivityUpdate}
       />
     ),
     'single-day': () => (
@@ -174,6 +192,7 @@ export function ItineraryPanel({
         goToPreviousDay={goToPreviousDay}
         goToNextDay={goToNextDay}
         onActivityHover={onActivityHover}
+        onActivityUpdate={handleActivityUpdate}
       />
     ),
     'side-by-side': () => (
@@ -183,6 +202,7 @@ export function ItineraryPanel({
         crossDayDragInfo={crossDayDragInfo}
         onDayHover={onDayHover}
         onActivityHover={onActivityHover}
+        onActivityUpdate={handleActivityUpdate}
       />
     ),
   };

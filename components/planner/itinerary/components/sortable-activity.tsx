@@ -16,6 +16,7 @@ export function SortableActivity({
     dayNumber,
     onActivityHover,
     disableAnimation,
+    onActivityUpdate,
 }: SortableActivityProps) {
     const {
         attributes,
@@ -51,6 +52,7 @@ export function SortableActivity({
                     }`}
                 onMouseEnter={() => onActivityHover?.(activity.id)}
                 onMouseLeave={() => onActivityHover?.(null)}
+                onActivityUpdate={onActivityUpdate}
             />
         </div>
     );

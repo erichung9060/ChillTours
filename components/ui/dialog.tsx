@@ -12,7 +12,16 @@ export interface DialogContentProps
   onClose?: () => void;
 }
 
+import { createPortal } from 'react-dom';
+
 const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && open) {
@@ -31,10 +40,16 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
     };
   }, [open, onOpenChange]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-auto"
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Premium backdrop with enhanced blur */}
       <div
         className={cn(
@@ -45,7 +60,8 @@ const Dialog: React.FC<DialogProps> = ({ open, onOpenChange, children }) => {
       />
       {/* Content */}
       {children}
-    </div>
+    </div>,
+    document.body
   );
 };
 
@@ -67,8 +83,8 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
           'dark:before:absolute dark:before:inset-0 dark:before:rounded-xl',
           'dark:before:bg-gradient-to-br dark:before:from-white/[0.05] dark:before:to-transparent',
           'dark:before:pointer-events-none',
-          // Animation - enhanced
-          'animate-in fade-in-0 zoom-in-95 slide-in-from-bottom-4 duration-300',
+          // Animation
+          'animate-in',
           className
         )}
         {...props}

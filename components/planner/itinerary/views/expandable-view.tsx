@@ -18,6 +18,7 @@ export function ExpandableView({
     toggleDay,
     onDayHover,
     onActivityHover,
+    onActivityUpdate,
 }: ExpandableViewProps) {
     const formatDayInfo = (date: string) => {
         const dayDate = new Date(date);
@@ -79,6 +80,7 @@ export function ExpandableView({
                                     draggingActivityId={draggingActivityId}
                                     crossDayDragInfo={crossDayDragInfo}
                                     onActivityHover={onActivityHover}
+                                    onActivityUpdate={onActivityUpdate}
                                 />
                             </CardContent>
                         )}

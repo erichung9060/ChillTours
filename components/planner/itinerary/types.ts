@@ -16,6 +16,7 @@ export interface DayActivitiesListProps {
     draggingActivityId: string | null;
     crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
     onActivityHover?: (activityId: string | null) => void;
+    onActivityUpdate?: (activity: Activity) => void;
 }
 
 export interface ActivityCardProps {
@@ -23,6 +24,7 @@ export interface ActivityCardProps {
     className?: string;
     onMouseEnter?: () => void;
     onMouseLeave?: () => void;
+    onActivityUpdate?: (activity: Activity) => void;
 }
 
 export interface SortableActivityProps {
@@ -30,6 +32,7 @@ export interface SortableActivityProps {
     dayNumber: number;
     onActivityHover?: (activityId: string | null) => void;
     disableAnimation?: boolean;
+    onActivityUpdate?: (activity: Activity) => void;
 }
 
 export interface ItineraryPanelProps {
@@ -42,6 +45,7 @@ export interface ItineraryPanelProps {
     onViewModeChange?: (mode: ViewMode) => void;
     onDayHover?: (dayNumber: number | null) => void;
     onActivityHover?: (activityId: string | null) => void;
+    onActivityUpdate?: (activity: Activity) => void;
     currentDayIndex: number;
     onCurrentDayChange: (dayIndex: number) => void;
 }
@@ -67,6 +71,7 @@ export interface ExpandableViewProps {
     toggleDay: (dayNumber: number) => void;
     onDayHover?: (dayNumber: number | null) => void;
     onActivityHover?: (activityId: string | null) => void;
+    onActivityUpdate?: (activity: Activity) => void;
 }
 
 export interface SingleDayViewProps {
@@ -77,6 +82,7 @@ export interface SingleDayViewProps {
     goToPreviousDay: () => void;
     goToNextDay: () => void;
     onActivityHover?: (activityId: string | null) => void;
+    onActivityUpdate?: (activity: Activity) => void;
 }
 
 export interface SideBySideViewProps {
@@ -85,4 +91,5 @@ export interface SideBySideViewProps {
     crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
     onDayHover?: (dayNumber: number | null) => void;
     onActivityHover?: (activityId: string | null) => void;
+    onActivityUpdate?: (activity: Activity) => void;
 }
