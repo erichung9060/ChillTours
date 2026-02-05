@@ -32,15 +32,17 @@ export function EditActivityDialog({
     });
 
     useEffect(() => {
-        setFormData({
-            title: activity.title,
-            locationName: activity.location.name,
-            description: activity.description || '',
-            time: activity.time,
-            duration: activity.duration_minutes,
-            url: activity.url || '',
-        });
-    }, [activity]);
+        if (isOpen) {
+            setFormData({
+                title: activity.title,
+                locationName: activity.location.name,
+                description: activity.description || '',
+                time: activity.time,
+                duration: activity.duration_minutes,
+                url: activity.url || '',
+            });
+        }
+    }, [activity, isOpen]);
 
     useEffect(() => {
         if (isOpen && initialFocusRef.current) {
