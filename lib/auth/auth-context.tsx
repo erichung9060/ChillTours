@@ -17,8 +17,10 @@ import {
   useState,
   ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase, signOut as supabaseSignOut } from "@/lib/supabase/client";
+import { Loading } from "@/components/ui/loading";
 
 interface AuthState {
   user: User | null;
@@ -46,6 +48,7 @@ interface AuthProviderProps {
  * components can access via the useAuth hook.
  */
 export function AuthProvider({ children }: AuthProviderProps) {
+  const router = useRouter();
   const [state, setState] = useState<AuthState>({
     user: null,
     session: null,
@@ -149,8 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error: null,
       });
 
-      // Reload the page to clear any remaining app state
-      window.location.reload();
+      router.push('/auth/login');
     } catch (error) {
       setState((prev) => ({
         ...prev,
@@ -166,6 +168,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithGoogle,
     signOut,
   };
+
+  if (state.loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loading size="lg" text="Loading..." />
+      </div>
+    );
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

@@ -7,14 +7,14 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 
 export default function LoginPage() {
   const { user, signInWithGoogle, loading, error } = useAuth();
   const router = useRouter();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -25,11 +25,9 @@ export default function LoginPage() {
 
   const handleSignIn = async () => {
     try {
-      setIsSigningIn(true);
       await signInWithGoogle();
     } catch (err) {
       console.error('Sign-in error:', err);
-      setIsSigningIn(false);
     }
   };
 
@@ -50,10 +48,10 @@ export default function LoginPage() {
           {/* Sign-in Button */}
           <button
             onClick={handleSignIn}
-            disabled={isSigningIn || loading}
+            disabled={loading}
             className="w-full flex items-center justify-center gap-3 bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg px-6 py-3 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isSigningIn ? (
+            {loading ? (
               <>
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
                 <span>Signing in...</span>

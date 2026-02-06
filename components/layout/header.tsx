@@ -55,9 +55,9 @@ export function Header() {
                   {user.user_metadata?.full_name || user.email?.split('@')[0]}
                 </span>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => signOut()}
                 className="text-muted-foreground hover:text-foreground"
               >
