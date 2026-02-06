@@ -83,22 +83,19 @@ export function ActivityCard({
                             {activity.title}
                         </h4>
 
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 opacity-100 hover:opacity-100 p-0 cursor-pointer"
-                                onClick={handleNavigationConfig}
-                                title="Navigate with Google Maps"
-                            >
-                                <img
-                                    src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico"
-                                    alt="Google Maps"
-                                    className="h-4 w-4 object-contain"
-                                />
-                            </Button>
+                        <Button
+                            variant="ghost"
+                            className="flex items-center gap-1 text-xs opacity-100 mb-1 h-auto p-1 -ml-1 cursor-pointer w-fit max-w-full"
+                            onClick={handleNavigationConfig}
+                            title="Navigate with Google Maps"
+                        >
+                            <img
+                                src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico"
+                                alt="Google Maps"
+                                className="h-4 w-4 object-contain flex-shrink-0"
+                            />
                             <span className="truncate">{activity.location.name}</span>
-                        </div>
+                        </Button>
 
                         {activity.description && (
                             <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
