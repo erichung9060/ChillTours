@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/lib/auth/auth-context';
 
 export function Header() {
   const { user, signOut } = useAuth();

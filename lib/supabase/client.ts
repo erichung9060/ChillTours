@@ -63,25 +63,6 @@ export async function getCurrentSession() {
 }
 
 /**
- * Sign in with Google OAuth
- */
-export async function signInWithGoogle() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-    },
-  });
-  
-  if (error) {
-    console.error('Error signing in with Google:', error);
-    throw error;
-  }
-  
-  return data;
-}
-
-/**
  * Sign out the current user
  * Requirements: 1.5
  */
