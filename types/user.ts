@@ -1,10 +1,10 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ============================================================================
 // User Profile Types
 // ============================================================================
 
-export const UserTierSchema = z.enum(['free', 'pro']);
+export const UserTierSchema = z.enum(["free", "pro"]);
 
 export type UserTier = z.infer<typeof UserTierSchema>;
 
@@ -25,7 +25,7 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 // Theme Preference Types
 // ============================================================================
 
-export const ThemeModeSchema = z.enum(['light', 'dark', 'system']);
+export const ThemeModeSchema = z.enum(["light", "dark", "system"]);
 
 export type ThemeMode = z.infer<typeof ThemeModeSchema>;
 

@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Cross-Day Activity Movement
- * 
+ *
  * Feature: tripai-travel-planner, Property 17: Cross-Day Activity Movement
  * Validates: Requirements 7.4
- * 
+ *
  * Property: For any activity moved from one day to another, the activity should be
  * removed from the source day and added to the target day, updating day groupings correctly.
  */
@@ -82,47 +82,49 @@ describe("Cross-Day Activity Movement Property Tests", () => {
       fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }), // day 1 activities
       fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }) // day 2 activities
     )
-    .map(([id, user_id, title, destination, day1Activities, day2Activities]) => {
-      // Ensure activities have sequential order
-      const orderedDay1Activities = day1Activities.map((activity, index) => ({
-        ...activity,
-        order: index,
-      }));
+    .map(
+      ([id, user_id, title, destination, day1Activities, day2Activities]) => {
+        // Ensure activities have sequential order
+        const orderedDay1Activities = day1Activities.map((activity, index) => ({
+          ...activity,
+          order: index,
+        }));
 
-      const orderedDay2Activities = day2Activities.map((activity, index) => ({
-        ...activity,
-        order: index,
-      }));
+        const orderedDay2Activities = day2Activities.map((activity, index) => ({
+          ...activity,
+          order: index,
+        }));
 
-      const startDate = "2025-06-15";
-      const endDate = "2025-06-16";
+        const startDate = "2025-06-15";
+        const endDate = "2025-06-16";
 
-      const itinerary: Itinerary = {
-        id,
-        user_id,
-        title,
-        destination,
-        start_date: startDate,
-        end_date: endDate,
-        days: [
-          {
-            day_number: 1,
-            date: startDate,
-            activities: orderedDay1Activities,
-          },
-          {
-            day_number: 2,
-            date: endDate,
-            activities: orderedDay2Activities,
-          },
-        ],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        shared_with: [],
-      };
+        const itinerary: Itinerary = {
+          id,
+          user_id,
+          title,
+          destination,
+          start_date: startDate,
+          end_date: endDate,
+          days: [
+            {
+              day_number: 1,
+              date: startDate,
+              activities: orderedDay1Activities,
+            },
+            {
+              day_number: 2,
+              date: endDate,
+              activities: orderedDay2Activities,
+            },
+          ],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          shared_with: [],
+        };
 
-      return itinerary;
-    });
+        return itinerary;
+      }
+    );
 
   it("Property 17: Cross-Day Activity Movement - activity is removed from source day and added to target day", async () => {
     await fc.assert(
@@ -169,18 +171,32 @@ describe("Cross-Day Activity Movement Property Tests", () => {
             const newTargetDay = result.newItinerary.days[1];
 
             // Verify activity was removed from source day
-            expect(newSourceDay.activities.length).toBe(originalSourceCount - 1);
-            expect(newSourceDay.activities.find((a: Activity) => a.id === sourceActivity.id)).toBeUndefined();
+            expect(newSourceDay.activities.length).toBe(
+              originalSourceCount - 1
+            );
+            expect(
+              newSourceDay.activities.find(
+                (a: Activity) => a.id === sourceActivity.id
+              )
+            ).toBeUndefined();
 
             // Verify activity was added to target day
-            expect(newTargetDay.activities.length).toBe(originalTargetCount + 1);
-            const movedActivity = newTargetDay.activities.find((a: Activity) => a.id === sourceActivity.id);
+            expect(newTargetDay.activities.length).toBe(
+              originalTargetCount + 1
+            );
+            const movedActivity = newTargetDay.activities.find(
+              (a: Activity) => a.id === sourceActivity.id
+            );
             expect(movedActivity).toBeDefined();
 
             // Verify crossDayInfo is set correctly
             expect(result.crossDayInfo).not.toBeNull();
-            expect(result.crossDayInfo?.sourceDayNumber).toBe(sourceDay.day_number);
-            expect(result.crossDayInfo?.targetDayNumber).toBe(targetDay.day_number);
+            expect(result.crossDayInfo?.sourceDayNumber).toBe(
+              sourceDay.day_number
+            );
+            expect(result.crossDayInfo?.targetDayNumber).toBe(
+              targetDay.day_number
+            );
           }
         }
       ),
@@ -204,7 +220,8 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           const sourceActivity = sourceDay.activities[sourceIdx];
           const targetActivity = targetDay.activities[targetIdx];
 
-          const originalTotalCount = sourceDay.activities.length + targetDay.activities.length;
+          const originalTotalCount =
+            sourceDay.activities.length + targetDay.activities.length;
 
           const { active, over } = createDragObjects(
             sourceActivity.id,
@@ -222,8 +239,8 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           );
 
           if (result) {
-            const newTotalCount = 
-              result.newItinerary.days[0].activities.length + 
+            const newTotalCount =
+              result.newItinerary.days[0].activities.length +
               result.newItinerary.days[1].activities.length;
 
             // Total activity count should remain the same
@@ -271,14 +288,18 @@ describe("Cross-Day Activity Movement Property Tests", () => {
             const newTargetDay = result.newItinerary.days[1];
 
             // Verify source day activities have sequential order
-            newSourceDay.activities.forEach((activity: Activity, index: number) => {
-              expect(activity.order).toBe(index);
-            });
+            newSourceDay.activities.forEach(
+              (activity: Activity, index: number) => {
+                expect(activity.order).toBe(index);
+              }
+            );
 
             // Verify target day activities have sequential order
-            newTargetDay.activities.forEach((activity: Activity, index: number) => {
-              expect(activity.order).toBe(index);
-            });
+            newTargetDay.activities.forEach(
+              (activity: Activity, index: number) => {
+                expect(activity.order).toBe(index);
+              }
+            );
           }
         }
       ),
@@ -329,9 +350,13 @@ describe("Cross-Day Activity Movement Property Tests", () => {
               expect(movedActivity.id).toBe(sourceActivity.id);
               expect(movedActivity.time).toBe(sourceActivity.time);
               expect(movedActivity.title).toBe(sourceActivity.title);
-              expect(movedActivity.description).toBe(sourceActivity.description);
+              expect(movedActivity.description).toBe(
+                sourceActivity.description
+              );
               expect(movedActivity.location).toEqual(sourceActivity.location);
-              expect(movedActivity.duration_minutes).toBe(sourceActivity.duration_minutes);
+              expect(movedActivity.duration_minutes).toBe(
+                sourceActivity.duration_minutes
+              );
             }
           }
         }
@@ -359,8 +384,12 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           // Capture original state
           const originalSourceCount = sourceDay.activities.length;
           const originalTargetCount = targetDay.activities.length;
-          const originalSourceIds = sourceDay.activities.map((a: Activity) => a.id);
-          const originalTargetIds = targetDay.activities.map((a: Activity) => a.id);
+          const originalSourceIds = sourceDay.activities.map(
+            (a: Activity) => a.id
+          );
+          const originalTargetIds = targetDay.activities.map(
+            (a: Activity) => a.id
+          );
 
           const { active, over } = createDragObjects(
             sourceActivity.id,
@@ -380,8 +409,12 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           // Verify original itinerary was not mutated
           expect(itinerary.days[0].activities.length).toBe(originalSourceCount);
           expect(itinerary.days[1].activities.length).toBe(originalTargetCount);
-          expect(itinerary.days[0].activities.map((a: Activity) => a.id)).toEqual(originalSourceIds);
-          expect(itinerary.days[1].activities.map((a: Activity) => a.id)).toEqual(originalTargetIds);
+          expect(
+            itinerary.days[0].activities.map((a: Activity) => a.id)
+          ).toEqual(originalSourceIds);
+          expect(
+            itinerary.days[1].activities.map((a: Activity) => a.id)
+          ).toEqual(originalTargetIds);
         }
       ),
       { numRuns: 100 }
@@ -422,8 +455,12 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           if (result) {
             // Verify crossDayInfo is not null for cross-day movement
             expect(result.crossDayInfo).not.toBeNull();
-            expect(result.crossDayInfo?.sourceDayNumber).toBe(sourceDay.day_number);
-            expect(result.crossDayInfo?.targetDayNumber).toBe(targetDay.day_number);
+            expect(result.crossDayInfo?.sourceDayNumber).toBe(
+              sourceDay.day_number
+            );
+            expect(result.crossDayInfo?.targetDayNumber).toBe(
+              targetDay.day_number
+            );
           }
         }
       ),
@@ -479,7 +516,11 @@ describe("Cross-Day Activity Movement Property Tests", () => {
             const newTargetDay = result.newItinerary.days[1];
 
             // Verify activity was removed from source
-            expect(newSourceDay.activities.find((a: Activity) => a.id === sourceActivity.id)).toBeUndefined();
+            expect(
+              newSourceDay.activities.find(
+                (a: Activity) => a.id === sourceActivity.id
+              )
+            ).toBeUndefined();
 
             // Verify activity was added to target (now has 1 activity)
             expect(newTargetDay.activities.length).toBe(1);
@@ -604,37 +645,56 @@ describe("Cross-Day Activity Movement Property Tests", () => {
             fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }),
             fc.array(activityArbitrary, { minLength: 1, maxLength: 5 })
           )
-          .map(([id, user_id, title, destination, day1Activities, day2Activities, day3Activities]) => {
-            const itinerary: Itinerary = {
+          .map(
+            ([
               id,
               user_id,
               title,
               destination,
-              start_date: "2025-06-15",
-              end_date: "2025-06-17",
-              days: [
-                {
-                  day_number: 1,
-                  date: "2025-06-15",
-                  activities: day1Activities.map((a, i) => ({ ...a, order: i })),
-                },
-                {
-                  day_number: 2,
-                  date: "2025-06-16",
-                  activities: day2Activities.map((a, i) => ({ ...a, order: i })),
-                },
-                {
-                  day_number: 3,
-                  date: "2025-06-17",
-                  activities: day3Activities.map((a, i) => ({ ...a, order: i })),
-                },
-              ],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              shared_with: [],
-            };
-            return itinerary;
-          }),
+              day1Activities,
+              day2Activities,
+              day3Activities,
+            ]) => {
+              const itinerary: Itinerary = {
+                id,
+                user_id,
+                title,
+                destination,
+                start_date: "2025-06-15",
+                end_date: "2025-06-17",
+                days: [
+                  {
+                    day_number: 1,
+                    date: "2025-06-15",
+                    activities: day1Activities.map((a, i) => ({
+                      ...a,
+                      order: i,
+                    })),
+                  },
+                  {
+                    day_number: 2,
+                    date: "2025-06-16",
+                    activities: day2Activities.map((a, i) => ({
+                      ...a,
+                      order: i,
+                    })),
+                  },
+                  {
+                    day_number: 3,
+                    date: "2025-06-17",
+                    activities: day3Activities.map((a, i) => ({
+                      ...a,
+                      order: i,
+                    })),
+                  },
+                ],
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                shared_with: [],
+              };
+              return itinerary;
+            }
+          ),
         fc.integer({ min: 0, max: 4 }),
         fc.integer({ min: 0, max: 4 }),
         async (itinerary, sourceIdx, targetIdx) => {
@@ -649,7 +709,9 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           const targetActivity = targetDay.activities[targetIdx];
 
           // Capture original state of unaffected day
-          const originalUnaffectedActivities = unaffectedDay.activities.map((a: Activity) => ({ ...a }));
+          const originalUnaffectedActivities = unaffectedDay.activities.map(
+            (a: Activity) => ({ ...a })
+          );
 
           const { active, over } = createDragObjects(
             sourceActivity.id,
@@ -670,10 +732,12 @@ describe("Cross-Day Activity Movement Property Tests", () => {
             const newUnaffectedDay = result.newItinerary.days[2];
 
             // Verify unaffected day remains unchanged
-            expect(newUnaffectedDay.activities.length).toBe(originalUnaffectedActivities.length);
-            expect(newUnaffectedDay.activities.map((a: Activity) => a.id)).toEqual(
-              originalUnaffectedActivities.map((a) => a.id)
+            expect(newUnaffectedDay.activities.length).toBe(
+              originalUnaffectedActivities.length
             );
+            expect(
+              newUnaffectedDay.activities.map((a: Activity) => a.id)
+            ).toEqual(originalUnaffectedActivities.map((a) => a.id));
           }
         }
       ),

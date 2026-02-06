@@ -1,11 +1,14 @@
 import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import { itineraryArbitrary, chatMessageArbitrary } from "../utils/property-test-helpers";
+import {
+  itineraryArbitrary,
+  chatMessageArbitrary,
+} from "../utils/property-test-helpers";
 
 /**
  * Property-based tests for chat context inclusion
  * Feature: tripai-travel-planner
- * 
+ *
  * These tests verify that the chat system properly includes context
  * (conversation history, itinerary, custom requirements) when making
  * API requests to the Edge Function.

@@ -1,21 +1,24 @@
 /**
  * Itinerary Parser
- * 
+ *
  * This module provides parsing utilities for converting AI-generated
  * responses into structured Itinerary objects.
- * 
+ *
  * Requirements: 3.4, 3.5
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import type { Itinerary, Day, Activity, Location } from '@/types';
-import { ItinerarySchema } from '@/types';
-import { ensureLocationData, batchGeocodeLocations } from '@/lib/maps/geocoding';
-import type { PartialLocation } from '@/lib/maps/geocoding';
+import { v4 as uuidv4 } from "uuid";
+import type { Itinerary, Day, Activity, Location } from "@/types";
+import { ItinerarySchema } from "@/types";
+import {
+  ensureLocationData,
+  batchGeocodeLocations,
+} from "@/lib/maps/geocoding";
+import type { PartialLocation } from "@/lib/maps/geocoding";
 
 /**
  * Parse AI response into structured Itinerary
- * 
+ *
  * @param response - AI-generated response (JSON string or object)
  * @param userId - User ID to associate with itinerary
  * @param contextStartDate - Optional start date from context
@@ -29,28 +32,31 @@ export async function parseItinerary(
 ): Promise<Itinerary> {
   try {
     // Parse JSON if string
-    const data = typeof response === 'string' ? JSON.parse(response) : response;
+    const data = typeof response === "string" ? JSON.parse(response) : response;
 
     // Use contextStartDate if provided, otherwise fallback to today
-    const startDate = contextStartDate || 
-                     data.start_date || 
-                     (data.days?.[0]?.date) || 
-                     new Date().toISOString().split('T')[0];
-    
+    const startDate =
+      contextStartDate ||
+      data.start_date ||
+      data.days?.[0]?.date ||
+      new Date().toISOString().split("T")[0];
+
     // Calculate end_date based on days array length
     const daysArray = data.days || [];
     const duration = daysArray.length || 1;
-    const endDate = data.end_date || (() => {
-      const end = new Date(startDate);
-      end.setDate(end.getDate() + Math.max(0, duration - 1));
-      return end.toISOString().split('T')[0];
-    })();
+    const endDate =
+      data.end_date ||
+      (() => {
+        const end = new Date(startDate);
+        end.setDate(end.getDate() + Math.max(0, duration - 1));
+        return end.toISOString().split("T")[0];
+      })();
 
     // Build itinerary with required fields
     const itinerary: Itinerary = {
       id: data.id || uuidv4(),
       user_id: userId,
-      title: data.title || data.destination || 'Untitled Trip',
+      title: data.title || data.destination || "Untitled Trip",
       destination: data.destination,
       start_date: startDate,
       end_date: endDate,
@@ -67,13 +73,13 @@ export async function parseItinerary(
     if (error instanceof Error) {
       throw new Error(`Failed to parse itinerary: ${error.message}`);
     }
-    throw new Error('Failed to parse itinerary: Unknown error');
+    throw new Error("Failed to parse itinerary: Unknown error");
   }
 }
 
 /**
  * Parse days array with automatic geocoding for missing locations
- * 
+ *
  * @param days - Raw days data
  * @param startDate - Start date in YYYY-MM-DD format
  * @returns Parsed Day array with geocoded locations
@@ -84,10 +90,10 @@ async function parseDays(days: any[], startDate: string): Promise<Day[]> {
       // Use day_number to calculate date relative to startDate
       // day_number 1 -> index 0 -> startDate
       const dayNum = day.day_number || index + 1;
-      
+
       const date = new Date(startDate);
       date.setDate(date.getDate() + (dayNum - 1));
-      const dayDate = date.toISOString().split('T')[0];
+      const dayDate = date.toISOString().split("T")[0];
 
       return {
         day_number: dayNum,
@@ -102,13 +108,13 @@ async function parseDays(days: any[], startDate: string): Promise<Day[]> {
 
 /**
  * Parse activities array with automatic geocoding for missing locations
- * 
+ *
  * @param activities - Raw activities data
  * @returns Parsed Activity array with geocoded locations
  */
 async function parseActivities(activities: any[]): Promise<Activity[]> {
   // Collect all partial locations for batch geocoding
-  const partialLocations: PartialLocation[] = activities.map(activity => ({
+  const partialLocations: PartialLocation[] = activities.map((activity) => ({
     name: activity.location?.name || activity.title,
     lat: activity.location?.lat,
     lng: activity.location?.lng,
@@ -123,18 +129,16 @@ async function parseActivities(activities: any[]): Promise<Activity[]> {
     id: activity.id || uuidv4(),
     time: activity.time,
     title: activity.title,
-    description: activity.description || '',
+    description: activity.description || "",
     location: geocodedLocations[index],
     duration_minutes: activity.duration_minutes || 60,
     order: activity.order !== undefined ? activity.order : index,
   }));
 }
 
-
-
 /**
  * Extract JSON from AI response that may contain text
- * 
+ *
  * @param response - AI response potentially containing JSON
  * @returns Extracted JSON string or null
  */

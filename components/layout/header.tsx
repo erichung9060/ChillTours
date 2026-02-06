@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth/auth-context';
+import Link from "next/link";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -12,7 +12,10 @@ export function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
       <div className="h-16 flex items-center justify-between px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-300 flex items-center justify-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -41,7 +44,7 @@ export function Header() {
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={user.user_metadata.avatar_url}
-                    alt={user.user_metadata?.full_name || 'User'}
+                    alt={user.user_metadata?.full_name || "User"}
                     className="w-8 h-8 rounded-full border border-border"
                   />
                 ) : (
@@ -52,7 +55,7 @@ export function Header() {
                   </div>
                 )}
                 <span className="text-sm font-medium hidden sm:block">
-                  {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  {user.user_metadata?.full_name || user.email?.split("@")[0]}
                 </span>
               </div>
               <Button

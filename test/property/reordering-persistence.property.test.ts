@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Reordering Persistence
- * 
+ *
  * Feature: tripai-travel-planner, Property 18: Reordering Persistence
  * Validates: Requirements 7.5
- * 
+ *
  * Property: For any reordering operation, the changes should be maintained in
  * session memory and reflected in subsequent renders.
  */
@@ -124,46 +124,48 @@ describe("Reordering Persistence Property Tests", () => {
       fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }), // day 1 activities
       fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }) // day 2 activities
     )
-    .map(([id, user_id, title, destination, day1Activities, day2Activities]) => {
-      const orderedDay1Activities = day1Activities.map((activity, index) => ({
-        ...activity,
-        order: index,
-      }));
+    .map(
+      ([id, user_id, title, destination, day1Activities, day2Activities]) => {
+        const orderedDay1Activities = day1Activities.map((activity, index) => ({
+          ...activity,
+          order: index,
+        }));
 
-      const orderedDay2Activities = day2Activities.map((activity, index) => ({
-        ...activity,
-        order: index,
-      }));
+        const orderedDay2Activities = day2Activities.map((activity, index) => ({
+          ...activity,
+          order: index,
+        }));
 
-      const startDate = "2025-06-15";
-      const endDate = "2025-06-16";
+        const startDate = "2025-06-15";
+        const endDate = "2025-06-16";
 
-      const itinerary: Itinerary = {
-        id,
-        user_id,
-        title,
-        destination,
-        start_date: startDate,
-        end_date: endDate,
-        days: [
-          {
-            day_number: 1,
-            date: startDate,
-            activities: orderedDay1Activities,
-          },
-          {
-            day_number: 2,
-            date: endDate,
-            activities: orderedDay2Activities,
-          },
-        ],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        shared_with: [],
-      };
+        const itinerary: Itinerary = {
+          id,
+          user_id,
+          title,
+          destination,
+          start_date: startDate,
+          end_date: endDate,
+          days: [
+            {
+              day_number: 1,
+              date: startDate,
+              activities: orderedDay1Activities,
+            },
+            {
+              day_number: 2,
+              date: endDate,
+              activities: orderedDay2Activities,
+            },
+          ],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          shared_with: [],
+        };
 
-      return itinerary;
-    });
+        return itinerary;
+      }
+    );
 
   it("Property 18: Reordering Persistence - changes are maintained in the returned itinerary state", async () => {
     await fc.assert(
@@ -220,12 +222,14 @@ describe("Reordering Persistence Property Tests", () => {
             });
 
             // Verify the moved activity is at its new position
-            const movedActivityIndex = newActivities.findIndex(a => a.id === sourceActivity.id);
+            const movedActivityIndex = newActivities.findIndex(
+              (a) => a.id === sourceActivity.id
+            );
             expect(movedActivityIndex).not.toBe(sourceIdx);
 
             // Verify no activities were lost or duplicated
-            const originalIds = new Set(activities.map(a => a.id));
-            const newIds = new Set(newActivities.map(a => a.id));
+            const originalIds = new Set(activities.map((a) => a.id));
+            const newIds = new Set(newActivities.map((a) => a.id));
             expect(newIds).toEqual(originalIds);
           }
         }
@@ -254,7 +258,11 @@ describe("Reordering Persistence Property Tests", () => {
             const activities = day.activities;
 
             // Skip invalid operations
-            if (sourceIdx >= activities.length || targetIdx >= activities.length || sourceIdx === targetIdx) {
+            if (
+              sourceIdx >= activities.length ||
+              targetIdx >= activities.length ||
+              sourceIdx === targetIdx
+            ) {
               continue;
             }
 
@@ -292,8 +300,10 @@ describe("Reordering Persistence Property Tests", () => {
           });
 
           // No activities should be lost or duplicated
-          const originalIds = new Set(initialItinerary.days[0].activities.map(a => a.id));
-          const finalIds = new Set(finalActivities.map(a => a.id));
+          const originalIds = new Set(
+            initialItinerary.days[0].activities.map((a) => a.id)
+          );
+          const finalIds = new Set(finalActivities.map((a) => a.id));
           expect(finalIds).toEqual(originalIds);
         }
       ),
@@ -348,23 +358,37 @@ describe("Reordering Persistence Property Tests", () => {
             const newTargetDay = newItinerary.days[1];
 
             // Verify source day state is maintained
-            expect(newSourceDay.activities.length).toBe(originalSourceCount - 1);
-            expect(newSourceDay.activities.find((a: Activity) => a.id === sourceActivity.id)).toBeUndefined();
+            expect(newSourceDay.activities.length).toBe(
+              originalSourceCount - 1
+            );
+            expect(
+              newSourceDay.activities.find(
+                (a: Activity) => a.id === sourceActivity.id
+              )
+            ).toBeUndefined();
 
             // Verify source day activities have sequential order
-            newSourceDay.activities.forEach((activity: Activity, index: number) => {
-              expect(activity.order).toBe(index);
-            });
+            newSourceDay.activities.forEach(
+              (activity: Activity, index: number) => {
+                expect(activity.order).toBe(index);
+              }
+            );
 
             // Verify target day state is maintained
-            expect(newTargetDay.activities.length).toBe(originalTargetCount + 1);
-            const movedActivity = newTargetDay.activities.find((a: Activity) => a.id === sourceActivity.id);
+            expect(newTargetDay.activities.length).toBe(
+              originalTargetCount + 1
+            );
+            const movedActivity = newTargetDay.activities.find(
+              (a: Activity) => a.id === sourceActivity.id
+            );
             expect(movedActivity).toBeDefined();
 
             // Verify target day activities have sequential order
-            newTargetDay.activities.forEach((activity: Activity, index: number) => {
-              expect(activity.order).toBe(index);
-            });
+            newTargetDay.activities.forEach(
+              (activity: Activity, index: number) => {
+                expect(activity.order).toBe(index);
+              }
+            );
           }
         }
       ),
@@ -410,23 +434,31 @@ describe("Reordering Persistence Property Tests", () => {
 
             // Simulate a "re-render" by creating a deep copy
             // This tests that the state is stable and doesn't have hidden mutations
-            const deepCopy = JSON.parse(JSON.stringify(firstItinerary)) as Itinerary;
+            const deepCopy = JSON.parse(
+              JSON.stringify(firstItinerary)
+            ) as Itinerary;
 
             // Verify the essential state properties are preserved
             // (Note: JSON serialization removes undefined values and converts -0 to 0)
             expect(deepCopy.id).toBe(firstItinerary.id);
             expect(deepCopy.days.length).toBe(firstItinerary.days.length);
-            expect(deepCopy.days[0].activities.length).toBe(firstItinerary.days[0].activities.length);
+            expect(deepCopy.days[0].activities.length).toBe(
+              firstItinerary.days[0].activities.length
+            );
 
             // Verify order values are still sequential
             deepCopy.days[0].activities.forEach((activity, index) => {
               expect(activity.order).toBe(index);
-              expect(activity.id).toBe(firstItinerary.days[0].activities[index].id);
+              expect(activity.id).toBe(
+                firstItinerary.days[0].activities[index].id
+              );
             });
 
             // Verify activity IDs are in the same order
-            const originalIds = firstItinerary.days[0].activities.map(a => a.id);
-            const copiedIds = deepCopy.days[0].activities.map(a => a.id);
+            const originalIds = firstItinerary.days[0].activities.map(
+              (a) => a.id
+            );
+            const copiedIds = deepCopy.days[0].activities.map((a) => a.id);
             expect(copiedIds).toEqual(originalIds);
           }
         }
@@ -470,16 +502,24 @@ describe("Reordering Persistence Property Tests", () => {
           if (result) {
             // Take a snapshot of the reordered state
             const snapshot = {
-              activityIds: result.newItinerary.days[0].activities.map(a => a.id),
-              activityOrders: result.newItinerary.days[0].activities.map(a => a.order),
+              activityIds: result.newItinerary.days[0].activities.map(
+                (a) => a.id
+              ),
+              activityOrders: result.newItinerary.days[0].activities.map(
+                (a) => a.order
+              ),
             };
 
             // Simulate restoring from snapshot
             const restoredActivities = result.newItinerary.days[0].activities;
 
             // Verify snapshot matches the actual state
-            expect(restoredActivities.map(a => a.id)).toEqual(snapshot.activityIds);
-            expect(restoredActivities.map(a => a.order)).toEqual(snapshot.activityOrders);
+            expect(restoredActivities.map((a) => a.id)).toEqual(
+              snapshot.activityIds
+            );
+            expect(restoredActivities.map((a) => a.order)).toEqual(
+              snapshot.activityOrders
+            );
 
             // Verify orders are sequential
             snapshot.activityOrders.forEach((order, index) => {
@@ -498,7 +538,7 @@ describe("Reordering Persistence Property Tests", () => {
         itineraryWithMultipleDaysArbitrary,
         fc.array(
           fc.record({
-            type: fc.constantFrom('same-day', 'cross-day'),
+            type: fc.constantFrom("same-day", "cross-day"),
             sourceIdx: fc.integer({ min: 0, max: 4 }),
             targetIdx: fc.integer({ min: 0, max: 4 }),
           }),
@@ -508,14 +548,16 @@ describe("Reordering Persistence Property Tests", () => {
           let currentItinerary = initialItinerary;
 
           for (const operation of operations) {
-            if (operation.type === 'same-day') {
+            if (operation.type === "same-day") {
               // Same-day reordering on day 1
               const day = currentItinerary.days[0];
               const activities = day.activities;
 
-              if (operation.sourceIdx >= activities.length || 
-                  operation.targetIdx >= activities.length || 
-                  operation.sourceIdx === operation.targetIdx) {
+              if (
+                operation.sourceIdx >= activities.length ||
+                operation.targetIdx >= activities.length ||
+                operation.sourceIdx === operation.targetIdx
+              ) {
                 continue;
               }
 
@@ -545,8 +587,10 @@ describe("Reordering Persistence Property Tests", () => {
               const sourceDay = currentItinerary.days[0];
               const targetDay = currentItinerary.days[1];
 
-              if (operation.sourceIdx >= sourceDay.activities.length || 
-                  operation.targetIdx >= targetDay.activities.length) {
+              if (
+                operation.sourceIdx >= sourceDay.activities.length ||
+                operation.targetIdx >= targetDay.activities.length
+              ) {
                 continue;
               }
 
@@ -575,7 +619,7 @@ describe("Reordering Persistence Property Tests", () => {
           }
 
           // Verify final state consistency
-          currentItinerary.days.forEach(day => {
+          currentItinerary.days.forEach((day) => {
             // All activities should have sequential order
             day.activities.forEach((activity, index) => {
               expect(activity.order).toBe(index);
@@ -617,7 +661,7 @@ describe("Reordering Persistence Property Tests", () => {
 
           // Capture all properties of all activities before reordering
           const activityPropertiesMap = new Map(
-            activities.map(a => [
+            activities.map((a) => [
               a.id,
               {
                 time: a.time,
@@ -648,7 +692,7 @@ describe("Reordering Persistence Property Tests", () => {
             const newActivities = result.newItinerary.days[0].activities;
 
             // Verify all activities maintain their properties (except order)
-            newActivities.forEach(activity => {
+            newActivities.forEach((activity) => {
               const originalProps = activityPropertiesMap.get(activity.id);
               expect(originalProps).toBeDefined();
 
@@ -657,7 +701,9 @@ describe("Reordering Persistence Property Tests", () => {
                 expect(activity.title).toBe(originalProps.title);
                 expect(activity.description).toBe(originalProps.description);
                 expect(activity.location).toEqual(originalProps.location);
-                expect(activity.duration_minutes).toBe(originalProps.duration_minutes);
+                expect(activity.duration_minutes).toBe(
+                  originalProps.duration_minutes
+                );
               }
             });
           }
@@ -716,8 +762,12 @@ describe("Reordering Persistence Property Tests", () => {
             const activities1 = result1.newItinerary.days[0].activities;
             const activities2 = result2.newItinerary.days[0].activities;
 
-            expect(activities1.map(a => a.id)).toEqual(activities2.map(a => a.id));
-            expect(activities1.map(a => a.order)).toEqual(activities2.map(a => a.order));
+            expect(activities1.map((a) => a.id)).toEqual(
+              activities2.map((a) => a.id)
+            );
+            expect(activities1.map((a) => a.order)).toEqual(
+              activities2.map((a) => a.order)
+            );
           }
         }
       ),

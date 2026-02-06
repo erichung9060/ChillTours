@@ -1,6 +1,6 @@
-import { Header } from '@/components/layout/header';
-import { HeroSection } from '@/components/landing/hero-section';
-import { TripForm } from '@/components/landing/trip-form';
+import { Header } from "@/components/layout/header";
+import { HeroSection } from "@/components/landing/hero-section";
+import { TripForm } from "@/components/landing/trip-form";
 
 export default function Home() {
   return (

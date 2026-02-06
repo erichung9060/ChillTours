@@ -3,7 +3,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -39,7 +39,9 @@ interface ChatRequest {
  * 驗證用戶是否已登入
  * 使用 Supabase Auth 的 getUser() 方法驗證 JWT
  */
-async function verifyUser(req: Request): Promise<{ userId: string; email: string } | null> {
+async function verifyUser(
+  req: Request
+): Promise<{ userId: string; email: string } | null> {
   try {
     const authHeader = req.headers.get("Authorization");
 
@@ -62,7 +64,10 @@ async function verifyUser(req: Request): Promise<{ userId: string; email: string
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // 使用 getUser() 驗證 JWT 並取得用戶資訊
-    const { data: { user }, error } = await supabase.auth.getUser(jwt);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(jwt);
 
     if (error || !user) {
       console.log("❌ Invalid token or user not found:", error?.message);
@@ -84,7 +89,7 @@ async function verifyUser(req: Request): Promise<{ userId: string; email: string
  */
 function buildChatPrompt(
   message: string,
-  itineraryContext?: ChatRequest['itinerary_context']
+  itineraryContext?: ChatRequest["itinerary_context"]
 ): string {
   let prompt = `You are a helpful travel planning assistant. The user is planning a trip and may ask you to modify their itinerary, suggest activities, or answer questions about their travel plans.
 
@@ -109,7 +114,7 @@ Days and Activities (Note: Activity indices are 0-based, starting from 0):
       });
     });
 
-    prompt += '\n';
+    prompt += "\n";
   }
 
   prompt += `
@@ -234,7 +239,7 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({
           error: "Unauthorized. Please log in to use this feature.",
-          code: "UNAUTHORIZED"
+          code: "UNAUTHORIZED",
         }),
         {
           status: 401,
@@ -249,13 +254,10 @@ Deno.serve(async (req) => {
 
     // Validate required fields
     if (!message || !message.trim()) {
-      return new Response(
-        JSON.stringify({ error: "Message is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Get Gemini API key from environment
@@ -277,7 +279,7 @@ Deno.serve(async (req) => {
 
     // Build conversation history for Gemini
     const conversationHistory = history.map((msg) => ({
-      role: msg.role === 'user' ? 'user' : 'model',
+      role: msg.role === "user" ? "user" : "model",
       parts: [{ text: msg.content }],
     }));
 
@@ -287,10 +289,7 @@ Deno.serve(async (req) => {
     });
 
     // Build prompt with context
-    const prompt = buildChatPrompt(
-      message,
-      itinerary_context
-    );
+    const prompt = buildChatPrompt(message, itinerary_context);
 
     // Generate response with streaming
     const result = await chat.sendMessageStream(prompt);
@@ -321,18 +320,18 @@ Deno.serve(async (req) => {
         ...corsHeaders,
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     });
   } catch (error) {
     console.error("Error in chat function:", error);
 
     // Implement retry logic for transient errors
-    const isTransientError = error instanceof Error && (
-      error.message.includes('timeout') ||
-      error.message.includes('network') ||
-      error.message.includes('ECONNREFUSED')
-    );
+    const isTransientError =
+      error instanceof Error &&
+      (error.message.includes("timeout") ||
+        error.message.includes("network") ||
+        error.message.includes("ECONNREFUSED"));
 
     return new Response(
       JSON.stringify({

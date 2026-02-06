@@ -2,9 +2,9 @@
  * Geocoding Utilities Tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ensureLocationData, geocodeLocation } from '@/lib/maps';
-import type { PartialLocation } from '@/lib/maps';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { ensureLocationData, geocodeLocation } from "@/lib/maps";
+import type { PartialLocation } from "@/lib/maps";
 
 // Mock Google Maps API
 const mockGeocode = vi.fn();
@@ -20,17 +20,17 @@ beforeEach(() => {
       },
     },
   } as any;
-  
+
   mockGeocode.mockClear();
 });
 
-describe('ensureLocationData', () => {
-  it('should return location as-is if it has valid coordinates and place_id', async () => {
+describe("ensureLocationData", () => {
+  it("should return location as-is if it has valid coordinates and place_id", async () => {
     const location: PartialLocation = {
-      name: 'Tokyo Tower',
+      name: "Tokyo Tower",
       lat: 35.6586,
       lng: 139.7454,
-      place_id: 'ChIJCewJkL2LGGAR3Qmk0vCTGkg',
+      place_id: "ChIJCewJkL2LGGAR3Qmk0vCTGkg",
     };
 
     const result = await ensureLocationData(location);
@@ -39,9 +39,9 @@ describe('ensureLocationData', () => {
     expect(mockGeocode).not.toHaveBeenCalled();
   });
 
-  it('should geocode if coordinates are missing', async () => {
+  it("should geocode if coordinates are missing", async () => {
     const location: PartialLocation = {
-      name: 'Tokyo Tower',
+      name: "Tokyo Tower",
     };
 
     mockGeocode.mockResolvedValue({
@@ -53,24 +53,24 @@ describe('ensureLocationData', () => {
               lng: () => 139.7454,
             },
           },
-          place_id: 'ChIJCewJkL2LGGAR3Qmk0vCTGkg',
-          formatted_address: 'Tokyo Tower, Tokyo, Japan',
+          place_id: "ChIJCewJkL2LGGAR3Qmk0vCTGkg",
+          formatted_address: "Tokyo Tower, Tokyo, Japan",
         },
       ],
     });
 
     const result = await ensureLocationData(location);
 
-    expect(result.name).toBe('Tokyo Tower');
+    expect(result.name).toBe("Tokyo Tower");
     expect(result.lat).toBe(35.6586);
     expect(result.lng).toBe(139.7454);
-    expect(result.place_id).toBe('ChIJCewJkL2LGGAR3Qmk0vCTGkg');
-    expect(mockGeocode).toHaveBeenCalledWith({ address: 'Tokyo Tower' });
+    expect(result.place_id).toBe("ChIJCewJkL2LGGAR3Qmk0vCTGkg");
+    expect(mockGeocode).toHaveBeenCalledWith({ address: "Tokyo Tower" });
   });
 
-  it('should return coordinates as-is without fetching place_id', async () => {
+  it("should return coordinates as-is without fetching place_id", async () => {
     const location: PartialLocation = {
-      name: 'Tokyo Tower',
+      name: "Tokyo Tower",
       lat: 35.6586,
       lng: 139.7454,
     };
@@ -83,9 +83,9 @@ describe('ensureLocationData', () => {
     expect(mockGeocode).not.toHaveBeenCalled(); // Should NOT geocode
   });
 
-  it('should return default coordinates if geocoding fails', async () => {
+  it("should return default coordinates if geocoding fails", async () => {
     const location: PartialLocation = {
-      name: 'Unknown Place',
+      name: "Unknown Place",
     };
 
     mockGeocode.mockResolvedValue({
@@ -94,15 +94,15 @@ describe('ensureLocationData', () => {
 
     const result = await ensureLocationData(location);
 
-    expect(result.name).toBe('Unknown Place');
+    expect(result.name).toBe("Unknown Place");
     expect(result.lat).toBe(0);
     expect(result.lng).toBe(0);
     expect(result.place_id).toBeUndefined();
   });
 
-  it('should handle invalid coordinates', async () => {
+  it("should handle invalid coordinates", async () => {
     const location: PartialLocation = {
-      name: 'Test Location',
+      name: "Test Location",
       lat: NaN,
       lng: 200, // Invalid longitude
     };
@@ -116,8 +116,8 @@ describe('ensureLocationData', () => {
               lng: () => 139.7454,
             },
           },
-          place_id: 'test_place_id',
-          formatted_address: 'Test Location',
+          place_id: "test_place_id",
+          formatted_address: "Test Location",
         },
       ],
     });
@@ -130,8 +130,8 @@ describe('ensureLocationData', () => {
   });
 });
 
-describe('geocodeLocation', () => {
-  it('should geocode a location name', async () => {
+describe("geocodeLocation", () => {
+  it("should geocode a location name", async () => {
     mockGeocode.mockResolvedValue({
       results: [
         {
@@ -141,36 +141,36 @@ describe('geocodeLocation', () => {
               lng: () => 139.7454,
             },
           },
-          place_id: 'ChIJCewJkL2LGGAR3Qmk0vCTGkg',
-          formatted_address: 'Tokyo Tower, Tokyo, Japan',
+          place_id: "ChIJCewJkL2LGGAR3Qmk0vCTGkg",
+          formatted_address: "Tokyo Tower, Tokyo, Japan",
         },
       ],
     });
 
-    const result = await geocodeLocation('Tokyo Tower');
+    const result = await geocodeLocation("Tokyo Tower");
 
     expect(result).toEqual({
       lat: 35.6586,
       lng: 139.7454,
-      place_id: 'ChIJCewJkL2LGGAR3Qmk0vCTGkg',
-      formatted_address: 'Tokyo Tower, Tokyo, Japan',
+      place_id: "ChIJCewJkL2LGGAR3Qmk0vCTGkg",
+      formatted_address: "Tokyo Tower, Tokyo, Japan",
     });
   });
 
-  it('should return null if no results found', async () => {
+  it("should return null if no results found", async () => {
     mockGeocode.mockResolvedValue({
       results: [],
     });
 
-    const result = await geocodeLocation('Unknown Place');
+    const result = await geocodeLocation("Unknown Place");
 
     expect(result).toBeNull();
   });
 
-  it('should return null if Google Maps API is not loaded', async () => {
+  it("should return null if Google Maps API is not loaded", async () => {
     global.window = {} as any;
 
-    const result = await geocodeLocation('Tokyo Tower');
+    const result = await geocodeLocation("Tokyo Tower");
 
     expect(result).toBeNull();
   });

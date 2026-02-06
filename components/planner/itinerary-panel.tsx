@@ -1,15 +1,15 @@
 /**
  * Itinerary Panel Component
- * 
+ *
  * Main orchestrator component for displaying and managing the itinerary.
  * Provides drag-and-drop functionality and multiple view modes.
- * 
+ *
  * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 7.1, 7.2, 7.3, 7.4, 7.5
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -20,7 +20,7 @@ import {
   DragStartEvent,
   DragOverEvent,
   DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   ActivityCard,
   PanelHeader,
@@ -28,10 +28,10 @@ import {
   ExpandableView,
   SingleDayView,
   SideBySideView,
-} from './itinerary';
-import type { ItineraryPanelProps, ViewMode } from './itinerary';
-import type { Activity } from '@/types/itinerary';
-import { useItineraryStore } from './itinerary/store';
+} from "./itinerary";
+import type { ItineraryPanelProps, ViewMode } from "./itinerary";
+import type { Activity } from "@/types/itinerary";
+import { useItineraryStore } from "./itinerary/store";
 
 export function ItineraryPanel({
   onFullscreenChange,
@@ -44,13 +44,23 @@ export function ItineraryPanel({
 }: ItineraryPanelProps) {
   // Store state - Read itinerary directly from store
   const itinerary = useItineraryStore((state) => state.itinerary);
-  const draggingActivityId = useItineraryStore((state) => state.draggingActivityId);
+  const draggingActivityId = useItineraryStore(
+    (state) => state.draggingActivityId
+  );
   const crossDayDragInfo = useItineraryStore((state) => state.crossDayDragInfo);
-  const setDraggingActivityId = useItineraryStore((state) => state.setDraggingActivityId);
-  const setCrossDayDragInfo = useItineraryStore((state) => state.setCrossDayDragInfo);
-  const handleDragOverAction = useItineraryStore((state) => state.handleDragOver);
+  const setDraggingActivityId = useItineraryStore(
+    (state) => state.setDraggingActivityId
+  );
+  const setCrossDayDragInfo = useItineraryStore(
+    (state) => state.setCrossDayDragInfo
+  );
+  const handleDragOverAction = useItineraryStore(
+    (state) => state.handleDragOver
+  );
   const setHoveredDay = useItineraryStore((state) => state.setHoveredDay);
-  const setHoveredActivity = useItineraryStore((state) => state.setHoveredActivity);
+  const setHoveredActivity = useItineraryStore(
+    (state) => state.setHoveredActivity
+  );
 
   // Early return if no itinerary loaded
   if (!itinerary) {
@@ -58,14 +68,15 @@ export function ItineraryPanel({
   }
 
   // View mode state
-  const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
+  const [internalViewMode, setInternalViewMode] =
+    useState<ViewMode>("side-by-side");
   const viewMode = externalViewMode ?? internalViewMode;
   const setViewMode = onViewModeChange ?? setInternalViewMode;
 
   // UI state
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(
-    new Set(itinerary.days.map(day => day.day_number))
+    new Set(itinerary.days.map((day) => day.day_number))
   );
 
   // Configure sensors for drag and drop
@@ -79,7 +90,7 @@ export function ItineraryPanel({
 
   // UI handlers
   const toggleDay = (dayNumber: number) => {
-    setExpandedDays(prev => {
+    setExpandedDays((prev) => {
       const next = new Set(prev);
       if (next.has(dayNumber)) {
         next.delete(dayNumber);
@@ -128,13 +139,18 @@ export function ItineraryPanel({
   // Get the active activity for drag overlay
   const activeActivity = draggingActivityId
     ? itinerary.days
-      .flatMap(day => day.activities.map(activity => ({ activity, dayNumber: day.day_number })))
-      .find(({ activity }) => activity.id === draggingActivityId)
+        .flatMap((day) =>
+          day.activities.map((activity) => ({
+            activity,
+            dayNumber: day.day_number,
+          }))
+        )
+        .find(({ activity }) => activity.id === draggingActivityId)
     : null;
 
   // View renderers mapping
   const viewRenderers: Record<ViewMode, () => React.ReactElement | null> = {
-    'expandable': () => (
+    expandable: () => (
       <ExpandableView
         itinerary={itinerary}
         draggingActivityId={draggingActivityId}
@@ -145,7 +161,7 @@ export function ItineraryPanel({
         onActivityHover={setHoveredActivity}
       />
     ),
-    'single-day': () => (
+    "single-day": () => (
       <SingleDayView
         itinerary={itinerary}
         currentDayIndex={currentDayIndex}
@@ -156,7 +172,7 @@ export function ItineraryPanel({
         onActivityHover={setHoveredActivity}
       />
     ),
-    'side-by-side': () => (
+    "side-by-side": () => (
       <SideBySideView
         itinerary={itinerary}
         draggingActivityId={draggingActivityId}

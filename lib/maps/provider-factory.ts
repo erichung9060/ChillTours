@@ -1,12 +1,12 @@
 /**
  * Map Provider Factory
- * 
+ *
  * Creates and manages map provider instances based on configuration
  */
 
-import type { MapProvider, MapProviderType } from './types';
-import { GoogleMapsProvider } from './providers/google-maps-provider';
-import { MapboxProvider } from './providers/mapbox-provider';
+import type { MapProvider, MapProviderType } from "./types";
+import { GoogleMapsProvider } from "./providers/google-maps-provider";
+import { MapboxProvider } from "./providers/mapbox-provider";
 
 // Singleton instances
 let googleMapsInstance: GoogleMapsProvider | null = null;
@@ -17,12 +17,12 @@ let mapboxInstance: MapboxProvider | null = null;
  */
 export function getConfiguredProviderType(): MapProviderType {
   const providerType = process.env.NEXT_PUBLIC_MAP_PROVIDER as MapProviderType;
-  
+
   // Default to Google Maps if not specified or invalid
-  if (providerType !== 'google' && providerType !== 'mapbox') {
-    return 'google';
+  if (providerType !== "google" && providerType !== "mapbox") {
+    return "google";
   }
-  
+
   return providerType;
 }
 
@@ -32,20 +32,20 @@ export function getConfiguredProviderType(): MapProviderType {
  */
 export function getMapProvider(type?: MapProviderType): MapProvider {
   const providerType = type || getConfiguredProviderType();
-  
+
   switch (providerType) {
-    case 'google':
+    case "google":
       if (!googleMapsInstance) {
         googleMapsInstance = new GoogleMapsProvider();
       }
       return googleMapsInstance;
-      
-    case 'mapbox':
+
+    case "mapbox":
       if (!mapboxInstance) {
         mapboxInstance = new MapboxProvider();
       }
       return mapboxInstance;
-      
+
     default:
       throw new Error(`Unknown map provider: ${providerType}`);
   }

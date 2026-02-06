@@ -1,11 +1,11 @@
 /**
  * Map Provider Abstraction Types
- * 
+ *
  * Defines common interfaces for different map providers
  * (Google Maps, Mapbox, etc.)
  */
 
-import type { Location } from '@/types/itinerary';
+import type { Location } from "@/types/itinerary";
 
 /**
  * Map configuration
@@ -55,7 +55,7 @@ export interface MapProvider {
   /**
    * Provider name
    */
-  name: 'google' | 'mapbox';
+  name: "google" | "mapbox";
 
   /**
    * Initialize the map
@@ -117,4 +117,4 @@ export interface PlaceDetails {
 /**
  * Map provider type
  */
-export type MapProviderType = 'google' | 'mapbox';
+export type MapProviderType = "google" | "mapbox";

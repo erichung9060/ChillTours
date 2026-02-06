@@ -1,16 +1,21 @@
 /**
  * Google Maps Provider Implementation
- * 
+ *
  * Implements the MapProvider interface for Google Maps
  */
 
-import type { Location } from '@/types/itinerary';
-import type { MapProvider, MapConfig, MarkerIcon, PlaceDetails } from '../types';
-import { calculateMapBounds } from '../client';
-import { generatePinIcon } from '../pin-icons';
+import type { Location } from "@/types/itinerary";
+import type {
+  MapProvider,
+  MapConfig,
+  MarkerIcon,
+  PlaceDetails,
+} from "../types";
+import { calculateMapBounds } from "../client";
+import { generatePinIcon } from "../pin-icons";
 
 export class GoogleMapsProvider implements MapProvider {
-  name: 'google' = 'google';
+  name: "google" = "google";
 
   async initialize(_config: MapConfig): Promise<void> {
     // Google Maps initialization is handled by @react-google-maps/api
@@ -24,7 +29,7 @@ export class GoogleMapsProvider implements MapProvider {
     activityId: string;
   }): MarkerIcon {
     const { color, size, activityId } = config;
-    
+
     // Use the unified pin icon generator
     return generatePinIcon({
       color,
@@ -43,7 +48,7 @@ export class GoogleMapsProvider implements MapProvider {
 
   createNavigationLink(location: Location): string {
     const { lat, lng, name, place_id } = location;
-    
+
     if (place_id) {
       return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
     } else {
@@ -53,7 +58,7 @@ export class GoogleMapsProvider implements MapProvider {
 
   async geocodeAddress(locationName: string): Promise<Location | null> {
     if (!window.google || !window.google.maps) {
-      console.error('Google Maps API not loaded');
+      console.error("Google Maps API not loaded");
       return null;
     }
 
@@ -61,11 +66,11 @@ export class GoogleMapsProvider implements MapProvider {
 
     try {
       const result = await geocoder.geocode({ address: locationName });
-      
+
       if (result.results && result.results.length > 0) {
         const place = result.results[0];
         const location = place.geometry.location;
-        
+
         return {
           name: place.formatted_address || locationName,
           lat: location.lat(),
@@ -73,22 +78,22 @@ export class GoogleMapsProvider implements MapProvider {
           place_id: place.place_id,
         };
       }
-      
+
       return null;
     } catch (error) {
-      console.error('Geocoding error:', error);
+      console.error("Geocoding error:", error);
       return null;
     }
   }
 
   async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
     if (!window.google || !window.google.maps) {
-      console.error('Google Maps API not loaded');
+      console.error("Google Maps API not loaded");
       return null;
     }
 
     const service = new window.google.maps.places.PlacesService(
-      document.createElement('div')
+      document.createElement("div")
     );
 
     return new Promise((resolve) => {
@@ -96,28 +101,33 @@ export class GoogleMapsProvider implements MapProvider {
         {
           placeId,
           fields: [
-            'place_id',
-            'name',
-            'geometry',
-            'photos',
-            'rating',
-            'url',
-            'formatted_phone_number',
-            'website',
-            'opening_hours',
+            "place_id",
+            "name",
+            "geometry",
+            "photos",
+            "rating",
+            "url",
+            "formatted_phone_number",
+            "website",
+            "opening_hours",
           ],
         },
         (place, status) => {
-          if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
+          if (
+            status === window.google.maps.places.PlacesServiceStatus.OK &&
+            place
+          ) {
             const details: PlaceDetails = {
               id: place.place_id || placeId,
-              name: place.name || '',
+              name: place.name || "",
               location: {
                 lat: place.geometry?.location?.lat() || 0,
                 lng: place.geometry?.location?.lng() || 0,
               },
               rating: place.rating,
-              photos: place.photos?.map(photo => photo.getUrl({ maxWidth: 400 })),
+              photos: place.photos?.map((photo) =>
+                photo.getUrl({ maxWidth: 400 })
+              ),
               url: place.url,
               phone: place.formatted_phone_number,
               website: place.website,

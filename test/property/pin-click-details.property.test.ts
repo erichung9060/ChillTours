@@ -1,16 +1,16 @@
 /**
  * Property-Based Tests for Pin Click Details Display
- * 
+ *
  * Feature: tripai-travel-planner, Property 14: Pin Click Details Display
  * Validates: Requirements 6.2
- * 
- * Property: For any pin on the map, clicking it should display a popup 
+ *
+ * Property: For any pin on the map, clicking it should display a popup
  * containing the corresponding location details.
  */
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import type { Activity, Location } from '@/types/itinerary';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import type { Activity, Location } from "@/types/itinerary";
 
 // Arbitrary for Location
 const arbitraryLocation = (): fc.Arbitrary<Location> =>
@@ -25,7 +25,15 @@ const arbitraryLocation = (): fc.Arbitrary<Location> =>
 const arbitraryActivity = (): fc.Arbitrary<Activity> =>
   fc.record({
     id: fc.uuid(),
-    time: fc.constantFrom('09:00', '10:30', '12:00', '14:30', '16:00', '18:30', '20:00'),
+    time: fc.constantFrom(
+      "09:00",
+      "10:30",
+      "12:00",
+      "14:30",
+      "16:00",
+      "18:30",
+      "20:00"
+    ),
     title: fc.string({ minLength: 1, maxLength: 100 }),
     description: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
@@ -53,8 +61,8 @@ function generateInfoWindowContent(activity: Activity): {
   };
 }
 
-describe('Pin Click Details Display Property Tests', () => {
-  it('should display all required location details for any activity', () => {
+describe("Pin Click Details Display Property Tests", () => {
+  it("should display all required location details for any activity", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         // Generate the info window content
@@ -72,7 +80,7 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should preserve activity title in info window', () => {
+  it("should preserve activity title in info window", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         const infoContent = generateInfoWindowContent(activity);
@@ -84,7 +92,7 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should preserve location name in info window', () => {
+  it("should preserve location name in info window", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         const infoContent = generateInfoWindowContent(activity);
@@ -96,7 +104,7 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should preserve time and duration in info window', () => {
+  it("should preserve time and duration in info window", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         const infoContent = generateInfoWindowContent(activity);
@@ -111,10 +119,10 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should include description when present', () => {
+  it("should include description when present", () => {
     fc.assert(
       fc.property(
-        arbitraryActivity().filter(a => a.description.length > 0),
+        arbitraryActivity().filter((a) => a.description.length > 0),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);
 
@@ -126,10 +134,10 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should handle activities without description', () => {
+  it("should handle activities without description", () => {
     fc.assert(
       fc.property(
-        arbitraryActivity().map(a => ({ ...a, description: '' })),
+        arbitraryActivity().map((a) => ({ ...a, description: "" })),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);
 
@@ -141,7 +149,7 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should display valid coordinates for pin positioning', () => {
+  it("should display valid coordinates for pin positioning", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         const { lat, lng } = activity.location;
@@ -156,7 +164,7 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should maintain data integrity across all fields', () => {
+  it("should maintain data integrity across all fields", () => {
     fc.assert(
       fc.property(arbitraryActivity(), (activity) => {
         const infoContent = generateInfoWindowContent(activity);
@@ -164,25 +172,33 @@ describe('Pin Click Details Display Property Tests', () => {
         // Property: All data should be preserved without corruption
         const titleMatch = infoContent.title === activity.title;
         const timeMatch = infoContent.time === activity.time;
-        const durationMatch = infoContent.duration === activity.duration_minutes;
-        const locationMatch = infoContent.locationName === activity.location.name;
-        const descriptionMatch = 
-          activity.description.length === 0 
-            ? infoContent.description === undefined 
+        const durationMatch =
+          infoContent.duration === activity.duration_minutes;
+        const locationMatch =
+          infoContent.locationName === activity.location.name;
+        const descriptionMatch =
+          activity.description.length === 0
+            ? infoContent.description === undefined
             : infoContent.description === activity.description;
 
-        return titleMatch && timeMatch && durationMatch && locationMatch && descriptionMatch;
+        return (
+          titleMatch &&
+          timeMatch &&
+          durationMatch &&
+          locationMatch &&
+          descriptionMatch
+        );
       }),
       { numRuns: 100 }
     );
   });
 
-  it('should handle special characters in location details', () => {
+  it("should handle special characters in location details", () => {
     fc.assert(
       fc.property(
         fc.record({
           id: fc.uuid(),
-          time: fc.constantFrom('09:00', '12:00', '18:00'),
+          time: fc.constantFrom("09:00", "12:00", "18:00"),
           title: fc.string({ minLength: 1, maxLength: 100 }),
           description: fc.string({ minLength: 0, maxLength: 500 }),
           location: fc.record({
@@ -208,12 +224,15 @@ describe('Pin Click Details Display Property Tests', () => {
     );
   });
 
-  it('should handle very long descriptions', () => {
+  it("should handle very long descriptions", () => {
     fc.assert(
       fc.property(
-        arbitraryActivity().map(a => ({
+        arbitraryActivity().map((a) => ({
           ...a,
-          description: fc.sample(fc.string({ minLength: 400, maxLength: 500 }), 1)[0],
+          description: fc.sample(
+            fc.string({ minLength: 400, maxLength: 500 }),
+            1
+          )[0],
         })),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);

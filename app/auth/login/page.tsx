@@ -1,25 +1,24 @@
 /**
  * Login Page
- * 
+ *
  * Provides Google OAuth authentication for users.
  * Requirements: 1.1, 1.3
  */
 
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/auth-context';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export default function LoginPage() {
   const { user, signInWithGoogle, loading, error } = useAuth();
   const router = useRouter();
 
-
   // Redirect if already authenticated
   useEffect(() => {
     if (user && !loading) {
-      router.push('/');
+      router.push("/");
     }
   }, [user, loading, router]);
 
@@ -27,7 +26,7 @@ export default function LoginPage() {
     try {
       await signInWithGoogle();
     } catch (err) {
-      console.error('Sign-in error:', err);
+      console.error("Sign-in error:", err);
     }
   };
 
@@ -85,7 +84,7 @@ export default function LoginPage() {
           {error && (
             <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm text-red-600 dark:text-red-400">
-                {error.message || 'Failed to sign in. Please try again.'}
+                {error.message || "Failed to sign in. Please try again."}
               </p>
             </div>
           )}

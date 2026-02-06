@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Day Section Expand/Collapse
- * 
+ *
  * Feature: tripai-travel-planner, Property 11: Day Section Expand/Collapse
  * Validates: Requirements 5.2
- * 
+ *
  * Property: For any day section in the itinerary, clicking the header should
  * toggle between expanded and collapsed states.
  */
@@ -16,14 +16,17 @@ describe("Day Section Expand/Collapse Property Tests", () => {
   const dayNumberArbitrary = fc.integer({ min: 1, max: 30 });
 
   // Arbitrary for a set of expanded day numbers
-  const expandedDaysSetArbitrary = fc.array(dayNumberArbitrary, { maxLength: 30 }).map(
-    (days) => new Set(days)
-  );
+  const expandedDaysSetArbitrary = fc
+    .array(dayNumberArbitrary, { maxLength: 30 })
+    .map((days) => new Set(days));
 
   /**
    * Simulates the toggleDay function from ItineraryPanel
    */
-  const toggleDay = (expandedDays: Set<number>, dayNumber: number): Set<number> => {
+  const toggleDay = (
+    expandedDays: Set<number>,
+    dayNumber: number
+  ): Set<number> => {
     const next = new Set(expandedDays);
     if (next.has(dayNumber)) {
       next.delete(dayNumber);
@@ -97,7 +100,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
           // Even number of toggles = back to initial state
           // Odd number of toggles = opposite of initial state
           const expectedExpanded =
-            toggleCount % 2 === 0 ? wasInitiallyExpanded : !wasInitiallyExpanded;
+            toggleCount % 2 === 0
+              ? wasInitiallyExpanded
+              : !wasInitiallyExpanded;
           expect(currentExpandedDays.has(dayNumber)).toBe(expectedExpanded);
         }
       ),

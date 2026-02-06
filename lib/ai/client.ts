@@ -1,20 +1,20 @@
 /**
  * AI Client
- * 
+ *
  * This module provides a client for interacting with the AI API
  * via Next.js API Routes. It handles:
  * - Streaming responses
  * - Error handling
  * - Progressive UI updates
- * 
+ *
  * Requirements: 3.3, 3.5, 17.1, 17.3
  */
 
-import type { Itinerary, ChatMessage } from '@/types';
-import { StreamingJSONParser } from './streaming-parser';
-import { parseItinerary, extractJSON } from './parser';
-import { parseOperations, type OperationsUpdate } from './operations';
-import { supabase } from '@/lib/supabase/client';
+import type { Itinerary, ChatMessage } from "@/types";
+import { StreamingJSONParser } from "./streaming-parser";
+import { parseItinerary, extractJSON } from "./parser";
+import { parseOperations, type OperationsUpdate } from "./operations";
+import { supabase } from "@/lib/supabase/client";
 
 /**
  * Error types for AI API
@@ -25,7 +25,7 @@ export class AIError extends Error {
     public readonly code: string
   ) {
     super(message);
-    this.name = 'AIError';
+    this.name = "AIError";
   }
 }
 
@@ -52,17 +52,20 @@ export interface ChatOptions {
 /**
  * Callback for streaming chunks
  */
-export type StreamingCallback = (chunk: string, partial: Partial<Itinerary> | null) => void;
+export type StreamingCallback = (
+  chunk: string,
+  partial: Partial<Itinerary> | null
+) => void;
 
 /**
  * AI Client
- * 
+ *
  * Provides methods for interacting with AI API through Next.js API Routes
  */
 export class AIClient {
   /**
    * Generate an itinerary with streaming support
-   * 
+   *
    * @param options - Generation options
    * @param onChunk - Callback for each streaming chunk
    * @returns Complete parsed itinerary
@@ -72,16 +75,17 @@ export class AIClient {
     options: GenerateItineraryOptions,
     onChunk?: StreamingCallback
   ): Promise<Itinerary> {
-    const { destination, startDate, endDate, customRequirements, userId } = options;
+    const { destination, startDate, endDate, customRequirements, userId } =
+      options;
 
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/generate-itinerary', {
-      method: 'POST',
+    const response = await fetch("/api/generate-itinerary", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({
         destination,
@@ -96,10 +100,7 @@ export class AIClient {
     }
 
     if (!response.body) {
-      throw new AIError(
-        'No response body received',
-        'NO_RESPONSE_BODY'
-      );
+      throw new AIError("No response body received", "NO_RESPONSE_BODY");
     }
 
     // Stream and parse response
@@ -129,15 +130,15 @@ export class AIClient {
       return await parseItinerary(extracted, userId, startDate);
     } catch (error) {
       throw new AIError(
-        `Failed to parse streaming response: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'PARSE_ERROR'
+        `Failed to parse streaming response: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "PARSE_ERROR"
       );
     }
   }
 
   /**
    * Send a chat message with streaming support
-   * 
+   *
    * @param options - Chat options
    * @param onChunk - Callback for each streaming chunk
    * @returns AI response message
@@ -152,11 +153,11 @@ export class AIClient {
     // Get auth token if user is logged in
     const token = await this.getAuthToken();
 
-    const response = await fetch('/api/chat', {
-      method: 'POST',
+    const response = await fetch("/api/chat", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` }),
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({
         message,
@@ -173,18 +174,15 @@ export class AIClient {
     }
 
     if (!response.body) {
-      throw new AIError(
-        'No response body received',
-        'NO_RESPONSE_BODY'
-      );
+      throw new AIError("No response body received", "NO_RESPONSE_BODY");
     }
 
     // Stream response
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
-    const OPERATIONS_MARKER = 'ITINERARY_OPERATIONS:';
+    const OPERATIONS_MARKER = "ITINERARY_OPERATIONS:";
 
-    let fullResponse = '';
+    let fullResponse = "";
     let streamedUpTo = 0;
     let markerFound = false;
     let operations: OperationsUpdate | undefined;
@@ -213,7 +211,10 @@ export class AIClient {
         }
 
         // No marker yet - stream safe content (keep buffer for potential split marker)
-        const safeUpTo = Math.max(0, fullResponse.length - OPERATIONS_MARKER.length);
+        const safeUpTo = Math.max(
+          0,
+          fullResponse.length - OPERATIONS_MARKER.length
+        );
         this.streamContent(fullResponse, streamedUpTo, safeUpTo, onChunk);
         streamedUpTo = safeUpTo;
       }
@@ -222,7 +223,9 @@ export class AIClient {
       if (markerFound) {
         const markerIndex = fullResponse.indexOf(OPERATIONS_MARKER);
         const cleanMessage = fullResponse.substring(0, markerIndex).trim();
-        const jsonPart = fullResponse.substring(markerIndex + OPERATIONS_MARKER.length).trim();
+        const jsonPart = fullResponse
+          .substring(markerIndex + OPERATIONS_MARKER.length)
+          .trim();
 
         try {
           // Extract JSON from markdown code blocks if present
@@ -232,14 +235,19 @@ export class AIClient {
             operations = parsedOperations;
           }
         } catch (error) {
-          console.error('Failed to parse itinerary operations:', error);
+          console.error("Failed to parse itinerary operations:", error);
         }
 
-        console.log('ai response:', fullResponse);
+        console.log("ai response:", fullResponse);
         fullResponse = cleanMessage;
       } else {
         // Stream any remaining buffered content if no marker was found
-        this.streamContent(fullResponse, streamedUpTo, fullResponse.length, onChunk);
+        this.streamContent(
+          fullResponse,
+          streamedUpTo,
+          fullResponse.length,
+          onChunk
+        );
       }
 
       return {
@@ -248,8 +256,8 @@ export class AIClient {
       };
     } catch (error) {
       throw new AIError(
-        `Failed to process chat response: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        'CHAT_ERROR'
+        `Failed to process chat response: ${error instanceof Error ? error.message : "Unknown error"}`,
+        "CHAT_ERROR"
       );
     }
   }
@@ -272,13 +280,13 @@ export class AIClient {
 
   /**
    * Handle error response from API
-   * 
+   *
    * @param response - Fetch response
    * @returns AIError
    */
   private async handleErrorResponse(response: Response): Promise<AIError> {
     let errorMessage = `API request failed with status ${response.status}`;
-    let errorCode = 'API_ERROR';
+    let errorCode = "API_ERROR";
 
     try {
       const errorData = await response.json();
@@ -293,22 +301,24 @@ export class AIClient {
 
   /**
    * Get authentication token from Supabase session
-   * 
+   *
    * @returns Access token or null if not logged in
    */
   private async getAuthToken(): Promise<string | null> {
     try {
       // Only run on client-side
-      if (typeof window === 'undefined') {
+      if (typeof window === "undefined") {
         return null;
       }
 
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       // 返回用戶的 access token（這是真正的 JWT）
       return session?.access_token || null;
     } catch (error) {
-      console.warn('Failed to get auth token:', error);
+      console.warn("Failed to get auth token:", error);
       return null;
     }
   }

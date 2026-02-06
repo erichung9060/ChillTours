@@ -1,17 +1,17 @@
 /**
  * Mapbox Renderer
- * 
+ *
  * Renders map using Mapbox GL JS
  */
 
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import Map, { Marker, Popup } from 'react-map-gl/mapbox';
-import type { MapRef } from 'react-map-gl/mapbox';
-import { useTheme } from '@/hooks/use-theme';
-import type { Activity } from '@/types/itinerary';
-import type { MapRendererProps } from './types';
+import { useEffect, useRef, useState, useCallback } from "react";
+import Map, { Marker, Popup } from "react-map-gl/mapbox";
+import type { MapRef } from "react-map-gl/mapbox";
+import { useTheme } from "@/hooks/use-theme";
+import type { Activity } from "@/types/itinerary";
+import type { MapRendererProps } from "./types";
 
 export function MapboxMapRenderer({
   activities,
@@ -31,13 +31,14 @@ export function MapboxMapRenderer({
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
 
   // Choose map style based on theme
-  const mapStyle = resolvedTheme === 'dark' 
-    ? 'mapbox://styles/mapbox/dark-v11' 
-    : 'mapbox://styles/mapbox/streets-v12';
+  const mapStyle =
+    resolvedTheme === "dark"
+      ? "mapbox://styles/mapbox/dark-v11"
+      : "mapbox://styles/mapbox/streets-v12";
 
   useEffect(() => {
     if (!mapboxToken) {
-      setLoadError(new Error('Mapbox API key not configured'));
+      setLoadError(new Error("Mapbox API key not configured"));
     }
   }, [mapboxToken]);
 
@@ -73,12 +74,12 @@ export function MapboxMapRenderer({
     if (mapRef.current && activities.length > 0 && isLoaded) {
       const bounds: [[number, number], [number, number]] = [
         [
-          Math.min(...activities.map(a => a.location.lng)),
-          Math.min(...activities.map(a => a.location.lat)),
+          Math.min(...activities.map((a) => a.location.lng)),
+          Math.min(...activities.map((a) => a.location.lat)),
         ],
         [
-          Math.max(...activities.map(a => a.location.lng)),
-          Math.max(...activities.map(a => a.location.lat)),
+          Math.max(...activities.map((a) => a.location.lng)),
+          Math.max(...activities.map((a) => a.location.lat)),
         ],
       ];
 
@@ -96,40 +97,42 @@ export function MapboxMapRenderer({
     try {
       const bounds = mapRef.current.getBounds();
       if (!bounds) return true;
-      
+
       const sw = bounds.getSouthWest();
       const ne = bounds.getNorthEast();
-      
+
       return lat >= sw.lat && lat <= ne.lat && lng >= sw.lng && lng <= ne.lng;
     } catch (error) {
-      console.error('Error checking location visibility:', error);
+      console.error("Error checking location visibility:", error);
       return true;
     }
   }, []);
 
   // Smart zoom when hovering over activities or selecting a day
   useEffect(() => {
-    if (!mapRef.current || !isLoaded || highlightedActivities.length === 0) return;
+    if (!mapRef.current || !isLoaded || highlightedActivities.length === 0)
+      return;
 
     // Check if any highlighted activity is outside the visible bounds
-    const hasInvisibleActivity = highlightedActivities.some(activity => 
-      !isLocationVisible(activity.location.lat, activity.location.lng)
+    const hasInvisibleActivity = highlightedActivities.some(
+      (activity) =>
+        !isLocationVisible(activity.location.lat, activity.location.lng)
     );
 
     if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
 
     // Calculate bounds to include all highlighted activities
-    const locations = highlightedActivities.map(a => a.location);
-    
+    const locations = highlightedActivities.map((a) => a.location);
+
     try {
       const bounds: [[number, number], [number, number]] = [
         [
-          Math.min(...locations.map(l => l.lng)),
-          Math.min(...locations.map(l => l.lat)),
+          Math.min(...locations.map((l) => l.lng)),
+          Math.min(...locations.map((l) => l.lat)),
         ],
         [
-          Math.max(...locations.map(l => l.lng)),
-          Math.max(...locations.map(l => l.lat)),
+          Math.max(...locations.map((l) => l.lng)),
+          Math.max(...locations.map((l) => l.lat)),
         ],
       ];
 
@@ -139,7 +142,7 @@ export function MapboxMapRenderer({
         maxZoom: 15,
       });
     } catch (error) {
-      console.error('Error fitting bounds:', error);
+      console.error("Error fitting bounds:", error);
     }
   }, [highlightedActivities, isLoaded, isLocationVisible]);
 
@@ -167,7 +170,7 @@ export function MapboxMapRenderer({
           </div>
           <h3 className="text-lg font-semibold mb-2">Map Error</h3>
           <p className="text-sm text-muted-foreground">
-            {loadError?.message || 'Failed to load Mapbox'}
+            {loadError?.message || "Failed to load Mapbox"}
           </p>
         </div>
       </div>
@@ -183,14 +186,14 @@ export function MapboxMapRenderer({
         latitude: mapCenter.lat,
         zoom: mapZoom,
       }}
-      style={{ width: '100%', height: '100%' }}
+      style={{ width: "100%", height: "100%" }}
       mapStyle={mapStyle}
       onLoad={handleMapLoad}
     >
       {/* Render markers for all activities */}
       {activities.map((activity) => {
         const iconData = getMarkerIcon(activity);
-        
+
         return (
           <Marker
             key={activity.id}
@@ -206,7 +209,7 @@ export function MapboxMapRenderer({
               style={{
                 width: iconData.width,
                 height: iconData.height,
-                cursor: 'pointer',
+                cursor: "pointer",
               }}
               title={activity.title}
             >
@@ -214,8 +217,8 @@ export function MapboxMapRenderer({
                 src={iconData.url}
                 alt={activity.title}
                 style={{
-                  width: '100%',
-                  height: '100%',
+                  width: "100%",
+                  height: "100%",
                 }}
               />
             </div>

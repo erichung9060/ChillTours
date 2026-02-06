@@ -1,14 +1,14 @@
 /**
  * Map Utilities
- * 
+ *
  * Internal utilities shared by map providers.
  * These are not meant to be used directly by application code.
  * Use MapProvider interface instead.
- * 
+ *
  * Requirements: 6.1, 6.2, 6.4, 6.5, 12.1, 12.2
  */
 
-import type { Location } from '@/types/itinerary';
+import type { Location } from "@/types/itinerary";
 
 /**
  * Calculate the center point and zoom level for a set of locations

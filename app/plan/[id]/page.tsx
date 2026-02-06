@@ -1,24 +1,24 @@
 /**
  * Planning Interface Page
- * 
+ *
  * Three-panel layout: itinerary (left), map (center), chat (right, collapsible)
  * Responsive layout for mobile (single-column)
- * 
+ *
  * Requirements: 4.1, 4.2, 4.3, 4.4, 4.5
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { ItineraryPanel } from '@/components/planner/itinerary-panel';
-import { MapPanel } from '@/components/planner/map-panel';
-import { ChatPanel } from '@/components/planner/chat-panel';
-import { Loading } from '@/components/ui/loading';
-import { ErrorMessage } from '@/components/ui/error-message';
-import { useItineraryStore } from '@/components/planner/itinerary/store';
-import type { Itinerary } from '@/types/itinerary';
+import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
+import { Header } from "@/components/layout/header";
+import { ItineraryPanel } from "@/components/planner/itinerary-panel";
+import { MapPanel } from "@/components/planner/map-panel";
+import { ChatPanel } from "@/components/planner/chat-panel";
+import { Loading } from "@/components/ui/loading";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useItineraryStore } from "@/components/planner/itinerary/store";
+import type { Itinerary } from "@/types/itinerary";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 200;
@@ -29,15 +29,16 @@ const PANEL_PADDING = 35; // Padding inside the panel
 
 // Calculate initial itinerary panel width based on number of days
 const calculateInitialItineraryWidth = (numDays: number): number => {
-  if (typeof window === 'undefined') return 500; // SSR fallback
-  
+  if (typeof window === "undefined") return 500; // SSR fallback
+
   const windowWidth = window.innerWidth;
   const minMapWidth = windowWidth * 0.25; // Map must be at least 1/4 of screen
   const maxItineraryWidth = windowWidth - minMapWidth;
-  
+
   // Calculate width needed to show all days
-  const neededWidth = (numDays * DAY_CARD_WIDTH) + ((numDays - 1) * DAY_CARD_GAP) + PANEL_PADDING;
-  
+  const neededWidth =
+    numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING;
+
   // Return the smaller of needed width or max allowed width
   return Math.min(neededWidth, maxItineraryWidth);
 };
@@ -52,12 +53,16 @@ export default function PlanningPage() {
   const isLoading = useItineraryStore((state) => state.isLoading);
   const error = useItineraryStore((state) => state.error);
   const hoveredDayNumber = useItineraryStore((state) => state.hoveredDayNumber);
-  const hoveredActivityId = useItineraryStore((state) => state.hoveredActivityId);
+  const hoveredActivityId = useItineraryStore(
+    (state) => state.hoveredActivityId
+  );
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
-  const [viewMode, setViewMode] = useState<'expandable' | 'single-day' | 'side-by-side'>('side-by-side');
+  const [viewMode, setViewMode] = useState<
+    "expandable" | "single-day" | "side-by-side"
+  >("side-by-side");
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
@@ -65,13 +70,14 @@ export default function PlanningPage() {
   const [isResizingChat, setIsResizingChat] = useState(false);
 
   // Derived state for selected day in single-day view
-  const selectedDayNumber = viewMode === 'single-day' && itinerary
-    ? itinerary.days[currentDayIndex]?.day_number
-    : null;
+  const selectedDayNumber =
+    viewMode === "single-day" && itinerary
+      ? itinerary.days[currentDayIndex]?.day_number
+      : null;
 
   // Reset currentDayIndex when switching to single-day mode or when itinerary changes
   useEffect(() => {
-    if (viewMode === 'single-day' && itinerary) {
+    if (viewMode === "single-day" && itinerary) {
       // Ensure currentDayIndex is within valid range
       if (currentDayIndex >= itinerary.days.length) {
         setCurrentDayIndex(0);
@@ -87,7 +93,9 @@ export default function PlanningPage() {
   // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
   useEffect(() => {
     if (itinerary) {
-      const initialWidth = calculateInitialItineraryWidth(itinerary.days.length);
+      const initialWidth = calculateInitialItineraryWidth(
+        itinerary.days.length
+      );
       setItineraryPanelWidth(initialWidth);
     }
   }, [itinerary?.days.length]); // Only recalculate when days count changes
@@ -99,7 +107,7 @@ export default function PlanningPage() {
 
   // Toggle chat panel (Requirement 4.4)
   const toggleChat = () => {
-    setIsChatOpen(prev => !prev);
+    setIsChatOpen((prev) => !prev);
   };
 
   // Handle resizing of itinerary panel
@@ -121,7 +129,7 @@ export default function PlanningPage() {
       // Handle itinerary panel resizing
       if (isResizingItinerary) {
         const newItineraryWidth = e.clientX;
-        
+
         // Only enforce minimum width
         if (newItineraryWidth >= MIN_ITINERARY_PANEL_WIDTH) {
           setItineraryPanelWidth(newItineraryWidth);
@@ -131,9 +139,12 @@ export default function PlanningPage() {
       // Handle chat panel resizing
       if (isResizingChat) {
         const newChatWidth = windowWidth - e.clientX;
-        
+
         // Only enforce minimum width
-        if (newChatWidth >= MIN_CHAT_PANEL_WIDTH && e.clientX >= MIN_ITINERARY_PANEL_WIDTH) {
+        if (
+          newChatWidth >= MIN_CHAT_PANEL_WIDTH &&
+          e.clientX >= MIN_ITINERARY_PANEL_WIDTH
+        ) {
           setChatPanelWidth(newChatWidth);
         }
       }
@@ -147,18 +158,18 @@ export default function PlanningPage() {
     const isResizing = isResizingItinerary || isResizingChat;
 
     if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
       // Prevent text selection while resizing
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = "none";
+      document.body.style.cursor = "col-resize";
     }
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
     };
   }, [isResizingItinerary, isResizingChat]);
 
@@ -180,7 +191,7 @@ export default function PlanningPage() {
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
           <ErrorMessage
             title="Failed to Load Itinerary"
-            message={error || 'Itinerary not found'}
+            message={error || "Itinerary not found"}
             onRetry={() => fetchItinerary(itineraryId)}
           />
         </main>
@@ -196,8 +207,10 @@ export default function PlanningPage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Itinerary Panel (Requirement 4.2) - Resizable */}
           <div
-            className={`hidden md:block border-r border-border overflow-y-auto relative ${!isMapVisible ? 'flex-1' : ''}`}
-            style={isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined}
+            className={`hidden md:block border-r border-border overflow-y-auto relative ${!isMapVisible ? "flex-1" : ""}`}
+            style={
+              isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined
+            }
           >
             <ItineraryPanel
               onFullscreenChange={handleFullscreenChange}
@@ -208,14 +221,13 @@ export default function PlanningPage() {
               currentDayIndex={currentDayIndex}
               onCurrentDayChange={setCurrentDayIndex}
             />
-            
+
             {/* Resize Handle - Only show when map is visible */}
             {isMapVisible && (
               <div
                 className="absolute top-0 right-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors group"
                 onMouseDown={handleItineraryPanelResize}
-              >
-              </div>
+              ></div>
             )}
           </div>
 
@@ -255,8 +267,7 @@ export default function PlanningPage() {
               <div
                 className="absolute top-0 left-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors z-10"
                 onMouseDown={handleChatPanelResize}
-              >
-              </div>
+              ></div>
               <ChatPanel
                 itinerary={itinerary}
                 isOpen={isChatOpen}

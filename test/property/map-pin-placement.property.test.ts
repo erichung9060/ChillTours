@@ -1,16 +1,16 @@
 /**
  * Property-Based Tests for Map Pin Placement
- * 
+ *
  * Feature: tripai-travel-planner, Property 13: Map Pin Placement
  * Validates: Requirements 6.1
- * 
- * Property: For any itinerary with N activities, loading the itinerary 
+ *
+ * Property: For any itinerary with N activities, loading the itinerary
  * should place exactly N pins on the map at the correct coordinates.
  */
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import type { Itinerary, Activity, Day, Location } from '@/types/itinerary';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import type { Itinerary, Activity, Day, Location } from "@/types/itinerary";
 
 // Arbitrary for Location
 const arbitraryLocation = (): fc.Arbitrary<Location> =>
@@ -25,7 +25,15 @@ const arbitraryLocation = (): fc.Arbitrary<Location> =>
 const arbitraryActivity = (): fc.Arbitrary<Activity> =>
   fc.record({
     id: fc.uuid(),
-    time: fc.constantFrom('09:00', '10:30', '12:00', '14:30', '16:00', '18:30', '20:00'),
+    time: fc.constantFrom(
+      "09:00",
+      "10:30",
+      "12:00",
+      "14:30",
+      "16:00",
+      "18:30",
+      "20:00"
+    ),
     title: fc.string({ minLength: 1, maxLength: 100 }),
     description: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
@@ -37,52 +45,49 @@ const arbitraryActivity = (): fc.Arbitrary<Activity> =>
 const arbitraryDay = (): fc.Arbitrary<Day> =>
   fc.record({
     day_number: fc.integer({ min: 1, max: 30 }),
-    date: fc.integer({ min: 0, max: 1000 })
-      .map(days => {
-        const baseDate = new Date('2024-01-01');
-        baseDate.setDate(baseDate.getDate() + days);
-        return baseDate.toISOString().split('T')[0];
-      }),
+    date: fc.integer({ min: 0, max: 1000 }).map((days) => {
+      const baseDate = new Date("2024-01-01");
+      baseDate.setDate(baseDate.getDate() + days);
+      return baseDate.toISOString().split("T")[0];
+    }),
     activities: fc.array(arbitraryActivity(), { minLength: 0, maxLength: 10 }),
   });
 
 // Arbitrary for Itinerary
 const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
-  fc.record({
-    id: fc.uuid(),
-    user_id: fc.uuid(),
-    title: fc.string({ minLength: 1, maxLength: 100 }),
-    destination: fc.string({ minLength: 1, maxLength: 100 }),
-    start_date: fc.integer({ min: 0, max: 1000 })
-      .map(days => {
-        const baseDate = new Date('2024-01-01');
+  fc
+    .record({
+      id: fc.uuid(),
+      user_id: fc.uuid(),
+      title: fc.string({ minLength: 1, maxLength: 100 }),
+      destination: fc.string({ minLength: 1, maxLength: 100 }),
+      start_date: fc.integer({ min: 0, max: 1000 }).map((days) => {
+        const baseDate = new Date("2024-01-01");
         baseDate.setDate(baseDate.getDate() + days);
-        return baseDate.toISOString().split('T')[0];
+        return baseDate.toISOString().split("T")[0];
       }),
-    end_date: fc.integer({ min: 0, max: 1000 })
-      .map(days => {
-        const baseDate = new Date('2024-01-01');
+      end_date: fc.integer({ min: 0, max: 1000 }).map((days) => {
+        const baseDate = new Date("2024-01-01");
         baseDate.setDate(baseDate.getDate() + days);
-        return baseDate.toISOString().split('T')[0];
+        return baseDate.toISOString().split("T")[0];
       }),
-    days: fc.array(arbitraryDay(), { minLength: 1, maxLength: 14 }),
-    created_at: fc.integer({ min: 0, max: 1000 })
-      .map(days => {
-        const baseDate = new Date('2024-01-01');
+      days: fc.array(arbitraryDay(), { minLength: 1, maxLength: 14 }),
+      created_at: fc.integer({ min: 0, max: 1000 }).map((days) => {
+        const baseDate = new Date("2024-01-01");
         baseDate.setDate(baseDate.getDate() + days);
         return baseDate.toISOString();
       }),
-    updated_at: fc.integer({ min: 0, max: 1000 })
-      .map(days => {
-        const baseDate = new Date('2024-01-01');
+      updated_at: fc.integer({ min: 0, max: 1000 }).map((days) => {
+        const baseDate = new Date("2024-01-01");
         baseDate.setDate(baseDate.getDate() + days);
         return baseDate.toISOString();
       }),
-    shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
-  }).filter(it => it.end_date >= it.start_date);
+      shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
+    })
+    .filter((it) => it.end_date >= it.start_date);
 
-describe('Map Pin Placement Property Tests', () => {
-  it('should place exactly N pins for N activities', () => {
+describe("Map Pin Placement Property Tests", () => {
+  it("should place exactly N pins for N activities", () => {
     fc.assert(
       fc.property(arbitraryItinerary(), (itinerary) => {
         // Count total activities across all days
@@ -92,8 +97,8 @@ describe('Map Pin Placement Property Tests', () => {
         );
 
         // Collect all activities with their locations
-        const allActivities = itinerary.days.flatMap(day => 
-          day.activities.map(activity => ({
+        const allActivities = itinerary.days.flatMap((day) =>
+          day.activities.map((activity) => ({
             ...activity,
             dayNumber: day.day_number,
           }))
@@ -103,7 +108,7 @@ describe('Map Pin Placement Property Tests', () => {
         expect(allActivities.length).toBe(totalActivities);
 
         // Verify each activity has valid coordinates
-        allActivities.forEach(activity => {
+        allActivities.forEach((activity) => {
           expect(activity.location.lat).toBeGreaterThanOrEqual(-90);
           expect(activity.location.lat).toBeLessThanOrEqual(90);
           expect(activity.location.lng).toBeGreaterThanOrEqual(-180);
@@ -119,16 +124,16 @@ describe('Map Pin Placement Property Tests', () => {
     );
   });
 
-  it('should place pins at correct coordinates for each activity', () => {
+  it("should place pins at correct coordinates for each activity", () => {
     fc.assert(
       fc.property(arbitraryItinerary(), (itinerary) => {
         // Collect all activities
-        const allActivities = itinerary.days.flatMap(day => day.activities);
+        const allActivities = itinerary.days.flatMap((day) => day.activities);
 
         // For each activity, verify its location has valid coordinates
-        return allActivities.every(activity => {
+        return allActivities.every((activity) => {
           const { lat, lng } = activity.location;
-          
+
           // Coordinates must be valid numbers
           if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
             return false;
@@ -151,12 +156,12 @@ describe('Map Pin Placement Property Tests', () => {
     );
   });
 
-  it('should maintain pin-activity correspondence', () => {
+  it("should maintain pin-activity correspondence", () => {
     fc.assert(
       fc.property(arbitraryItinerary(), (itinerary) => {
         // Collect all activities with their day numbers
-        const allActivities = itinerary.days.flatMap(day => 
-          day.activities.map(activity => ({
+        const allActivities = itinerary.days.flatMap((day) =>
+          day.activities.map((activity) => ({
             id: activity.id,
             dayNumber: day.day_number,
             location: activity.location,
@@ -164,9 +169,9 @@ describe('Map Pin Placement Property Tests', () => {
         );
 
         // Verify each activity has a unique ID
-        const activityIds = allActivities.map(a => a.id);
+        const activityIds = allActivities.map((a) => a.id);
         const uniqueIds = new Set(activityIds);
-        
+
         // Property: Each activity should have a unique ID for pin correspondence
         return activityIds.length === uniqueIds.size;
       }),
@@ -174,19 +179,19 @@ describe('Map Pin Placement Property Tests', () => {
     );
   });
 
-  it('should handle itineraries with no activities', () => {
+  it("should handle itineraries with no activities", () => {
     // Create an itinerary with days but no activities
     const emptyItinerary: Itinerary = {
       id: crypto.randomUUID(),
       user_id: crypto.randomUUID(),
-      title: 'Empty Trip',
-      destination: 'Nowhere',
-      start_date: '2026-01-01',
-      end_date: '2026-01-03',
+      title: "Empty Trip",
+      destination: "Nowhere",
+      start_date: "2026-01-01",
+      end_date: "2026-01-03",
       days: [
-        { day_number: 1, date: '2026-01-01', activities: [] },
-        { day_number: 2, date: '2026-01-02', activities: [] },
-        { day_number: 3, date: '2026-01-03', activities: [] },
+        { day_number: 1, date: "2026-01-01", activities: [] },
+        { day_number: 2, date: "2026-01-02", activities: [] },
+        { day_number: 3, date: "2026-01-03", activities: [] },
       ],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -202,7 +207,7 @@ describe('Map Pin Placement Property Tests', () => {
     expect(totalActivities).toBe(0);
   });
 
-  it('should handle itineraries with many activities', () => {
+  it("should handle itineraries with many activities", () => {
     fc.assert(
       fc.property(
         fc.array(arbitraryDay(), { minLength: 5, maxLength: 14 }),
@@ -210,10 +215,10 @@ describe('Map Pin Placement Property Tests', () => {
           const itinerary: Itinerary = {
             id: crypto.randomUUID(),
             user_id: crypto.randomUUID(),
-            title: 'Long Trip',
-            destination: 'Multiple Cities',
-            start_date: '2026-01-01',
-            end_date: '2026-01-14',
+            title: "Long Trip",
+            destination: "Multiple Cities",
+            start_date: "2026-01-01",
+            end_date: "2026-01-14",
             days: days.map((day, index) => ({
               ...day,
               day_number: index + 1,
@@ -228,7 +233,7 @@ describe('Map Pin Placement Property Tests', () => {
             0
           );
 
-          const allActivities = itinerary.days.flatMap(day => day.activities);
+          const allActivities = itinerary.days.flatMap((day) => day.activities);
 
           // Property: Total count should match flattened array length
           return allActivities.length === totalActivities;

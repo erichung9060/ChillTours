@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Activity Display Completeness
- * 
+ *
  * Feature: tripai-travel-planner, Property 12: Activity Display Completeness
  * Validates: Requirements 5.5
- * 
+ *
  * Property: For any activity rendered in the UI, the display should include
  * time, location name, and description fields.
  */
@@ -21,32 +21,35 @@ describe("Activity Display Completeness Property Tests", () => {
   const renderActivityToString = (activity: Activity): string => {
     // Simulate the rendering logic from ItineraryPanel component
     const parts: string[] = [];
-    
+
     // Time field
     parts.push(`Time: ${activity.time}`);
-    
+
     // Location name field
     parts.push(`Location: ${activity.location.name}`);
-    
+
     // Description field (may be empty but should be present)
     parts.push(`Description: ${activity.description}`);
-    
+
     return parts.join(" | ");
   };
 
   /**
    * Checks if a rendered string contains all required fields
    */
-  const hasAllRequiredFields = (rendered: string, activity: Activity): boolean => {
+  const hasAllRequiredFields = (
+    rendered: string,
+    activity: Activity
+  ): boolean => {
     // Check for time
     const hasTime = rendered.includes(activity.time);
-    
+
     // Check for location name
     const hasLocationName = rendered.includes(activity.location.name);
-    
+
     // Check for description (field should be present even if empty)
     const hasDescriptionField = rendered.includes("Description:");
-    
+
     return hasTime && hasLocationName && hasDescriptionField;
   };
 
@@ -95,7 +98,7 @@ describe("Activity Display Completeness Property Tests", () => {
         // Verify the actual values are present, not just the field labels
         expect(rendered).toContain(activity.time);
         expect(rendered).toContain(activity.location.name);
-        
+
         // Description should be present (even if empty string)
         if (activity.description.length > 0) {
           expect(rendered).toContain(activity.description);
@@ -108,7 +111,7 @@ describe("Activity Display Completeness Property Tests", () => {
   it("Property 12 (Empty Description): Display should handle empty descriptions gracefully", async () => {
     await fc.assert(
       fc.asyncProperty(
-        activityArbitrary.map(activity => ({
+        activityArbitrary.map((activity) => ({
           ...activity,
           description: "", // Force empty description
         })),
@@ -117,7 +120,7 @@ describe("Activity Display Completeness Property Tests", () => {
 
           // Even with empty description, the field should be present
           expect(rendered).toContain("Description:");
-          
+
           // Time and location should still be present
           expect(rendered).toContain(activity.time);
           expect(rendered).toContain(activity.location.name);

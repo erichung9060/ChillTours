@@ -12,38 +12,43 @@ interface GenerateItineraryRequest {
  * 驗證用戶是否已登入
  * 使用 Supabase Auth 的 getUser() 方法驗證 JWT
  */
-async function verifyUser(req: Request): Promise<{ userId: string; email: string } | null> {
+async function verifyUser(
+  req: Request
+): Promise<{ userId: string; email: string } | null> {
   try {
     const authHeader = req.headers.get("Authorization");
-    
+
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       console.log("❌ No valid Authorization header");
       return null;
     }
 
     const jwt = authHeader.replace("Bearer ", "");
-    
+
     // 建立 Supabase client（使用 anon key 即可）
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    
+
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error("❌ Missing Supabase configuration");
       return null;
     }
 
     const supabase = createClient(supabaseUrl, supabaseAnonKey);
-    
+
     // 使用 getUser() 驗證 JWT 並取得用戶資訊
-    const { data: { user }, error } = await supabase.auth.getUser(jwt);
-    
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(jwt);
+
     if (error || !user) {
       console.log("❌ Invalid token or user not found:", error?.message);
       return null;
     }
 
     console.log("✅ User authenticated:", user.email);
-    
+
     return {
       userId: user.id,
       email: user.email || "",
@@ -65,7 +70,8 @@ function buildItineraryPrompt(
 ): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const duration =
+    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
   let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} starting from ${startDate} to ${endDate}.
 
@@ -122,12 +128,12 @@ Deno.serve(async (req) => {
   try {
     // 驗證用戶是否已登入
     const user = await verifyUser(req);
-    
+
     if (!user) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Unauthorized. Please log in to generate itineraries.",
-          code: "UNAUTHORIZED"
+          code: "UNAUTHORIZED",
         }),
         {
           status: 401,
@@ -135,15 +141,21 @@ Deno.serve(async (req) => {
         }
       );
     }
-    
+
     // Parse request body
-    const { destination, startDate, endDate, custom_requirements }: GenerateItineraryRequest =
-      await req.json();
+    const {
+      destination,
+      startDate,
+      endDate,
+      custom_requirements,
+    }: GenerateItineraryRequest = await req.json();
 
     // Validate required fields
     if (!destination || !startDate || !endDate) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: destination, startDate, or endDate" }),
+        JSON.stringify({
+          error: "Missing required fields: destination, startDate, or endDate",
+        }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -204,7 +216,7 @@ Deno.serve(async (req) => {
         ...corsHeaders,
         "Content-Type": "text/plain; charset=utf-8",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     });
   } catch (error) {

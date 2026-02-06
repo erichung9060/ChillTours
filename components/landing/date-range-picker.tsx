@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useLayoutEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 interface DateRangePickerProps {
   startDate?: Date;
@@ -12,12 +12,16 @@ interface DateRangePickerProps {
   onChange: (start?: Date, end?: Date) => void;
 }
 
-export function DateRangePicker({ startDate, endDate, onChange }: DateRangePickerProps) {
+export function DateRangePicker({
+  startDate,
+  endDate,
+  onChange,
+}: DateRangePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  
+
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
@@ -31,14 +35,14 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
           left: rect.left + window.scrollX,
         });
       };
-      
+
       updatePosition();
-      window.addEventListener('resize', updatePosition);
-      window.addEventListener('scroll', updatePosition);
-      
+      window.addEventListener("resize", updatePosition);
+      window.addEventListener("scroll", updatePosition);
+
       return () => {
-        window.removeEventListener('resize', updatePosition);
-        window.removeEventListener('scroll', updatePosition);
+        window.removeEventListener("resize", updatePosition);
+        window.removeEventListener("scroll", updatePosition);
       };
     }
   }, [isOpen]);
@@ -47,7 +51,7 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
-        popoverRef.current && 
+        popoverRef.current &&
         !popoverRef.current.contains(event.target as Node) &&
         buttonRef.current &&
         !buttonRef.current.contains(event.target as Node)
@@ -55,19 +59,23 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
         setIsOpen(false);
       }
     }
-    
+
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   const nextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
   };
 
   const prevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
   };
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -80,9 +88,11 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
 
   const isSameDay = (d1?: Date, d2?: Date) => {
     if (!d1 || !d2) return false;
-    return d1.getDate() === d2.getDate() && 
-           d1.getMonth() === d2.getMonth() && 
-           d1.getFullYear() === d2.getFullYear();
+    return (
+      d1.getDate() === d2.getDate() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getFullYear() === d2.getFullYear()
+    );
   };
 
   const isBetween = (date: Date, start?: Date, end?: Date) => {
@@ -107,16 +117,24 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
   };
 
   const renderMonth = (offset: number) => {
-    const monthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
+    const monthDate = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + offset,
+      1
+    );
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
     const firstDay = getFirstDayOfMonth(year, month);
-    
+
     const days = [];
     // Empty slots for start of month
     for (let i = 0; i < firstDay; i++) {
@@ -125,7 +143,7 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
 
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
-      
+
       let isSelected = isSameDay(date, startDate) || isSameDay(date, endDate);
       let isRange = false;
 
@@ -143,7 +161,9 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
 
       // Start/End rounded corners
       const isStart = startDate && isSameDay(date, startDate);
-      const isEnd = (endDate && isSameDay(date, endDate)) || (!endDate && hoverDate && isSameDay(date, hoverDate));
+      const isEnd =
+        (endDate && isSameDay(date, endDate)) ||
+        (!endDate && hoverDate && isSameDay(date, hoverDate));
 
       days.push(
         <button
@@ -154,8 +174,11 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
           className={cn(
             "h-10 w-10 text-sm flex items-center justify-center relative z-10",
             "hover:bg-[hsl(var(--primary))]/20 transition-colors rounded-full",
-            isSelected && "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
-            isRange && !isSelected && "bg-[hsl(var(--primary))]/10 rounded-none",
+            isSelected &&
+              "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
+            isRange &&
+              !isSelected &&
+              "bg-[hsl(var(--primary))]/10 rounded-none",
             isStart && isRange && "rounded-l-full rounded-r-none",
             isEnd && isRange && "rounded-r-full rounded-l-none"
           )}
@@ -168,11 +191,19 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
     return (
       <div className="p-4 w-72">
         <div className="font-semibold text-center mb-4">
-          {monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          {monthDate.toLocaleDateString("en-US", {
+            month: "long",
+            year: "numeric",
+          })}
         </div>
         <div className="grid grid-cols-7 gap-y-2 text-center">
-          {['S','M','T','W','T','F','S'].map((d, i) => (
-            <div key={`${d}-${i}`} className="text-[hsl(var(--muted-foreground))] text-xs font-medium">{d}</div>
+          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+            <div
+              key={`${d}-${i}`}
+              className="text-[hsl(var(--muted-foreground))] text-xs font-medium"
+            >
+              {d}
+            </div>
           ))}
           {days}
         </div>
@@ -180,16 +211,19 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
     );
   };
 
-  const duration = startDate && endDate 
-    ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1 
-    : 0;
+  const duration =
+    startDate && endDate
+      ? Math.ceil(
+          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1
+      : 0;
 
   return (
     <>
-      <Button 
+      <Button
         ref={buttonRef}
         type="button"
-        variant="outline" 
+        variant="outline"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-[300px] justify-start text-left font-normal",
@@ -197,52 +231,65 @@ export function DateRangePicker({ startDate, endDate, onChange }: DateRangePicke
         )}
       >
         <span className="mr-2">📅</span>
-        {startDate ? (
-          endDate ? (
-            `${formatDate(startDate)} - ${formatDate(endDate)} (${duration} days)`
-          ) : (
-            `${formatDate(startDate)} - Select end date`
-          )
-        ) : (
-          "Select dates"
-        )}
+        {startDate
+          ? endDate
+            ? `${formatDate(startDate)} - ${formatDate(endDate)} (${duration} days)`
+            : `${formatDate(startDate)} - Select end date`
+          : "Select dates"}
       </Button>
 
-      {isOpen && createPortal(
-        <div 
-          ref={popoverRef}
-          style={{
-            top: position.top,
-            left: position.left
-          }}
-          className="absolute z-50 bg-[hsl(var(--popover))] text-[hsl(var(--popover-foreground))] rounded-xl border shadow-xl flex flex-col md:flex-row overflow-hidden"
-        >
-           {/* Navigation */}
-           <div className="absolute top-4 left-4 z-20">
-              <Button type="button" variant="ghost" size="icon" onClick={prevMonth} className="h-7 w-7">
+      {isOpen &&
+        createPortal(
+          <div
+            ref={popoverRef}
+            style={{
+              top: position.top,
+              left: position.left,
+            }}
+            className="absolute z-50 bg-[hsl(var(--popover))] text-[hsl(var(--popover-foreground))] rounded-xl border shadow-xl flex flex-col md:flex-row overflow-hidden"
+          >
+            {/* Navigation */}
+            <div className="absolute top-4 left-4 z-20">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={prevMonth}
+                className="h-7 w-7"
+              >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-           </div>
-           <div className="absolute top-4 right-4 z-20 md:hidden">
-              <Button type="button" variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7">
+            </div>
+            <div className="absolute top-4 right-4 z-20 md:hidden">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={nextMonth}
+                className="h-7 w-7"
+              >
                 <ChevronRight className="h-4 w-4" />
               </Button>
-           </div>
+            </div>
             <div className="absolute top-4 right-4 z-20 hidden md:block">
-              <Button type="button" variant="ghost" size="icon" onClick={nextMonth} className="h-7 w-7">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={nextMonth}
+                className="h-7 w-7"
+              >
                 <ChevronRight className="h-4 w-4" />
               </Button>
-           </div>
+            </div>
 
-           <div className="border-b md:border-b-0 md:border-r">
-             {renderMonth(0)}
-           </div>
-           <div className="hidden md:block">
-             {renderMonth(1)}
-           </div>
-        </div>,
-        document.body
-      )}
+            <div className="border-b md:border-b-0 md:border-r">
+              {renderMonth(0)}
+            </div>
+            <div className="hidden md:block">{renderMonth(1)}</div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

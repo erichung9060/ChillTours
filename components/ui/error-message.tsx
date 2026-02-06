@@ -1,5 +1,5 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils/cn';
+import * as React from "react";
+import { cn } from "@/lib/utils/cn";
 
 export interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
@@ -8,24 +8,24 @@ export interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
-  ({ className, title = 'Error', message, onRetry, ...props }, ref) => {
+  ({ className, title = "Error", message, onRetry, ...props }, ref) => {
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-xl border border-destructive/30 bg-destructive/5 p-4',
-          'dark:bg-destructive/10 dark:border-destructive/40',
-          'backdrop-blur-sm',
-          'transition-all duration-300 ease-out',
+          "rounded-xl border border-destructive/30 bg-destructive/5 p-4",
+          "dark:bg-destructive/10 dark:border-destructive/40",
+          "backdrop-blur-sm",
+          "transition-all duration-300 ease-out",
           // Hover effects
-          'hover:border-destructive/50 dark:hover:border-destructive/60',
+          "hover:border-destructive/50 dark:hover:border-destructive/60",
           // Light mode - subtle shadow
-          'hover:shadow-md hover:shadow-destructive/[0.08]',
+          "hover:shadow-md hover:shadow-destructive/[0.08]",
           // Dark mode - stronger shadow
-          'dark:hover:shadow-lg dark:hover:shadow-destructive/10',
-          'dark:hover:bg-destructive/[0.15]',
+          "dark:hover:shadow-lg dark:hover:shadow-destructive/10",
+          "dark:hover:bg-destructive/[0.15]",
           // Animation on mount
-          'animate-in fade-in-0 slide-in-from-top-2 duration-300',
+          "animate-in fade-in-0 slide-in-from-top-2 duration-300",
           className
         )}
         role="alert"
@@ -33,12 +33,14 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
       >
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 mt-0.5">
-            <div className={cn(
-              'rounded-lg bg-destructive/10 p-1.5',
-              'dark:bg-destructive/20',
-              'transition-all duration-200',
-              'group-hover:scale-110'
-            )}>
+            <div
+              className={cn(
+                "rounded-lg bg-destructive/10 p-1.5",
+                "dark:bg-destructive/20",
+                "transition-all duration-200",
+                "group-hover:scale-110"
+              )}
+            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -68,12 +70,12 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
               <button
                 onClick={onRetry}
                 className={cn(
-                  'mt-3 text-sm font-medium text-destructive',
-                  'hover:text-destructive/80',
-                  'underline underline-offset-4',
-                  'transition-all duration-200',
-                  'hover:translate-x-1',
-                  'focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1'
+                  "mt-3 text-sm font-medium text-destructive",
+                  "hover:text-destructive/80",
+                  "underline underline-offset-4",
+                  "transition-all duration-200",
+                  "hover:translate-x-1",
+                  "focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1"
                 )}
               >
                 Try again →
@@ -86,6 +88,6 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
   }
 );
 
-ErrorMessage.displayName = 'ErrorMessage';
+ErrorMessage.displayName = "ErrorMessage";
 
 export { ErrorMessage };

@@ -12,6 +12,7 @@ The architecture follows the Single Responsibility Principle (SRP) with clear se
 - **Data Layer**: Supabase database and real-time synchronization
 
 Key technical decisions:
+
 - **Supabase Cloud Service**: Using Supabase hosted cloud service (not self-hosted), which automatically handles OAuth callbacks, session management, and database triggers
 - **Streaming AI responses** via Supabase Edge Functions for real-time user feedback
 - **CRDT-based collaboration** using Yjs for conflict-free concurrent editing
@@ -22,6 +23,7 @@ Key technical decisions:
 ### Deployment Architecture
 
 **Backend Infrastructure:**
+
 - **Supabase Cloud**: Fully managed Supabase instance hosted at `https://[project-id].supabase.co`
   - PostgreSQL database with automatic backups
   - Built-in authentication with OAuth providers
@@ -31,6 +33,7 @@ Key technical decisions:
   - Global CDN for static assets
 
 **Authentication Flow (Simplified with Supabase Cloud):**
+
 - OAuth callbacks are handled by Supabase's authentication service at `https://[project-id].supabase.co/auth/v1/callback`
 - Supabase automatically exchanges OAuth codes for sessions
 - Database triggers automatically create user profiles on signup
@@ -49,26 +52,26 @@ graph TB
         YjsClient[Yjs Client]
         MapClient[Google Maps Client]
     end
-    
+
     subgraph "Next.js Application"
         Pages[App Router Pages]
         API[API Routes]
         SSR[Server Components]
     end
-    
+
     subgraph "Supabase Backend"
         Auth[Supabase Auth]
         DB[(PostgreSQL DB)]
         EdgeFn[Edge Functions]
         Realtime[Realtime Server]
     end
-    
+
     subgraph "External Services"
         Gemini[Gemini 2.0 Flash API]
         GMaps[Google Maps API]
         OAuth[Google OAuth]
     end
-    
+
     UI --> State
     State --> YjsClient
     State --> MapClient
@@ -86,24 +89,28 @@ graph TB
 ### Layered Architecture
 
 **Layer 1: Presentation (Client-Side)**
+
 - React components organized by feature
 - Shared UI components library
 - Theme provider for dark/light mode
 - Responsive layouts for mobile/desktop
 
 **Layer 2: Application Logic**
+
 - Custom hooks for business logic
 - State management (React Context + hooks)
 - Client-side validation
 - Session management
 
 **Layer 3: Integration**
+
 - Supabase client wrapper
 - Gemini API client (via Edge Functions)
 - Google Maps SDK wrapper
 - Yjs provider configuration
 
 **Layer 4: Data Access**
+
 - Supabase database schema
 - Real-time subscriptions
 - CRDT document management
@@ -112,6 +119,7 @@ graph TB
 ### Technology Stack
 
 **Frontend:**
+
 - Next.js 15 (App Router)
 - React 18
 - TypeScript
@@ -121,11 +129,13 @@ graph TB
 - @react-google-maps/api
 
 **Backend:**
+
 - Supabase (PostgreSQL, Auth, Realtime, Edge Functions)
 - Deno runtime (Edge Functions)
 - Google Gemini 2.0 Flash API
 
 **Development:**
+
 - ESLint + Prettier
 - Vitest for testing
 - Fast-check for property-based testing
@@ -232,7 +242,7 @@ interface Itinerary {
   days: Day[];
   created_at: string;
   updated_at: string;
-  shared_with: string[];  // Emails for collaboration
+  shared_with: string[]; // Emails for collaboration
 }
 
 interface Day {
@@ -256,7 +266,7 @@ interface Location {
   address: string;
   lat: number;
   lng: number;
-  place_id?: string;  // Google Maps Place ID
+  place_id?: string; // Google Maps Place ID
 }
 ```
 
@@ -271,7 +281,7 @@ interface ChatSession {
 
 interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: number;
   streaming?: boolean;
@@ -290,8 +300,8 @@ interface StreamingResponse {
 
 ```typescript
 interface CollaborationSession {
-  room_id: string;  // Same as itinerary_id
-  doc: Y.Doc;       // Yjs document
+  room_id: string; // Same as itinerary_id
+  doc: Y.Doc; // Yjs document
   provider: WebsocketProvider;
 }
 
@@ -307,11 +317,13 @@ interface UserPresence {
 #### Landing Page Components
 
 **HeroSection**
+
 - Display Gen Z-styled hero with theme toggle
 - Render marketing copy and call-to-action
 - Handle theme mode switching
 
 **TripForm**
+
 - Collect destination, trip duration, and custom requirements
 - Display custom requirements input as a larger textarea
 - Position custom requirements below destination and duration inputs
@@ -325,23 +337,27 @@ interface UserPresence {
 #### Planning Interface Components
 
 **ItineraryPanel** (Left Panel)
+
 - Display day-by-day itinerary structure
 - Handle expand/collapse of day sections
 - Manage drag-and-drop reordering
 - Sync changes to Yjs document
 
 **DaySection**
+
 - Render activities for a specific day
 - Handle day-level expand/collapse
 - Display day summary (date, activity count)
 
 **ActivityItem**
+
 - Display single activity details
 - Provide drag handle for reordering
 - Handle click to highlight on map
 - Show edit/delete actions
 
 **MapPanel** (Center Panel)
+
 - Initialize Google Maps instance
 - Render location pins for all activities
 - Handle pin click to show details
@@ -349,6 +365,7 @@ interface UserPresence {
 - Provide navigation links for mobile
 
 **ChatPanel** (Right Panel, Collapsible)
+
 - Display chat message history
 - Handle user message input
 - Stream AI responses in real-time
@@ -358,11 +375,13 @@ interface UserPresence {
 #### Shared UI Components
 
 **ThemeToggle**
+
 - Switch between light/dark mode
 - Persist preference to local storage
 - Apply theme to document root
 
 **Button, Input, Card**
+
 - Reusable UI primitives
 - Support theme variants
 - Follow Gen Z design principles
@@ -442,6 +461,7 @@ export default function AuthCallbackPage() {
 ```
 
 **Key Benefits of Supabase Cloud:**
+
 - ✅ No server-side OAuth code exchange needed
 - ✅ No manual session management
 - ✅ No manual profile creation
@@ -451,6 +471,7 @@ export default function AuthCallbackPage() {
 #### Next.js API Routes
 
 **POST /api/yjs**
+
 - WebSocket proxy for Yjs collaboration
 - Handle connection upgrades
 - Route messages to Supabase Realtime
@@ -464,6 +485,7 @@ export default function AuthCallbackPage() {
 When calling Supabase Edge Functions from the frontend to support streaming responses, you **MUST** use direct URL invocation with `fetch()` instead of the Supabase client's `invoke()` method.
 
 **Why:**
+
 - The `supabase.functions.invoke()` method does NOT support streaming responses
 - It waits for the complete response before returning
 - This defeats the purpose of streaming and causes poor UX
@@ -473,24 +495,23 @@ When calling Supabase Edge Functions from the frontend to support streaming resp
 ```typescript
 // ✅ CORRECT: Direct URL with fetch() for streaming
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 
-const response = await fetch(
-  `${supabaseUrl}/functions/v1/generate-itinerary`,
-  {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session?.access_token || anonKey}`,
-    },
-    body: JSON.stringify({
-      destination,
-      startDate,
-      endDate,
-      custom_requirements,
-    }),
-  }
-);
+const response = await fetch(`${supabaseUrl}/functions/v1/generate-itinerary`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${session?.access_token || anonKey}`,
+  },
+  body: JSON.stringify({
+    destination,
+    startDate,
+    endDate,
+    custom_requirements,
+  }),
+});
 
 // Read streaming response
 const reader = response.body.getReader();
@@ -499,7 +520,7 @@ const decoder = new TextDecoder();
 while (true) {
   const { done, value } = await reader.read();
   if (done) break;
-  
+
   const chunk = decoder.decode(value, { stream: true });
   // Process chunk...
 }
@@ -509,10 +530,9 @@ while (true) {
 
 ```typescript
 // ❌ WRONG: Does NOT support streaming
-const { data, error } = await supabase.functions.invoke(
-  'generate-itinerary',
-  { body: { destination, startDate, endDate } }
-);
+const { data, error } = await supabase.functions.invoke("generate-itinerary", {
+  body: { destination, startDate, endDate },
+});
 // This waits for complete response, no streaming!
 ```
 
@@ -534,22 +554,24 @@ const { data, error } = await supabase.functions.invoke(
 async function callEdgeFunctionWithStreaming() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
+
   if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase configuration missing');
+    throw new Error("Supabase configuration missing");
   }
 
   // Get session token if user is logged in
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   const authToken = session?.access_token || supabaseKey;
 
   const response = await fetch(
     `${supabaseUrl}/functions/v1/generate-itinerary`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${authToken}`,
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
       },
       body: JSON.stringify({ destination, startDate, endDate }),
     }
@@ -564,6 +586,7 @@ async function callEdgeFunctionWithStreaming() {
 ```
 
 **Security Notes:**
+
 - Always include `Authorization` header with Bearer token
 - Use session token for authenticated requests
 - Use anon key only for public endpoints
@@ -572,6 +595,7 @@ async function callEdgeFunctionWithStreaming() {
 ---
 
 **POST /functions/v1/generate-itinerary**
+
 - Accept: destination, startDate, endDate, custom_requirements
 - Call Gemini API with structured prompt including absolute dates but requesting relative days
 - Stream response chunks to client
@@ -579,6 +603,7 @@ async function callEdgeFunctionWithStreaming() {
 - Return: StreamingResponse
 
 **POST /functions/v1/chat**
+
 - Accept: message, session history, itinerary context
 - Call Gemini API with conversation history
 - Stream response chunks to client
@@ -616,11 +641,11 @@ class GeminiClient {
 
 #### Streaming JSON Parser
 
-```typescript
+````typescript
 class StreamingJSONParser {
   private buffer: string = "";
   private bracketStack: string[] = [];
-  
+
   /**
    * Append new chunk to buffer and attempt to parse
    */
@@ -628,14 +653,14 @@ class StreamingJSONParser {
     this.buffer += chunk;
     return this.tryParse();
   }
-  
+
   /**
    * Try to parse incomplete JSON by auto-closing brackets
    */
   private tryParse(): Partial<Itinerary> | null {
     // Track bracket balance
     const balanced = this.checkBracketBalance(this.buffer);
-    
+
     if (balanced.isComplete) {
       // JSON is complete, parse normally
       return this.parseComplete(this.buffer);
@@ -645,7 +670,7 @@ class StreamingJSONParser {
       return this.parsePartial(completed);
     }
   }
-  
+
   /**
    * Check bracket balance and track unclosed brackets
    */
@@ -653,55 +678,55 @@ class StreamingJSONParser {
     const stack: string[] = [];
     let inString = false;
     let escapeNext = false;
-    
+
     for (let i = 0; i < json.length; i++) {
       const char = json[i];
-      
+
       if (escapeNext) {
         escapeNext = false;
         continue;
       }
-      
-      if (char === '\\') {
+
+      if (char === "\\") {
         escapeNext = true;
         continue;
       }
-      
+
       if (char === '"' && !escapeNext) {
         inString = !inString;
         continue;
       }
-      
+
       if (!inString) {
-        if (char === '{' || char === '[') {
+        if (char === "{" || char === "[") {
           stack.push(char);
-        } else if (char === '}' || char === ']') {
+        } else if (char === "}" || char === "]") {
           stack.pop();
         }
       }
     }
-    
+
     return {
       isComplete: stack.length === 0,
       unclosedBrackets: stack,
     };
   }
-  
+
   /**
    * Auto-close unclosed brackets to make valid JSON
    */
   private autoCloseBrackets(json: string, balance: BracketBalance): string {
     let completed = json;
-    
+
     // Close unclosed brackets in reverse order
     for (let i = balance.unclosedBrackets.length - 1; i >= 0; i--) {
       const bracket = balance.unclosedBrackets[i];
-      completed += bracket === '{' ? '}' : ']';
+      completed += bracket === "{" ? "}" : "]";
     }
-    
+
     return completed;
   }
-  
+
   /**
    * Parse complete JSON
    */
@@ -714,7 +739,7 @@ class StreamingJSONParser {
       return null;
     }
   }
-  
+
   /**
    * Parse partial JSON (may be incomplete)
    */
@@ -722,7 +747,7 @@ class StreamingJSONParser {
     try {
       const cleaned = this.cleanJSON(json);
       const parsed = JSON.parse(cleaned);
-      
+
       // Return partial data even if incomplete
       return {
         title: parsed.title,
@@ -734,29 +759,29 @@ class StreamingJSONParser {
       return null;
     }
   }
-  
+
   /**
    * Clean JSON by removing markdown code blocks
    */
   private cleanJSON(json: string): string {
     let cleaned = json.trim();
-    
-    if (cleaned.startsWith('```json')) {
-      cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
     }
-    
+
     return cleaned;
   }
-  
+
   /**
    * Get the complete buffer
    */
   getBuffer(): string {
     return this.buffer;
   }
-  
+
   /**
    * Reset the parser
    */
@@ -776,34 +801,34 @@ interface BracketBalance {
  */
 async function handleStreamingItinerary() {
   const parser = new StreamingJSONParser();
-  const response = await fetch('/functions/v1/generate-itinerary', {
-    method: 'POST',
-    body: JSON.stringify({ destination: 'Tokyo', duration: 3 })
+  const response = await fetch("/functions/v1/generate-itinerary", {
+    method: "POST",
+    body: JSON.stringify({ destination: "Tokyo", duration: 3 }),
   });
-  
+
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
-  
+
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    
+
     const chunk = decoder.decode(value, { stream: true });
-    
+
     // Try to parse partial JSON
     const partialItinerary = parser.appendChunk(chunk);
-    
+
     if (partialItinerary) {
       // Update UI immediately with available data
       updateItineraryUI(partialItinerary);
     }
   }
-  
+
   // Final parse with complete data
   const finalItinerary = parser.parseComplete(parser.getBuffer());
   updateItineraryUI(finalItinerary);
 }
-```
+````
 
 #### Google Maps Client
 
@@ -884,7 +909,7 @@ CREATE TABLE itineraries (
   data JSONB NOT NULL,  -- Full itinerary structure
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   CONSTRAINT valid_dates CHECK (end_date >= start_date)
 );
 
@@ -900,7 +925,7 @@ CREATE TABLE itinerary_shares (
   shared_with_email TEXT NOT NULL,
   permission TEXT DEFAULT 'edit' CHECK (permission IN ('view', 'edit')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  
+
   UNIQUE(itinerary_id, shared_with_email),
   CONSTRAINT valid_email CHECK (shared_with_email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
@@ -993,7 +1018,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE itineraries;
 ```typescript
 // Theme preference
 interface ThemePreference {
-  mode: 'light' | 'dark' | 'system';
+  mode: "light" | "dark" | "system";
 }
 // Key: 'tripai:theme'
 
@@ -1013,7 +1038,7 @@ interface SessionState {
 // Using Y.Map for objects and Y.Array for lists
 
 const doc = new Y.Doc();
-const itineraryMap = doc.getMap('itinerary');
+const itineraryMap = doc.getMap("itinerary");
 
 // Structure:
 // itinerary: Y.Map {
@@ -1044,8 +1069,7 @@ const itineraryMap = doc.getMap('itinerary');
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
-
+_A property is a characteristic or behavior that should hold true across all valid executions of a system—essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property Reflection
 
@@ -1062,6 +1086,7 @@ After analyzing all testable acceptance criteria, I identified several areas whe
 7. **Persistence Round-trips (10.3, 13.2)**: Both test save-load cycles
 
 **Properties to Keep Separate:**
+
 - Input validation (2.3) - distinct from other validation
 - Drag-drop reordering (7.2, 7.4, 7.5) - each tests different aspects
 - Error handling (17.1, 17.4, 17.5) - different error scenarios
@@ -1070,151 +1095,151 @@ After analyzing all testable acceptance criteria, I identified several areas whe
 ### Correctness Properties
 
 **Property 1: Authentication Profile Management**
-*For any* successful authentication, creating or retrieving a user profile should result in a valid profile record linked to the authenticated user ID, and subsequent authentications should retrieve the same profile.
+_For any_ successful authentication, creating or retrieving a user profile should result in a valid profile record linked to the authenticated user ID, and subsequent authentications should retrieve the same profile.
 **Validates: Requirements 1.2**
 
 **Property 2: Session Persistence Across Refreshes**
-*For any* authenticated user, the session state should persist across page refreshes until explicit sign-out.
+_For any_ authenticated user, the session state should persist across page refreshes until explicit sign-out.
 **Validates: Requirements 1.4**
 
 **Property 3: Sign-out Cleanup**
-*For any* authenticated user, signing out should clear all session data and authentication state.
+_For any_ authenticated user, signing out should clear all session data and authentication state.
 **Validates: Requirements 1.5**
 
 **Property 4: Input Validation Rejects Empty Values**
-*For any* input string composed entirely of whitespace or empty, the validation should reject it and prevent form submission.
+_For any_ input string composed entirely of whitespace or empty, the validation should reject it and prevent form submission.
 **Validates: Requirements 2.5**
 
 **Property 5: Theme Toggle Round-trip**
-*For any* theme mode selection (light/dark), toggling the theme should save to local storage, and reloading the page should restore the same theme preference.
+_For any_ theme mode selection (light/dark), toggling the theme should save to local storage, and reloading the page should restore the same theme preference.
 **Validates: Requirements 2.7, 13.1, 13.2, 13.4**
 
 **Property 6: Gemini API Request Context Inclusion**
-*For any* user message sent to the chat, the Edge Function should include the complete conversation history, current itinerary context, and custom requirements in the API request.
+_For any_ user message sent to the chat, the Edge Function should include the complete conversation history, current itinerary context, and custom requirements in the API request.
 **Validates: Requirements 3.1, 3.2, 8.1**
 
 **Property 7: Streaming Response Delivery**
-*For any* AI-generated response, the system should stream response chunks to the frontend as they are received, maintaining chunk order and completeness.
+_For any_ AI-generated response, the system should stream response chunks to the frontend as they are received, maintaining chunk order and completeness.
 **Validates: Requirements 3.3, 8.2, 18.1**
 
 **Property 8: Itinerary Parsing Completeness**
-*For any* valid AI response containing itinerary data, parsing should extract all days, activities, locations, and times into the structured Itinerary format without data loss.
+_For any_ valid AI response containing itinerary data, parsing should extract all days, activities, locations, and times into the structured Itinerary format without data loss.
 **Validates: Requirements 3.4**
 
 **Property 9: Session Memory Storage**
-*For any* generated itinerary or chat message, the data should be stored in session memory (not database) and accessible throughout the session.
+_For any_ generated itinerary or chat message, the data should be stored in session memory (not database) and accessible throughout the session.
 **Validates: Requirements 3.6, 8.5**
 
 **Property 10: Chat Panel Toggle State**
-*For any* chat panel state (expanded/collapsed), clicking the toggle should switch to the opposite state consistently.
+_For any_ chat panel state (expanded/collapsed), clicking the toggle should switch to the opposite state consistently.
 **Validates: Requirements 4.4**
 
 **Property 11: Day Section Expand/Collapse**
-*For any* day section in the itinerary, clicking the header should toggle between expanded and collapsed states.
+_For any_ day section in the itinerary, clicking the header should toggle between expanded and collapsed states.
 **Validates: Requirements 5.2**
 
 **Property 12: Activity Display Completeness**
-*For any* activity rendered in the UI, the display should include time, location name, and description fields.
+_For any_ activity rendered in the UI, the display should include time, location name, and description fields.
 **Validates: Requirements 5.5**
 
 **Property 13: Map Pin Placement**
-*For any* itinerary with N activities, loading the itinerary should place exactly N pins on the map at the correct coordinates.
+_For any_ itinerary with N activities, loading the itinerary should place exactly N pins on the map at the correct coordinates.
 **Validates: Requirements 6.1**
 
 **Property 14: Pin Click Details Display**
-*For any* pin on the map, clicking it should display a popup containing the corresponding location details.
+_For any_ pin on the map, clicking it should display a popup containing the corresponding location details.
 **Validates: Requirements 6.2**
 
 **Property 15: Itinerary-Map Synchronization**
-*For any* itinerary modification (reordering, adding, removing activities), the map pins should update to reflect the new state, maintaining correspondence between itinerary items and pins.
+_For any_ itinerary modification (reordering, adding, removing activities), the map pins should update to reflect the new state, maintaining correspondence between itinerary items and pins.
 **Validates: Requirements 6.3, 7.3**
 
 **Property 16: Drag-Drop Reordering**
-*For any* activity dragged to a new position within the same day, the itinerary order should update immediately with the activity at the new position.
+_For any_ activity dragged to a new position within the same day, the itinerary order should update immediately with the activity at the new position.
 **Validates: Requirements 7.2**
 
 **Property 17: Cross-Day Activity Movement**
-*For any* activity moved from one day to another, the activity should be removed from the source day and added to the target day, updating day groupings correctly.
+_For any_ activity moved from one day to another, the activity should be removed from the source day and added to the target day, updating day groupings correctly.
 **Validates: Requirements 7.4**
 
 **Property 18: Reordering Persistence**
-*For any* reordering operation, the changes should be maintained in session memory and reflected in subsequent renders.
+_For any_ reordering operation, the changes should be maintained in session memory and reflected in subsequent renders.
 **Validates: Requirements 7.5**
 
 **Property 19: Itinerary Update Parsing and Application**
-*For any* AI response containing itinerary modification instructions, the system should parse the updates and apply them to the current itinerary, resulting in the modified state.
+_For any_ AI response containing itinerary modification instructions, the system should parse the updates and apply them to the current itinerary, resulting in the modified state.
 **Validates: Requirements 8.3**
 
 **Property 20: Session Initialization**
-*For any* new website visit, the system should create a fresh session with empty conversation history and no persisted chat data.
+_For any_ new website visit, the system should create a fresh session with empty conversation history and no persisted chat data.
 **Validates: Requirements 9.1, 9.2, 9.3**
 
 **Property 21: Chat History Non-Persistence**
-*For any* session, chat history should never be written to the database, only stored in memory.
+_For any_ session, chat history should never be written to the database, only stored in memory.
 **Validates: Requirements 9.4, 9.5**
 
 **Property 22: Itinerary Database Persistence**
-*For any* itinerary saved by a user, the system should store it in the database linked to the user ID, and the saved data should be retrievable.
+_For any_ itinerary saved by a user, the system should store it in the database linked to the user ID, and the saved data should be retrievable.
 **Validates: Requirements 10.1**
 
 **Property 23: Itinerary Save-Load Round-trip**
-*For any* itinerary, saving it to the database and then loading it should produce an equivalent itinerary with all activities, locations, and structure preserved.
+_For any_ itinerary, saving it to the database and then loading it should produce an equivalent itinerary with all activities, locations, and structure preserved.
 **Validates: Requirements 10.3**
 
 **Property 24: Itinerary Deletion**
-*For any* itinerary deleted by a user, the system should remove it from the database permanently, and subsequent queries should not return it.
+_For any_ itinerary deleted by a user, the system should remove it from the database permanently, and subsequent queries should not return it.
 **Validates: Requirements 10.4**
 
 **Property 25: Itinerary List Display**
-*For any* user with saved itineraries, viewing the list should display all itineraries with destination and date information.
+_For any_ user with saved itineraries, viewing the list should display all itineraries with destination and date information.
 **Validates: Requirements 10.5**
 
 **Property 26: Collaborative Edit Synchronization**
-*For any* edit made by one user in a collaborative session, all other connected users should receive the update within 500ms, and their views should reflect the change.
+_For any_ edit made by one user in a collaborative session, all other connected users should receive the update within 500ms, and their views should reflect the change.
 **Validates: Requirements 11.1, 11.2**
 
 **Property 27: Conflict-Free Concurrent Edits**
-*For any* two concurrent edits to different parts of an itinerary, both edits should be applied without data loss or corruption, with Yjs CRDT resolving any conflicts.
+_For any_ two concurrent edits to different parts of an itinerary, both edits should be applied without data loss or corruption, with Yjs CRDT resolving any conflicts.
 **Validates: Requirements 11.3**
 
 **Property 28: Collaborative Session Join**
-*For any* user joining an active collaborative session, the system should load and display the current itinerary state.
+_For any_ user joining an active collaborative session, the system should load and display the current itinerary state.
 **Validates: Requirements 11.4**
 
 **Property 29: Reconnection State Preservation**
-*For any* user who disconnects and reconnects to a collaborative session, their previous changes should be preserved and the current state should be synchronized.
+_For any_ user who disconnects and reconnects to a collaborative session, their previous changes should be preserved and the current state should be synchronized.
 **Validates: Requirements 11.5**
 
 **Property 30: Mobile Activity Display**
-*For any* activity viewed on mobile, the display should include time, location, and a Google Maps navigation link.
+_For any_ activity viewed on mobile, the display should include time, location, and a Google Maps navigation link.
 **Validates: Requirements 12.1**
 
 **Property 31: Mobile Theme Persistence**
-*For any* theme preference set on mobile, the preference should persist across sessions and devices.
+_For any_ theme preference set on mobile, the preference should persist across sessions and devices.
 **Validates: Requirements 12.4**
 
 **Property 32: API Key Security**
-*For any* Edge Function call to Gemini API, the API key should never be exposed to the frontend or included in client-accessible responses.
+_For any_ Edge Function call to Gemini API, the API key should never be exposed to the frontend or included in client-accessible responses.
 **Validates: Requirements 14.4**
 
 **Property 33: Secure Error Logging**
-*For any* error logged by the system, the log should include debugging context but should not contain API keys, passwords, or other sensitive credentials.
+_For any_ error logged by the system, the log should include debugging context but should not contain API keys, passwords, or other sensitive credentials.
 **Validates: Requirements 14.5**
 
 **Property 34: API Error User Feedback**
-*For any* API call failure, the system should display a user-friendly error message to the user.
+_For any_ API call failure, the system should display a user-friendly error message to the user.
 **Validates: Requirements 17.1**
 
 **Property 35: Validation Error Highlighting**
-*For any* validation error, the system should highlight the problematic input fields with clear error messages.
+_For any_ validation error, the system should highlight the problematic input fields with clear error messages.
 **Validates: Requirements 17.4**
 
 **Property 36: Streaming Completion Marking**
-*For any* completed streaming response, the system should mark the message as complete and stop displaying the typing indicator.
+_For any_ completed streaming response, the system should mark the message as complete and stop displaying the typing indicator.
 **Validates: Requirements 18.3**
 
 **Property 37: First Token Latency**
-*For any* streaming response, the first token should arrive at the client within 200ms of the request being sent.
+_For any_ streaming response, the first token should arrive at the client within 200ms of the request being sent.
 **Validates: Requirements 18.5**
 
 ## Error Handling
@@ -1222,66 +1247,78 @@ After analyzing all testable acceptance criteria, I identified several areas whe
 ### Error Categories
 
 **1. Authentication Errors**
+
 - OAuth failures (network, user cancellation, invalid credentials)
 - Session expiration
 - Token refresh failures
 
 **Handling Strategy:**
+
 - Display user-friendly error messages
 - Provide retry mechanisms
 - Redirect to login page when necessary
 - Log errors securely for debugging
 
 **2. AI Generation Errors**
+
 - Gemini API failures (rate limits, service unavailable)
 - Streaming interruptions
 - Parsing failures (malformed responses)
 - Context length exceeded
 
 **Handling Strategy:**
+
 - Retry with exponential backoff for transient failures
 - Request user clarification for parsing failures
 - Provide manual input fallback
 - Display partial results when streaming is interrupted
 
 **3. Validation Errors**
+
 - Empty or invalid user inputs
 - Malformed itinerary data
 - Date range violations
 
 **Handling Strategy:**
+
 - Highlight problematic fields
 - Display inline error messages
 - Prevent form submission until resolved
 - Provide helpful validation hints
 
 **4. Network Errors**
+
 - Connection timeouts
 - Offline state
 - DNS failures
 
 **Handling Strategy:**
+
 - Detect offline state and notify user
 - Queue operations for retry when online
 - Provide offline-friendly error messages
 - Suggest checking network connection
 
 **5. Database Errors**
+
 - Query failures
 - Constraint violations (e.g., free tier limit)
 - RLS policy denials
 
 **Handling Strategy:**
+
 - Display user-friendly error messages
 - For tier limits, prompt upgrade to pro
 - Log database errors for investigation
 - Provide retry mechanisms
 
 **6. Collaboration Errors**
+
 - WebSocket connection failures
 - Yjs synchronization conflicts
 
 **Handling Strategy:**
+
 - Automatically reconnect on disconnection
 - Rely on Yjs CRDT for conflict resolution
 - Display connection status to users
@@ -1290,6 +1327,7 @@ After analyzing all testable acceptance criteria, I identified several areas whe
 ### Error Logging
 
 All errors should be logged with:
+
 - Timestamp
 - User ID (if authenticated)
 - Error type and message
@@ -1298,6 +1336,7 @@ All errors should be logged with:
 - **Excluded**: API keys, passwords, tokens, PII
 
 Logging implementation:
+
 ```typescript
 interface ErrorLog {
   timestamp: string;
@@ -1315,7 +1354,7 @@ interface ErrorLog {
 function logError(error: Error, context: Record<string, any>): void {
   // Sanitize context to remove sensitive data
   const sanitized = sanitizeContext(context);
-  
+
   // Log to Supabase or external service
   // Never include API keys or credentials
 }
@@ -1324,16 +1363,19 @@ function logError(error: Error, context: Record<string, any>): void {
 ### Graceful Degradation
 
 **When AI is unavailable:**
+
 - Allow manual itinerary creation
 - Provide template-based itinerary builder
 - Display cached suggestions if available
 
 **When Maps API fails:**
+
 - Display text-based location information
 - Provide external Google Maps links
 - Show cached map snapshots if available
 
 **When collaboration fails:**
+
 - Fall back to single-user editing
 - Queue changes for synchronization when reconnected
 - Notify users of collaboration status
@@ -1345,12 +1387,14 @@ function logError(error: Error, context: Record<string, any>): void {
 The testing strategy employs both unit tests and property-based tests to ensure comprehensive coverage:
 
 **Unit Tests:**
+
 - Verify specific examples and edge cases
 - Test integration points between components
 - Validate error handling for known failure scenarios
 - Test UI component rendering and interactions
 
 **Property-Based Tests:**
+
 - Verify universal properties across all inputs
 - Test with randomized data to uncover edge cases
 - Validate invariants and round-trip properties
@@ -1363,15 +1407,17 @@ Both approaches are complementary and necessary for enterprise-grade quality.
 **Library:** fast-check (TypeScript/JavaScript property-based testing library)
 
 **Configuration:**
+
 - Minimum 100 iterations per property test
 - Configurable seed for reproducibility
 - Shrinking enabled for minimal counterexamples
 
 **Test Tagging:**
 Each property test must include a comment referencing the design property:
+
 ```typescript
 // Feature: tripai-travel-planner, Property 23: Itinerary Save-Load Round-trip
-test('itinerary round-trip preserves data', async () => {
+test("itinerary round-trip preserves data", async () => {
   await fc.assert(
     fc.asyncProperty(arbitraryItinerary(), async (itinerary) => {
       const saved = await saveItinerary(itinerary);
@@ -1444,29 +1490,32 @@ const arbitraryActivity = (): fc.Arbitrary<Activity> =>
 const arbitraryDay = (): fc.Arbitrary<Day> =>
   fc.record({
     day_number: fc.integer({ min: 1, max: 30 }),
-    date: fc.date().map(d => d.toISOString().split('T')[0]),
+    date: fc.date().map((d) => d.toISOString().split("T")[0]),
     activities: fc.array(arbitraryActivity(), { minLength: 0, maxLength: 10 }),
   });
 
 // Arbitrary for Itinerary
 const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
-  fc.record({
-    id: fc.uuid(),
-    user_id: fc.uuid(),
-    title: fc.string({ minLength: 1, maxLength: 100 }),
-    destination: fc.string({ minLength: 1, maxLength: 100 }),
-    start_date: fc.date().map(d => d.toISOString().split('T')[0]),
-    end_date: fc.date().map(d => d.toISOString().split('T')[0]),
-    days: fc.array(arbitraryDay(), { minLength: 1, maxLength: 14 }),
-    created_at: fc.date().map(d => d.toISOString()),
-    updated_at: fc.date().map(d => d.toISOString()),
-    shared_with: fc.array(fc.emailAddress(), { maxLength: 5 }),
-  }).filter(it => it.end_date >= it.start_date); // Ensure valid date range
+  fc
+    .record({
+      id: fc.uuid(),
+      user_id: fc.uuid(),
+      title: fc.string({ minLength: 1, maxLength: 100 }),
+      destination: fc.string({ minLength: 1, maxLength: 100 }),
+      start_date: fc.date().map((d) => d.toISOString().split("T")[0]),
+      end_date: fc.date().map((d) => d.toISOString().split("T")[0]),
+      days: fc.array(arbitraryDay(), { minLength: 1, maxLength: 14 }),
+      created_at: fc.date().map((d) => d.toISOString()),
+      updated_at: fc.date().map((d) => d.toISOString()),
+      shared_with: fc.array(fc.emailAddress(), { maxLength: 5 }),
+    })
+    .filter((it) => it.end_date >= it.start_date); // Ensure valid date range
 ```
 
 ### Testing Priorities
 
 **High Priority (Must Test):**
+
 1. Authentication and authorization
 2. Itinerary save/load round-trips
 3. Collaboration synchronization
@@ -1475,6 +1524,7 @@ const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
 6. Error handling
 
 **Medium Priority (Should Test):**
+
 1. UI component rendering
 2. Theme persistence
 3. Drag-drop reordering
@@ -1482,6 +1532,7 @@ const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
 5. Map synchronization
 
 **Low Priority (Nice to Test):**
+
 1. Animation timing
 2. Responsive layout breakpoints
 3. Performance benchmarks
@@ -1489,11 +1540,13 @@ const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
 ### Continuous Integration
 
 Tests should run on:
+
 - Every pull request
 - Before deployment
 - Nightly for extended property test runs (1000+ iterations)
 
 **CI Pipeline:**
+
 ```yaml
 # Example GitHub Actions workflow
 name: Test Suite
@@ -1515,18 +1568,21 @@ jobs:
 ### Monetization Features
 
 **Payment Integration (Blue NewPay):**
+
 - Add payment processing module
 - Implement credit purchase flow
 - Create pro subscription management
 - Add usage tracking for credits
 
 **Affiliate Program Integration:**
+
 - Add affiliate link fields to Activity model
 - Integrate with Booking.com, Agoda, Klook, KKDay APIs
 - Track click-through and conversion
 - Generate affiliate revenue reports
 
 **Pro Features:**
+
 - Unlimited itinerary storage
 - Offline access with service workers
 - Advanced AI features (multi-destination, budget optimization)
@@ -1535,6 +1591,7 @@ jobs:
 ### Internationalization
 
 **Chinese Localization:**
+
 - Add i18n framework (next-intl or react-i18next)
 - Translate all UI strings
 - Support Chinese input for destinations
@@ -1544,17 +1601,20 @@ jobs:
 ### Additional Features
 
 **Itinerary Sharing:**
+
 - Public itinerary links
 - Social media sharing
 - Export to PDF/calendar formats
 
 **Advanced AI Features:**
+
 - Budget-aware planning
 - Multi-destination trips
 - Personalized recommendations based on history
 - Weather-aware scheduling
 
 **Mobile App:**
+
 - React Native mobile app
 - Offline itinerary access
 - Push notifications for trip reminders
@@ -1565,18 +1625,21 @@ jobs:
 ### Production Environment
 
 **Frontend Hosting:** Vercel (Next.js optimized)
+
 - Automatic deployments from main branch
 - Preview deployments for pull requests
 - Edge network for global CDN
 - Environment variables for API keys
 
 **Backend:** Supabase Cloud
+
 - PostgreSQL database with automatic backups
 - Edge Functions deployed globally
 - Realtime server for collaboration
 - Authentication with Google OAuth
 
 **Monitoring:**
+
 - Vercel Analytics for frontend performance
 - Supabase Dashboard for database metrics
 - Sentry for error tracking
@@ -1585,6 +1648,7 @@ jobs:
 ### Environment Variables
 
 **Frontend (.env.local):**
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
@@ -1592,6 +1656,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=xxx (domain-restricted)
 ```
 
 **Backend (Supabase Edge Functions):**
+
 ```
 GEMINI_API_KEY=xxx (secret)
 SUPABASE_SERVICE_ROLE_KEY=xxx (secret)
@@ -1663,6 +1728,7 @@ SUPABASE_SERVICE_ROLE_KEY=xxx (secret)
 ### Monitoring and Metrics
 
 **Key Performance Indicators:**
+
 - Time to First Byte (TTFB) < 200ms
 - First Contentful Paint (FCP) < 1.5s
 - Largest Contentful Paint (LCP) < 2.5s
@@ -1671,6 +1737,7 @@ SUPABASE_SERVICE_ROLE_KEY=xxx (secret)
 - Collaboration sync latency < 500ms
 
 **Monitoring Tools:**
+
 - Vercel Analytics for Core Web Vitals
 - Supabase Dashboard for database performance
 - Custom metrics for AI generation time

@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
 const destinations = [
-  { name: 'Seoul', flag: '🇰🇷' },
-  { name: 'Tokyo', flag: '🇯🇵' },
-  { name: 'Los Angeles', flag: '🇺🇸' },
-  { name: 'Hong Kong', flag: '🇭🇰' },
+  { name: "Seoul", flag: "🇰🇷" },
+  { name: "Tokyo", flag: "🇯🇵" },
+  { name: "Los Angeles", flag: "🇺🇸" },
+  { name: "Hong Kong", flag: "🇭🇰" },
 ];
 
 interface TrendingDestinationsProps {
   onDestinationClick?: (destination: string) => void;
 }
 
-export function TrendingDestinations({ onDestinationClick }: TrendingDestinationsProps) {
+export function TrendingDestinations({
+  onDestinationClick,
+}: TrendingDestinationsProps) {
   return (
     <div className="mt-8 text-center">
       <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">

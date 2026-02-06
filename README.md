@@ -15,6 +15,7 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 ## Tech Stack
 
 ### Frontend
+
 - **Next.js 15** - React framework with App Router
 - **React 18** - UI library
 - **TypeScript** - Type safety
@@ -22,15 +23,18 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 - **Shadcn/ui** - UI components
 
 ### Backend
+
 - **Supabase** - PostgreSQL database, authentication, and real-time features
 - **Supabase Edge Functions** - Serverless functions for AI integration
 - **Google Gemini 2.0 Flash** - AI model for itinerary generation
 
 ### Collaboration
+
 - **Yjs** - CRDT for conflict-free collaborative editing
 - **y-websocket** - WebSocket provider for real-time sync
 
 ### Testing
+
 - **Vitest** - Unit testing framework
 - **fast-check** - Property-based testing
 - **@testing-library/react** - React component testing
@@ -47,27 +51,32 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd aitravelplanner
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Set up environment variables:
+
 ```bash
 cp .env.local.example .env.local
 ```
 
 Edit `.env.local` and add your API keys:
+
 - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Your Google Maps API key (domain-restricted)
 
 4. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -77,16 +86,19 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 ### Testing
 
 Run unit tests:
+
 ```bash
 npm test
 ```
 
 Run tests in watch mode:
+
 ```bash
 npm run test:watch
 ```
 
 Run tests with UI:
+
 ```bash
 npm run test:ui
 ```

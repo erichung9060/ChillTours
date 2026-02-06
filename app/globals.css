@@ -46,13 +46,9 @@
     --border: 240 6% 20%;
     --input: 240 5% 16%;
     --ring: 217 91% 60%;
-    
+
     /* Subtle gradient overlay for depth */
-    background: linear-gradient(
-      to bottom,
-      hsl(240 8% 7%),
-      hsl(240 8% 9%) 100%
-    );
+    background: linear-gradient(to bottom, hsl(240 8% 7%), hsl(240 8% 9%) 100%);
   }
 
   * {
@@ -67,7 +63,8 @@
 
 @layer utilities {
   @keyframes gradient {
-    0%, 100% {
+    0%,
+    100% {
       background-position: 0% 50%;
     }
     50% {
@@ -81,7 +78,8 @@
   }
 
   @keyframes bounce-high {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0);
       animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
     }

@@ -1,10 +1,10 @@
 /**
  * Property-Based Tests for Authentication and RLS Policies
- * 
+ *
  * Feature: tripai-travel-planner
  * Property 1: Authentication Profile Management
  * Validates: Requirements 1.2
- * 
+ *
  * These tests verify that:
  * - User profiles are correctly created or retrieved on authentication
  * - Profiles are linked to the authenticated user ID
@@ -12,10 +12,10 @@
  * - RLS policies enforce proper access control
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fc from 'fast-check';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/lib/supabase/database.types';
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import * as fc from "fast-check";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/database.types";
 
 // Mock Supabase client for testing
 // In a real environment, you would use a test database
@@ -25,7 +25,7 @@ let mockSupabase: SupabaseClient<Database>;
 const testUserIdArbitrary = fc.uuid();
 const testEmailArbitrary = fc.emailAddress();
 
-describe('Property 1: Authentication Profile Management', () => {
+describe("Property 1: Authentication Profile Management", () => {
   beforeEach(() => {
     // Create a mock Supabase client
     // In production, this would connect to a test database
@@ -52,7 +52,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
-  it('should create or retrieve a valid profile for any authenticated user', async () => {
+  it("should create or retrieve a valid profile for any authenticated user", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -82,7 +82,7 @@ describe('Property 1: Authentication Profile Management', () => {
             email,
             full_name: fullName,
             avatar_url: avatarUrl,
-            tier: 'free' as const,
+            tier: "free" as const,
             credits: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -100,23 +100,25 @@ describe('Property 1: Authentication Profile Management', () => {
           vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
           // Get the user
-          const { data: { user } } = await mockSupabase.auth.getUser();
+          const {
+            data: { user },
+          } = await mockSupabase.auth.getUser();
           expect(user).toBeDefined();
           expect(user?.id).toBe(userId);
 
           // Get the profile
           const { data: profile } = await mockSupabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
             .single();
 
           // Verify profile properties
           expect(profile).toBeDefined();
           expect(profile?.id).toBe(userId);
           expect(profile?.email).toBe(email);
-          expect(profile?.tier).toBe('free');
-          
+          expect(profile?.tier).toBe("free");
+
           // Profile should be linked to authenticated user
           expect(profile?.id).toBe(user?.id);
         }
@@ -126,7 +128,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
-  it('should retrieve the same profile on subsequent authentications', async () => {
+  it("should retrieve the same profile on subsequent authentications", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -135,9 +137,9 @@ describe('Property 1: Authentication Profile Management', () => {
           const mockProfile = {
             id: userId,
             email,
-            full_name: 'Test User',
+            full_name: "Test User",
             avatar_url: null,
-            tier: 'free' as const,
+            tier: "free" as const,
             credits: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -156,16 +158,16 @@ describe('Property 1: Authentication Profile Management', () => {
 
           // First authentication - get profile
           const { data: profile1 } = await mockSupabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
             .single();
 
           // Second authentication - get profile again
           const { data: profile2 } = await mockSupabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
+            .from("profiles")
+            .select("*")
+            .eq("id", userId)
             .single();
 
           // Profiles should be identical
@@ -179,7 +181,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
-  it('should enforce RLS: users can only access their own profile', async () => {
+  it("should enforce RLS: users can only access their own profile", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -195,8 +197,8 @@ describe('Property 1: Authentication Profile Management', () => {
             single: vi.fn().mockResolvedValue({
               data: null,
               error: {
-                message: 'Row level security policy violation',
-                code: 'PGRST116',
+                message: "Row level security policy violation",
+                code: "PGRST116",
               },
             }),
           }));
@@ -205,9 +207,9 @@ describe('Property 1: Authentication Profile Management', () => {
 
           // User 1 authenticated, trying to access User 2's profile
           const { data: profile, error } = await mockSupabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId2)
+            .from("profiles")
+            .select("*")
+            .eq("id", userId2)
             .single();
 
           // Should not be able to access other user's profile
@@ -220,7 +222,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
-  it('should allow users to update their own profile', async () => {
+  it("should allow users to update their own profile", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -243,9 +245,9 @@ describe('Property 1: Authentication Profile Management', () => {
 
           // Update profile
           const { data: updatedProfile, error } = await mockSupabase
-            .from('profiles')
+            .from("profiles")
             .update({ full_name: newName })
-            .eq('id', userId)
+            .eq("id", userId)
             .select()
             .single();
 
@@ -260,7 +262,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
-  it('should create profiles with default tier as free', async () => {
+  it("should create profiles with default tier as free", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -271,7 +273,7 @@ describe('Property 1: Authentication Profile Management', () => {
             email,
             full_name: null,
             avatar_url: null,
-            tier: 'free' as const,
+            tier: "free" as const,
             credits: 0,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -290,13 +292,13 @@ describe('Property 1: Authentication Profile Management', () => {
 
           // Create new profile
           const { data: newProfile } = await mockSupabase
-            .from('profiles')
+            .from("profiles")
             .insert({ id: userId, email })
             .select()
             .single();
 
           // Should have default tier
-          expect(newProfile?.tier).toBe('free');
+          expect(newProfile?.tier).toBe("free");
           expect(newProfile?.credits).toBe(0);
         }
       ),
@@ -305,7 +307,7 @@ describe('Property 1: Authentication Profile Management', () => {
   });
 });
 
-describe('RLS Policy Tests: Itineraries', () => {
+describe("RLS Policy Tests: Itineraries", () => {
   beforeEach(() => {
     mockSupabase = {
       auth: {
@@ -322,7 +324,7 @@ describe('RLS Policy Tests: Itineraries', () => {
     } as any;
   });
 
-  it('should enforce RLS: users can only view their own itineraries', async () => {
+  it("should enforce RLS: users can only view their own itineraries", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -339,8 +341,8 @@ describe('RLS Policy Tests: Itineraries', () => {
             single: vi.fn().mockResolvedValue({
               data: null,
               error: {
-                message: 'Row level security policy violation',
-                code: 'PGRST116',
+                message: "Row level security policy violation",
+                code: "PGRST116",
               },
             }),
           }));
@@ -349,9 +351,9 @@ describe('RLS Policy Tests: Itineraries', () => {
 
           // User 1 trying to access User 2's itinerary
           const { data: itinerary, error } = await mockSupabase
-            .from('itineraries')
-            .select('*')
-            .eq('id', itineraryId)
+            .from("itineraries")
+            .select("*")
+            .eq("id", itineraryId)
             .single();
 
           // Should not be able to access
@@ -363,7 +365,7 @@ describe('RLS Policy Tests: Itineraries', () => {
     );
   });
 
-  it('should allow users to create itineraries linked to their user_id', async () => {
+  it("should allow users to create itineraries linked to their user_id", async () => {
     await fc.assert(
       fc.asyncProperty(
         testUserIdArbitrary,
@@ -375,8 +377,8 @@ describe('RLS Policy Tests: Itineraries', () => {
             user_id: userId,
             title,
             destination,
-            start_date: '2025-01-01',
-            end_date: '2025-01-05',
+            start_date: "2025-01-01",
+            end_date: "2025-01-05",
             data: { days: [] },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -395,13 +397,13 @@ describe('RLS Policy Tests: Itineraries', () => {
 
           // Create itinerary
           const { data: newItinerary, error } = await mockSupabase
-            .from('itineraries')
+            .from("itineraries")
             .insert({
               user_id: userId,
               title,
               destination,
-              start_date: '2025-01-01',
-              end_date: '2025-01-05',
+              start_date: "2025-01-01",
+              end_date: "2025-01-05",
               data: { days: [] },
             })
             .select()

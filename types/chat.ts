@@ -1,5 +1,5 @@
-import { z } from 'zod';
-import { Itinerary, ItinerarySchema, DaySchema } from './itinerary';
+import { z } from "zod";
+import { Itinerary, ItinerarySchema, DaySchema } from "./itinerary";
 
 // ============================================================================
 // Chat Message Types
@@ -7,7 +7,7 @@ import { Itinerary, ItinerarySchema, DaySchema } from './itinerary';
 
 export const ChatMessageSchema = z.object({
   id: z.uuid(),
-  role: z.enum(['user', 'assistant']),
+  role: z.enum(["user", "assistant"]),
   content: z.string(),
   timestamp: z.number().int().positive(),
   streaming: z.boolean().optional(),
@@ -37,8 +37,14 @@ export const PartialItineraryUpdateSchema = z.object({
   user_id: z.uuid().optional(),
   title: z.string().min(1).max(100).optional(),
   destination: z.string().min(1).max(100).optional(),
-  start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  start_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  end_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   days: z.array(DaySchema).min(1).optional(),
   created_at: z.iso.datetime().optional(),
   updated_at: z.iso.datetime().optional(),
@@ -56,4 +62,6 @@ export const StreamingResponseSchema = z.object({
 });
 
 export type StreamingResponse = z.infer<typeof StreamingResponseSchema>;
-export type StreamingResponseMetadata = z.infer<typeof StreamingResponseMetadataSchema>;
+export type StreamingResponseMetadata = z.infer<
+  typeof StreamingResponseMetadataSchema
+>;

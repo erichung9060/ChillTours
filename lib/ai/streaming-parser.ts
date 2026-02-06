@@ -1,16 +1,16 @@
 /**
  * Streaming JSON Parser
- * 
+ *
  * This module provides a parser for incomplete JSON streams, implementing:
  * - Bracket balance tracking
  * - Auto-closing of unclosed brackets
  * - Progressive parsing of partial JSON
  * - Markdown code block removal
- * 
+ *
  * Requirements: 3.7, 3.8, 3.9, 3.10
  */
 
-import type { Itinerary } from '@/types';
+import type { Itinerary } from "@/types";
 
 /**
  * Bracket balance tracking result
@@ -22,17 +22,17 @@ interface BracketBalance {
 
 /**
  * Streaming JSON Parser
- * 
+ *
  * Handles incomplete JSON by tracking bracket balance and auto-closing
  * unclosed brackets to enable progressive parsing during streaming.
  */
 export class StreamingJSONParser {
-  private buffer: string = '';
+  private buffer: string = "";
   private bracketStack: string[] = [];
 
   /**
    * Append new chunk to buffer and attempt to parse
-   * 
+   *
    * @param chunk - New data chunk from stream
    * @returns Partial itinerary if parseable, null otherwise
    */
@@ -43,7 +43,7 @@ export class StreamingJSONParser {
 
   /**
    * Try to parse incomplete JSON by auto-closing brackets
-   * 
+   *
    * @returns Partial itinerary if parseable, null otherwise
    */
   private tryParse(): Partial<Itinerary> | null {
@@ -62,7 +62,7 @@ export class StreamingJSONParser {
 
   /**
    * Check bracket balance and track unclosed brackets
-   * 
+   *
    * @param json - JSON string to check
    * @returns Bracket balance information
    */
@@ -79,7 +79,7 @@ export class StreamingJSONParser {
         continue;
       }
 
-      if (char === '\\') {
+      if (char === "\\") {
         escapeNext = true;
         continue;
       }
@@ -90,9 +90,9 @@ export class StreamingJSONParser {
       }
 
       if (!inString) {
-        if (char === '{' || char === '[') {
+        if (char === "{" || char === "[") {
           stack.push(char);
-        } else if (char === '}' || char === ']') {
+        } else if (char === "}" || char === "]") {
           stack.pop();
         }
       }
@@ -106,7 +106,7 @@ export class StreamingJSONParser {
 
   /**
    * Auto-close unclosed brackets to make valid JSON
-   * 
+   *
    * @param json - Incomplete JSON string
    * @param balance - Bracket balance information
    * @returns JSON string with auto-closed brackets
@@ -117,7 +117,7 @@ export class StreamingJSONParser {
     // Close unclosed brackets in reverse order
     for (let i = balance.unclosedBrackets.length - 1; i >= 0; i--) {
       const bracket = balance.unclosedBrackets[i];
-      completed += bracket === '{' ? '}' : ']';
+      completed += bracket === "{" ? "}" : "]";
     }
 
     return completed;
@@ -125,7 +125,7 @@ export class StreamingJSONParser {
 
   /**
    * Parse complete JSON
-   * 
+   *
    * @param json - Complete JSON string
    * @returns Parsed itinerary or null if parsing fails
    */
@@ -141,7 +141,7 @@ export class StreamingJSONParser {
 
   /**
    * Parse partial JSON (may be incomplete)
-   * 
+   *
    * @param json - Potentially incomplete JSON string
    * @returns Partial itinerary data or null if parsing fails
    */
@@ -164,17 +164,17 @@ export class StreamingJSONParser {
 
   /**
    * Clean JSON by removing markdown code blocks
-   * 
+   *
    * @param json - JSON string potentially wrapped in markdown
    * @returns Cleaned JSON string
    */
   private cleanJSON(json: string): string {
     let cleaned = json.trim();
 
-    if (cleaned.startsWith('```json')) {
-      cleaned = cleaned.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    if (cleaned.startsWith("```json")) {
+      cleaned = cleaned.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+    } else if (cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```\s*/, "").replace(/\s*```$/, "");
     }
 
     return cleaned;
@@ -182,7 +182,7 @@ export class StreamingJSONParser {
 
   /**
    * Get the complete buffer
-   * 
+   *
    * @returns Current buffer contents
    */
   getBuffer(): string {
@@ -193,7 +193,7 @@ export class StreamingJSONParser {
    * Reset the parser
    */
   reset(): void {
-    this.buffer = '';
+    this.buffer = "";
     this.bracketStack = [];
   }
 }

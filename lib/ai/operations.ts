@@ -1,6 +1,6 @@
 /**
  * Itinerary Operations
- * 
+ *
  * This module provides operation-based itinerary updates.
  * Instead of replacing entire days, LLM can specify granular operations:
  * - ADD: Add new activities
@@ -8,26 +8,26 @@
  * - UPDATE: Modify existing activities
  * - MOVE: Move activities between days
  * - REORDER: Change activity order within a day
- * 
+ *
  * Multiple operations can be applied in a single update.
  */
 
-import { v4 as uuidv4 } from 'uuid';
-import type { Itinerary, Day, Activity } from '@/types';
-import { ensureLocationData } from '@/lib/maps/geocoding';
-import type { PartialLocation } from '@/lib/maps/geocoding';
+import { v4 as uuidv4 } from "uuid";
+import type { Itinerary, Day, Activity } from "@/types";
+import { ensureLocationData } from "@/lib/maps/geocoding";
+import type { PartialLocation } from "@/lib/maps/geocoding";
 
 // ============================================================================
 // Operation Types
 // ============================================================================
 
-export type OperationType = 'ADD' | 'REMOVE' | 'UPDATE' | 'MOVE' | 'REORDER';
+export type OperationType = "ADD" | "REMOVE" | "UPDATE" | "MOVE" | "REORDER";
 
 /**
  * Add new activity to a specific day
  */
 export interface AddOperation {
-  type: 'ADD';
+  type: "ADD";
   day_number: number;
   activity: {
     time: string;
@@ -47,7 +47,7 @@ export interface AddOperation {
  * Remove activity from a day
  */
 export interface RemoveOperation {
-  type: 'REMOVE';
+  type: "REMOVE";
   day_number: number;
   activity_index?: number; // Optional. If omitted, removes the entire day
 }
@@ -56,7 +56,7 @@ export interface RemoveOperation {
  * Update existing activity
  */
 export interface UpdateOperation {
-  type: 'UPDATE';
+  type: "UPDATE";
   day_number: number;
   activity_index: number; // 0-based index (0 = first activity, 1 = second, etc.)
   changes: {
@@ -76,7 +76,7 @@ export interface UpdateOperation {
  * Move activity from one day to another
  */
 export interface MoveOperation {
-  type: 'MOVE';
+  type: "MOVE";
   from_day_number: number;
   from_activity_index: number; // 0-based index in source day
   to_day_number: number;
@@ -87,7 +87,7 @@ export interface MoveOperation {
  * Reorder activities within a day
  */
 export interface ReorderOperation {
-  type: 'REORDER';
+  type: "REORDER";
   day_number: number;
   activity_order: number[]; // Array of 0-based indices in desired order
 }
@@ -112,7 +112,7 @@ export interface OperationsUpdate {
 
 /**
  * Apply a list of operations to an itinerary with automatic geocoding
- * 
+ *
  * @param itinerary - Current itinerary
  * @param operations - List of operations to apply
  * @returns Updated itinerary
@@ -138,20 +138,23 @@ export async function applyOperations(
 /**
  * Apply a single operation to an itinerary
  */
-async function applyOperation(itinerary: Itinerary, operation: Operation): Promise<Itinerary> {
+async function applyOperation(
+  itinerary: Itinerary,
+  operation: Operation
+): Promise<Itinerary> {
   switch (operation.type) {
-    case 'ADD':
+    case "ADD":
       return await applyAddOperation(itinerary, operation);
-    case 'REMOVE':
+    case "REMOVE":
       return applyRemoveOperation(itinerary, operation);
-    case 'UPDATE':
+    case "UPDATE":
       return await applyUpdateOperation(itinerary, operation);
-    case 'MOVE':
+    case "MOVE":
       return applyMoveOperation(itinerary, operation);
-    case 'REORDER':
+    case "REORDER":
       return applyReorderOperation(itinerary, operation);
     default:
-      console.warn('Unknown operation type:', operation);
+      console.warn("Unknown operation type:", operation);
       return itinerary;
   }
 }
@@ -163,10 +166,15 @@ async function applyOperation(itinerary: Itinerary, operation: Operation): Promi
 /**
  * Add new activity to a day with automatic geocoding
  */
-async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promise<Itinerary> {
+async function applyAddOperation(
+  itinerary: Itinerary,
+  op: AddOperation
+): Promise<Itinerary> {
   ensureDayExists(itinerary, op.day_number);
 
-  const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
+  const dayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.day_number
+  );
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found even after creation`);
@@ -185,7 +193,7 @@ async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promis
     id: uuidv4(),
     time: op.activity.time,
     title: op.activity.title,
-    description: op.activity.description || '',
+    description: op.activity.description || "",
     location,
     duration_minutes: op.activity.duration_minutes || 60,
     order: 0, // Will be recalculated
@@ -211,8 +219,13 @@ async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promis
 /**
  * Remove activity from a day or remove the entire day
  */
-function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itinerary {
-  const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
+function applyRemoveOperation(
+  itinerary: Itinerary,
+  op: RemoveOperation
+): Itinerary {
+  const dayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.day_number
+  );
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -230,7 +243,7 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
       // Calculate date from start_date + index
       const date = new Date(itinerary.start_date);
       date.setDate(date.getDate() + index);
-      day.date = date.toISOString().split('T')[0];
+      day.date = date.toISOString().split("T")[0];
     });
 
     // Update end_date based on new duration
@@ -249,7 +262,9 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
   const activityIndex = op.activity_index;
 
   if (activityIndex < 0 || activityIndex >= day.activities.length) {
-    console.warn(`Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`);
+    console.warn(
+      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`
+    );
     return itinerary;
   }
 
@@ -268,8 +283,13 @@ function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itiner
  * Update existing activity with automatic geocoding for location changes
  * Note: LLM can optionally provide coordinates; if not provided, geocoding API is used
  */
-async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Promise<Itinerary> {
-  const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
+async function applyUpdateOperation(
+  itinerary: Itinerary,
+  op: UpdateOperation
+): Promise<Itinerary> {
+  const dayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.day_number
+  );
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -282,7 +302,9 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
   const activityIndex = op.activity_index;
 
   if (activityIndex < 0 || activityIndex >= day.activities.length) {
-    console.warn(`Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`);
+    console.warn(
+      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`
+    );
     return itinerary;
   }
 
@@ -291,8 +313,10 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
   // Apply simple field changes
   if (op.changes.time !== undefined) activity.time = op.changes.time;
   if (op.changes.title !== undefined) activity.title = op.changes.title;
-  if (op.changes.description !== undefined) activity.description = op.changes.description;
-  if (op.changes.duration_minutes !== undefined) activity.duration_minutes = op.changes.duration_minutes;
+  if (op.changes.description !== undefined)
+    activity.description = op.changes.description;
+  if (op.changes.duration_minutes !== undefined)
+    activity.duration_minutes = op.changes.duration_minutes;
 
   // Handle location change
   // LLM can provide name (required), and optionally name/lat/lng
@@ -311,11 +335,18 @@ async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): 
 /**
  * Move activity from one day to another
  */
-function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary {
+function applyMoveOperation(
+  itinerary: Itinerary,
+  op: MoveOperation
+): Itinerary {
   ensureDayExists(itinerary, op.to_day_number);
 
-  const fromDayIndex = itinerary.days.findIndex(d => d.day_number === op.from_day_number);
-  const toDayIndex = itinerary.days.findIndex(d => d.day_number === op.to_day_number);
+  const fromDayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.from_day_number
+  );
+  const toDayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.to_day_number
+  );
 
   if (fromDayIndex === -1) {
     console.warn(`Source day ${op.from_day_number} not found`);
@@ -323,7 +354,9 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
   }
 
   if (toDayIndex === -1) {
-    console.warn(`Target day ${op.to_day_number} not found even after creation`);
+    console.warn(
+      `Target day ${op.to_day_number} not found even after creation`
+    );
     return itinerary;
   }
 
@@ -334,7 +367,9 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
   const activityIndex = op.from_activity_index;
 
   if (activityIndex < 0 || activityIndex >= fromDay.activities.length) {
-    console.warn(`Activity index ${op.from_activity_index} out of range for day ${op.from_day_number} (has ${fromDay.activities.length} activities)`);
+    console.warn(
+      `Activity index ${op.from_activity_index} out of range for day ${op.from_day_number} (has ${fromDay.activities.length} activities)`
+    );
     return itinerary;
   }
 
@@ -364,8 +399,13 @@ function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary 
 /**
  * Reorder activities within a day
  */
-function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itinerary {
-  const dayIndex = itinerary.days.findIndex(d => d.day_number === op.day_number);
+function applyReorderOperation(
+  itinerary: Itinerary,
+  op: ReorderOperation
+): Itinerary {
+  const dayIndex = itinerary.days.findIndex(
+    (d) => d.day_number === op.day_number
+  );
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -376,7 +416,9 @@ function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itin
 
   // Validate indices
   if (op.activity_order.length !== day.activities.length) {
-    console.warn(`Activity order length (${op.activity_order.length}) doesn't match activities count (${day.activities.length})`);
+    console.warn(
+      `Activity order length (${op.activity_order.length}) doesn't match activities count (${day.activities.length})`
+    );
     return itinerary;
   }
 
@@ -427,7 +469,7 @@ function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
     // Calculate date for the new day
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + (newDayNumber - 1));
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = date.toISOString().split("T")[0];
 
     const newDay: Day = {
       day_number: newDayNumber,
@@ -448,7 +490,7 @@ function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
 
 /**
  * Parse operations from LLM response
- * 
+ *
  * @param response - LLM response containing operations
  * @returns Parsed operations update
  */
@@ -456,10 +498,10 @@ export function parseOperations(
   response: string | Record<string, any>
 ): OperationsUpdate | null {
   try {
-    const data = typeof response === 'string' ? JSON.parse(response) : response;
+    const data = typeof response === "string" ? JSON.parse(response) : response;
 
     if (!data.operations || !Array.isArray(data.operations)) {
-      console.warn('No operations array found in response');
+      console.warn("No operations array found in response");
       return null;
     }
 
@@ -467,7 +509,7 @@ export function parseOperations(
       operations: data.operations,
     };
   } catch (error) {
-    console.error('Failed to parse operations:', error);
+    console.error("Failed to parse operations:", error);
     return null;
   }
 }

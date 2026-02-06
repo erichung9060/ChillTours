@@ -24,25 +24,29 @@ function parseItinerary(aiResponse: string): Itinerary | null {
     const now = new Date().toISOString();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 7);
-    
-    const days: Day[] = (parsed.days || []).map((day: any, dayIndex: number) => ({
-      day_number: day.day_number || dayIndex + 1,
-      date: day.date || addDays(startDate, dayIndex),
-      activities: (day.activities || []).map((activity: any, actIndex: number) => ({
-        id: activity.id || crypto.randomUUID(),
-        time: activity.time || "09:00",
-        title: activity.title || "Untitled Activity",
-        description: activity.description || "",
-        location: {
-          name: activity.location?.name || "Unknown Location",
-          lat: activity.location?.lat || 0,
-          lng: activity.location?.lng || 0,
-          place_id: activity.location?.place_id,
-        },
-        duration_minutes: activity.duration_minutes || 120,
-        order: actIndex,
-      })),
-    }));
+
+    const days: Day[] = (parsed.days || []).map(
+      (day: any, dayIndex: number) => ({
+        day_number: day.day_number || dayIndex + 1,
+        date: day.date || addDays(startDate, dayIndex),
+        activities: (day.activities || []).map(
+          (activity: any, actIndex: number) => ({
+            id: activity.id || crypto.randomUUID(),
+            time: activity.time || "09:00",
+            title: activity.title || "Untitled Activity",
+            description: activity.description || "",
+            location: {
+              name: activity.location?.name || "Unknown Location",
+              lat: activity.location?.lat || 0,
+              lng: activity.location?.lng || 0,
+              place_id: activity.location?.place_id,
+            },
+            duration_minutes: activity.duration_minutes || 120,
+            order: actIndex,
+          })
+        ),
+      })
+    );
 
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + days.length - 1);
@@ -178,7 +182,9 @@ describe("Itinerary Parsing Completeness Properties", () => {
   test("Property 8.2: Parsing should handle markdown-wrapped JSON", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 50 }).filter(s => s.trim().length > 0),
+        fc
+          .string({ minLength: 1, maxLength: 50 })
+          .filter((s) => s.trim().length > 0),
         fc.constantFrom(
           { prefix: "```json\n", suffix: "\n```" },
           { prefix: "```\n", suffix: "\n```" },
@@ -186,7 +192,8 @@ describe("Itinerary Parsing Completeness Properties", () => {
         ),
         async (destination, wrapping) => {
           const baseResponse = generateAIResponse(destination, 2, 2);
-          const wrappedResponse = wrapping.prefix + baseResponse + wrapping.suffix;
+          const wrappedResponse =
+            wrapping.prefix + baseResponse + wrapping.suffix;
 
           const itinerary = parseItinerary(wrappedResponse);
 

@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useTheme } from '@/hooks/use-theme';
+import { useTheme } from "@/hooks/use-theme";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   const toggleTheme = () => {
-    if (theme === 'light') {
-      setTheme('dark');
-    } else if (theme === 'dark') {
-      setTheme('system');
+    if (theme === "light") {
+      setTheme("dark");
+    } else if (theme === "dark") {
+      setTheme("system");
     } else {
-      setTheme('light');
+      setTheme("light");
     }
   };
 
   const getThemeIcon = () => {
-    if (theme === 'light') {
+    if (theme === "light") {
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -40,7 +40,7 @@ export function ThemeToggle() {
           <path d="m19.07 4.93-1.41 1.41" />
         </svg>
       );
-    } else if (theme === 'dark') {
+    } else if (theme === "dark") {
       return (
         <svg
           xmlns="http://www.w3.org/2000/svg"

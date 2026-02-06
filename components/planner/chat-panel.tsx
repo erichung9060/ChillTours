@@ -1,9 +1,9 @@
 /**
  * Chat Panel Component
- * 
+ *
  * Displays chat interface for conversing with AI about the itinerary.
  * Right panel in the three-panel layout (collapsible).
- * 
+ *
  * Features:
  * - Message display with user/assistant roles
  * - Message input component
@@ -12,21 +12,21 @@
  * - Auto-scroll to bottom
  * - Apply itinerary updates from AI responses
  * - Persistent chat history per itinerary (localStorage)
- * 
+ *
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5, 18.1, 18.2, 18.3
  */
 
-'use client';
+"use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useItineraryChat } from '@/hooks/use-itinerary-chat';
-import { MarkdownMessage } from './markdown-message';
-import { aiClient } from '@/lib/ai/client';
-import { useItineraryStore } from '@/components/planner/itinerary/store';
-import type { Itinerary } from '@/types/itinerary';
-import type { ChatMessage } from '@/types/chat';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { useItineraryChat } from "@/hooks/use-itinerary-chat";
+import { MarkdownMessage } from "./markdown-message";
+import { aiClient } from "@/lib/ai/client";
+import { useItineraryStore } from "@/components/planner/itinerary/store";
+import type { Itinerary } from "@/types/itinerary";
+import type { ChatMessage } from "@/types/chat";
 
 interface ChatPanelProps {
   itinerary: Itinerary;
@@ -35,10 +35,12 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
-  const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
+  const { messages, addMessage, clearMessages } = useItineraryChat(
+    itinerary.id
+  );
   const applyOperations = useItineraryStore((state) => state.applyOperations);
 
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -46,7 +48,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
 
   // Auto-scroll to bottom when new messages arrive (Requirement 8.5)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isStreaming]);
 
   // Focus textarea when panel opens
@@ -57,90 +59,93 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   }, [isOpen]);
 
   // Handle message submission (Requirement 8.1)
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!input.trim() || isStreaming) {
-      return;
-    }
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: input.trim(),
-      timestamp: Date.now(),
-    };
-
-    // Add user message to localStorage (Requirement 8.5)
-    addMessage(userMessage);
-    setInput('');
-    setIsStreaming(true);
-
-    const assistantMessageId = crypto.randomUUID();
-
-    try {
-      // Create streaming assistant message (Requirement 18.2)
-      let streamingContent = '';
-      
-      const streamingMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-        streaming: true,
-      };
-      
-      addMessage(streamingMessage);
-
-      // Call chat API with streaming (Requirement 8.2, 18.1)
-      const result = await aiClient.chat(
-        {
-          message: userMessage.content,
-          history: messages,
-          context: itinerary,
-        },
-        (chunk) => {
-          // Update streaming message content progressively
-          streamingContent += chunk;
-          const updatedMessage: ChatMessage = {
-            ...streamingMessage,
-            content: streamingContent,
-            streaming: true,
-          };
-          // Update the message in localStorage
-          addMessage(updatedMessage);
-        }
-      );
-
-      // Mark message as complete (Requirement 18.3)
-      const finalMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: result.message,
-        timestamp: Date.now(),
-        streaming: false,
-      };
-      
-      addMessage(finalMessage);
-
-      // Apply itinerary operations if present
-      if (result.operations) {
-        await applyOperations(result.operations);
+      if (!input.trim() || isStreaming) {
+        return;
       }
-    } catch (error) {
-      console.error('Chat error:', error);
-      const errorMessage: ChatMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
+
+      const userMessage: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: "user",
+        content: input.trim(),
         timestamp: Date.now(),
-        streaming: false,
       };
-      addMessage(errorMessage);
-    } finally {
-      setIsStreaming(false);
-    }
-  }, [input, isStreaming, messages, itinerary, addMessage, applyOperations]);
+
+      // Add user message to localStorage (Requirement 8.5)
+      addMessage(userMessage);
+      setInput("");
+      setIsStreaming(true);
+
+      const assistantMessageId = crypto.randomUUID();
+
+      try {
+        // Create streaming assistant message (Requirement 18.2)
+        let streamingContent = "";
+
+        const streamingMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "",
+          timestamp: Date.now(),
+          streaming: true,
+        };
+
+        addMessage(streamingMessage);
+
+        // Call chat API with streaming (Requirement 8.2, 18.1)
+        const result = await aiClient.chat(
+          {
+            message: userMessage.content,
+            history: messages,
+            context: itinerary,
+          },
+          (chunk) => {
+            // Update streaming message content progressively
+            streamingContent += chunk;
+            const updatedMessage: ChatMessage = {
+              ...streamingMessage,
+              content: streamingContent,
+              streaming: true,
+            };
+            // Update the message in localStorage
+            addMessage(updatedMessage);
+          }
+        );
+
+        // Mark message as complete (Requirement 18.3)
+        const finalMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: result.message,
+          timestamp: Date.now(),
+          streaming: false,
+        };
+
+        addMessage(finalMessage);
+
+        // Apply itinerary operations if present
+        if (result.operations) {
+          await applyOperations(result.operations);
+        }
+      } catch (error) {
+        console.error("Chat error:", error);
+        const errorMessage: ChatMessage = {
+          id: assistantMessageId,
+          role: "assistant",
+          content: "Sorry, I encountered an error. Please try again.",
+          timestamp: Date.now(),
+          streaming: false,
+        };
+        addMessage(errorMessage);
+      } finally {
+        setIsStreaming(false);
+      }
+    },
+    [input, isStreaming, messages, itinerary, addMessage, applyOperations]
+  );
 
   return (
     <div className="h-full flex flex-col bg-background">
@@ -168,7 +173,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
           {messages.length > 0 && (
             <button
               onClick={() => {
-                if (confirm('Delete all chat history for this itinerary?')) {
+                if (confirm("Delete all chat history for this itinerary?")) {
                   clearMessages();
                 }
               }}
@@ -239,7 +244,8 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
               </div>
               <h3 className="font-medium mb-2">Start a conversation</h3>
               <p className="text-sm text-muted-foreground">
-                Ask me to modify your itinerary, suggest activities, or answer questions about your trip.
+                Ask me to modify your itinerary, suggest activities, or answer
+                questions about your trip.
               </p>
             </div>
           </div>
@@ -248,35 +254,55 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             {messages.map((message) => (
               <div
                 key={message.id}
-                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-foreground'
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
                   }`}
                 >
                   {/* Render message content with Markdown support for assistant messages */}
-                  {message.role === 'assistant' ? (
+                  {message.role === "assistant" ? (
                     <MarkdownMessage content={message.content} />
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
                   )}
                   {/* Show streaming indicator for streaming messages (Requirement 18.2) */}
                   {message.streaming && (
                     <div className="flex items-center gap-1 mt-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '0ms' }} />
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '200ms' }} />
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" style={{ animation: 'bounce-high 1s infinite', animationDelay: '400ms' }} />
+                      <div
+                        className="w-1.5 h-1.5 bg-current rounded-full"
+                        style={{
+                          animation: "bounce-high 1s infinite",
+                          animationDelay: "0ms",
+                        }}
+                      />
+                      <div
+                        className="w-1.5 h-1.5 bg-current rounded-full"
+                        style={{
+                          animation: "bounce-high 1s infinite",
+                          animationDelay: "200ms",
+                        }}
+                      />
+                      <div
+                        className="w-1.5 h-1.5 bg-current rounded-full"
+                        style={{
+                          animation: "bounce-high 1s infinite",
+                          animationDelay: "400ms",
+                        }}
+                      />
                     </div>
                   )}
                   {/* Show timestamp only for completed messages */}
                   {!message.streaming && (
                     <p className="text-xs opacity-70 mt-1">
                       {new Date(message.timestamp).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                   )}
@@ -301,7 +327,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             onCompositionStart={() => setIsComposing(true)}
             onCompositionEnd={() => setIsComposing(false)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+              if (e.key === "Enter" && !e.shiftKey && !isComposing) {
                 e.preventDefault();
                 handleSubmit(e);
               }

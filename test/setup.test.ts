@@ -23,9 +23,8 @@ describe("Test Infrastructure Setup", () => {
   });
 
   it("should have access to property test helpers", async () => {
-    const { itineraryArbitrary } = await import(
-      "./utils/property-test-helpers"
-    );
+    const { itineraryArbitrary } =
+      await import("./utils/property-test-helpers");
     expect(itineraryArbitrary).toBeDefined();
   });
 });

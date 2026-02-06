@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Chat Panel Toggle
- * 
+ *
  * Feature: tripai-travel-planner, Property 10: Chat Panel Toggle State
  * Validates: Requirements 4.4
- * 
+ *
  * Property: For any chat panel state (expanded/collapsed), clicking the toggle
  * should switch to the opposite state consistently.
  */
@@ -23,7 +23,7 @@ describe("Chat Panel Toggle Property Tests", () => {
 
         // Verify the state switched to opposite
         expect(toggledState).toBe(!initialState);
-        
+
         // Verify idempotence: toggling twice returns to original state
         const doubleToggled = !toggledState;
         expect(doubleToggled).toBe(initialState);
@@ -48,7 +48,8 @@ describe("Chat Panel Toggle Property Tests", () => {
           // Verify final state based on toggle count
           // Even number of toggles = back to initial state
           // Odd number of toggles = opposite of initial state
-          const expectedState = toggleCount % 2 === 0 ? initialState : !initialState;
+          const expectedState =
+            toggleCount % 2 === 0 ? initialState : !initialState;
           expect(currentState).toBe(expectedState);
         }
       ),
@@ -76,7 +77,7 @@ describe("Chat Panel Toggle Property Tests", () => {
         async (stateSequence) => {
           // Verify each state is a valid boolean
           for (const state of stateSequence) {
-            expect(typeof state).toBe('boolean');
+            expect(typeof state).toBe("boolean");
             expect([true, false]).toContain(state);
           }
 
@@ -84,9 +85,9 @@ describe("Chat Panel Toggle Property Tests", () => {
           for (let i = 0; i < stateSequence.length - 1; i++) {
             const currentState = stateSequence[i];
             const nextState = stateSequence[i + 1];
-            
+
             // Each transition should be to a valid state
-            expect(typeof nextState).toBe('boolean');
+            expect(typeof nextState).toBe("boolean");
           }
         }
       ),
@@ -147,7 +148,8 @@ describe("Chat Panel Toggle Property Tests", () => {
           }
 
           // Verify the result is deterministic
-          const expectedState = toggleCount % 2 === 0 ? initialState : !initialState;
+          const expectedState =
+            toggleCount % 2 === 0 ? initialState : !initialState;
           expect(finalState).toBe(expectedState);
         }
       ),

@@ -1,6 +1,6 @@
 /**
  * Map Pin Icon Generator
- * 
+ *
  * Generates SVG pin icons with different colors and sizes
  * Uses memoization to avoid regenerating the same icons
  * Provider-agnostic implementation
@@ -31,17 +31,17 @@ export interface PinIconResult {
 export function generatePinIcon(options: PinIconOptions): PinIconResult {
   const { color, width, height, activityId } = options;
   const cacheKey = `${color}-${width}-${height}`;
-  
+
   // Check cache first
   let svgDataUrl = iconCache.get(cacheKey);
-  
+
   if (!svgDataUrl) {
     // Generate SVG only if not cached
     const svg = createPinSVG(color, activityId);
-    svgDataUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    svgDataUrl = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     iconCache.set(cacheKey, svgDataUrl);
   }
-  
+
   return {
     url: svgDataUrl,
     width,
@@ -103,12 +103,12 @@ function createPinSVG(color: string, activityId: string): string {
  */
 export const PIN_CONFIGS = {
   default: {
-    color: '#0055ffff',
+    color: "#0055ffff",
     width: 40,
     height: 50,
   },
   highlighted: {
-    color: '#ef4444',
+    color: "#ef4444",
     width: 48,
     height: 60,
   },

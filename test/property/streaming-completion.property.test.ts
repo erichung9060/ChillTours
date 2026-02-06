@@ -1,18 +1,18 @@
 /**
  * Property-Based Tests for Streaming Completion Marking
- * 
+ *
  * Feature: tripai-travel-planner
  * Property 36: Streaming Completion Marking
- * 
+ *
  * Validates: Requirements 18.3
- * 
+ *
  * For any completed streaming response, the system should mark the message as complete
  * and stop displaying the typing indicator.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import * as fc from 'fast-check';
-import type { ChatMessage } from '@/types/chat';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import * as fc from "fast-check";
+import type { ChatMessage } from "@/types/chat";
 
 /**
  * Mock streaming message handler
@@ -27,8 +27,8 @@ class StreamingMessageHandler {
   startStreaming(messageId: string): void {
     const message: ChatMessage = {
       id: messageId,
-      role: 'assistant',
-      content: '',
+      role: "assistant",
+      content: "",
       timestamp: Date.now(),
       streaming: true,
     };
@@ -90,7 +90,7 @@ class StreamingMessageHandler {
   }
 }
 
-describe('Property 36: Streaming Completion Marking', () => {
+describe("Property 36: Streaming Completion Marking", () => {
   let handler: StreamingMessageHandler;
 
   beforeEach(() => {
@@ -102,11 +102,14 @@ describe('Property 36: Streaming Completion Marking', () => {
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should mark message as complete and remove typing indicator when streaming finishes', async () => {
+  it("should mark message as complete and remove typing indicator when streaming finishes", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uuid(),
-        fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 1, maxLength: 20 }),
+        fc.array(fc.string({ minLength: 1, maxLength: 50 }), {
+          minLength: 1,
+          maxLength: 20,
+        }),
         async (messageId, chunks) => {
           // Start streaming
           handler.startStreaming(messageId);
@@ -136,7 +139,7 @@ describe('Property 36: Streaming Completion Marking', () => {
           // Property 3: Message content should be preserved
           const message = handler.getMessage(messageId);
           expect(message).toBeDefined();
-          expect(message?.content).toBe(chunks.join(''));
+          expect(message?.content).toBe(chunks.join(""));
 
           // Property 4: Message should have streaming flag set to false
           expect(message?.streaming).toBe(false);
@@ -147,11 +150,14 @@ describe('Property 36: Streaming Completion Marking', () => {
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should only mark message as complete once', async () => {
+  it("should only mark message as complete once", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uuid(),
-        fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 1, maxLength: 10 }),
+        fc.array(fc.string({ minLength: 1, maxLength: 50 }), {
+          minLength: 1,
+          maxLength: 10,
+        }),
         fc.integer({ min: 2, max: 5 }),
         async (messageId, chunks, completionAttempts) => {
           // Start streaming
@@ -173,7 +179,7 @@ describe('Property 36: Streaming Completion Marking', () => {
 
           // Property: Content should remain unchanged
           const message = handler.getMessage(messageId);
-          expect(message?.content).toBe(chunks.join(''));
+          expect(message?.content).toBe(chunks.join(""));
         }
       ),
       { numRuns: 100 }
@@ -181,12 +187,18 @@ describe('Property 36: Streaming Completion Marking', () => {
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should not accept new chunks after completion', async () => {
+  it("should not accept new chunks after completion", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uuid(),
-        fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 1, maxLength: 10 }),
-        fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 1, maxLength: 5 }),
+        fc.array(fc.string({ minLength: 1, maxLength: 50 }), {
+          minLength: 1,
+          maxLength: 10,
+        }),
+        fc.array(fc.string({ minLength: 1, maxLength: 50 }), {
+          minLength: 1,
+          maxLength: 5,
+        }),
         async (messageId, initialChunks, afterCompletionChunks) => {
           // Start streaming
           handler.startStreaming(messageId);
@@ -196,7 +208,8 @@ describe('Property 36: Streaming Completion Marking', () => {
             handler.appendChunk(messageId, chunk);
           }
 
-          const contentBeforeCompletion = handler.getMessage(messageId)?.content;
+          const contentBeforeCompletion =
+            handler.getMessage(messageId)?.content;
 
           // Complete streaming
           handler.completeStreaming(messageId);
@@ -217,60 +230,62 @@ describe('Property 36: Streaming Completion Marking', () => {
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should handle empty streaming messages correctly', async () => {
+  it("should handle empty streaming messages correctly", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.uuid(),
-        async (messageId) => {
-          // Start streaming with no chunks
-          handler.startStreaming(messageId);
+      fc.asyncProperty(fc.uuid(), async (messageId) => {
+        // Start streaming with no chunks
+        handler.startStreaming(messageId);
 
-          // Verify initial state
-          expect(handler.isStreaming(messageId)).toBe(true);
-          expect(handler.hasTypingIndicator(messageId)).toBe(true);
+        // Verify initial state
+        expect(handler.isStreaming(messageId)).toBe(true);
+        expect(handler.hasTypingIndicator(messageId)).toBe(true);
 
-          // Complete immediately without any chunks
-          handler.completeStreaming(messageId);
+        // Complete immediately without any chunks
+        handler.completeStreaming(messageId);
 
-          // Property: Should still mark as complete
-          expect(handler.isStreaming(messageId)).toBe(false);
-          expect(handler.hasTypingIndicator(messageId)).toBe(false);
+        // Property: Should still mark as complete
+        expect(handler.isStreaming(messageId)).toBe(false);
+        expect(handler.hasTypingIndicator(messageId)).toBe(false);
 
-          // Property: Message should exist with empty content
-          const message = handler.getMessage(messageId);
-          expect(message).toBeDefined();
-          expect(message?.content).toBe('');
-          expect(message?.streaming).toBe(false);
-        }
-      ),
+        // Property: Message should exist with empty content
+        const message = handler.getMessage(messageId);
+        expect(message).toBeDefined();
+        expect(message?.content).toBe("");
+        expect(message?.streaming).toBe(false);
+      }),
       { numRuns: 100 }
     );
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should handle concurrent streaming messages independently', async () => {
+  it("should handle concurrent streaming messages independently", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.array(fc.uuid(), { minLength: 2, maxLength: 5 }),
-        fc.array(fc.array(fc.string({ minLength: 1, maxLength: 20 }), { minLength: 1, maxLength: 5 })),
+        fc.array(
+          fc.array(fc.string({ minLength: 1, maxLength: 20 }), {
+            minLength: 1,
+            maxLength: 5,
+          })
+        ),
         async (messageIds, chunksArray) => {
           // Ensure we have chunks for each message
-          const normalizedChunks = messageIds.map((_, i) => 
-            chunksArray[i % chunksArray.length] || ['default']
+          const normalizedChunks = messageIds.map(
+            (_, i) => chunksArray[i % chunksArray.length] || ["default"]
           );
 
           // Start streaming for all messages
-          messageIds.forEach(id => handler.startStreaming(id));
+          messageIds.forEach((id) => handler.startStreaming(id));
 
           // Verify all are streaming
-          messageIds.forEach(id => {
+          messageIds.forEach((id) => {
             expect(handler.isStreaming(id)).toBe(true);
             expect(handler.hasTypingIndicator(id)).toBe(true);
           });
 
           // Stream chunks for each message
           messageIds.forEach((id, index) => {
-            normalizedChunks[index].forEach(chunk => {
+            normalizedChunks[index].forEach((chunk) => {
               handler.appendChunk(id, chunk);
             });
           });
@@ -294,7 +309,7 @@ describe('Property 36: Streaming Completion Marking', () => {
           }
 
           // Property: All messages should now be complete
-          messageIds.forEach(id => {
+          messageIds.forEach((id) => {
             expect(handler.isStreaming(id)).toBe(false);
             expect(handler.hasTypingIndicator(id)).toBe(false);
           });
@@ -305,11 +320,14 @@ describe('Property 36: Streaming Completion Marking', () => {
   });
 
   // Feature: tripai-travel-planner, Property 36: Streaming Completion Marking
-  it('should preserve message metadata when marking as complete', async () => {
+  it("should preserve message metadata when marking as complete", async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.uuid(),
-        fc.array(fc.string({ minLength: 1, maxLength: 50 }), { minLength: 1, maxLength: 10 }),
+        fc.array(fc.string({ minLength: 1, maxLength: 50 }), {
+          minLength: 1,
+          maxLength: 10,
+        }),
         async (messageId, chunks) => {
           // Start streaming
           handler.startStreaming(messageId);

@@ -1,55 +1,63 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { TrendingDestinations } from './trending-destinations';
-import { DateRangePicker } from './date-range-picker';
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { TrendingDestinations } from "./trending-destinations";
+import { DateRangePicker } from "./date-range-picker";
 
 export function TripForm() {
-  const [destination, setDestination] = useState('');
+  const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [vibe, setVibe] = useState('');
+  const [vibe, setVibe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState<{ destination?: string; dates?: string }>({});
+  const [errors, setErrors] = useState<{
+    destination?: string;
+    dates?: string;
+  }>({});
 
   const validateForm = () => {
     const newErrors: { destination?: string; dates?: string } = {};
-    
+
     // Validate destination (required, non-empty)
     if (!destination.trim()) {
-      newErrors.destination = 'Destination is required';
+      newErrors.destination = "Destination is required";
     }
-    
+
     // Validate dates
     if (!startDate || !endDate) {
-      newErrors.dates = 'Please select your travel dates';
+      newErrors.dates = "Please select your travel dates";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     // Format dates for API
-    const formattedStart = startDate?.toISOString().split('T')[0];
-    const formattedEnd = endDate?.toISOString().split('T')[0];
-    
+    const formattedStart = startDate?.toISOString().split("T")[0];
+    const formattedEnd = endDate?.toISOString().split("T")[0];
+
     // TODO: Navigate to planning interface with form data
     // For now, just simulate loading
     setTimeout(() => {
-      console.log('Form submitted:', { destination, startDate: formattedStart, endDate: formattedEnd, vibe });
+      console.log("Form submitted:", {
+        destination,
+        startDate: formattedStart,
+        endDate: formattedEnd,
+        vibe,
+      });
       setIsLoading(false);
       // router.push(`/plan/new?destination=${encodeURIComponent(destination)}&startDate=${formattedStart}&endDate=${formattedEnd}&vibe=${encodeURIComponent(vibe)}`);
     }, 1000);
@@ -70,7 +78,10 @@ export function TripForm() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
             {/* Destination Input */}
             <div className="flex-1">
-              <label htmlFor="destination" className="block text-sm font-medium mb-2 text-foreground/80">
+              <label
+                htmlFor="destination"
+                className="block text-sm font-medium mb-2 text-foreground/80"
+              >
                 Where to next?
               </label>
               <div className="relative">
@@ -115,7 +126,10 @@ export function TripForm() {
 
           {/* Vibe/Custom Requirements Textarea */}
           <div>
-            <label htmlFor="vibe" className="block text-sm font-medium mb-2 text-foreground/80">
+            <label
+              htmlFor="vibe"
+              className="block text-sm font-medium mb-2 text-foreground/80"
+            >
               Describe your vibe
             </label>
             <Textarea
@@ -181,7 +195,7 @@ export function TripForm() {
             )}
           </Button>
         </form>
-        
+
         {/* Trending Destinations */}
         <TrendingDestinations onDestinationClick={handleDestinationClick} />
       </CardContent>

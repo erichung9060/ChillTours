@@ -1,20 +1,26 @@
 /**
  * Google Maps Renderer
- * 
+ *
  * Renders map using Google Maps API with AdvancedMarkerElement
  */
 
-'use client';
+"use client";
 
-import { useEffect, useCallback, useState } from 'react';
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
-import { useTheme } from '@/hooks/use-theme';
-import type { Activity } from '@/types/itinerary';
-import type { MapRendererProps } from './types';
+import { useEffect, useCallback, useState } from "react";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  InfoWindow,
+  useMap,
+} from "@vis.gl/react-google-maps";
+import { useTheme } from "@/hooks/use-theme";
+import type { Activity } from "@/types/itinerary";
+import type { MapRendererProps } from "./types";
 
 const mapContainerStyle = {
-  width: '100%',
-  height: '100%',
+  width: "100%",
+  height: "100%",
 };
 
 // Map content component that uses the map instance
@@ -27,59 +33,74 @@ function MapContent({
   onInfoWindowClose,
 }: MapRendererProps) {
   const map = useMap();
-  const [infoWindowPosition, setInfoWindowPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [infoWindowPosition, setInfoWindowPosition] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   // Fit bounds when map loads or activities change
   useEffect(() => {
     if (map && activities.length > 0) {
       const bounds = new google.maps.LatLngBounds();
-      activities.forEach(activity => {
-        bounds.extend({ lat: activity.location.lat, lng: activity.location.lng });
+      activities.forEach((activity) => {
+        bounds.extend({
+          lat: activity.location.lat,
+          lng: activity.location.lng,
+        });
       });
       map.fitBounds(bounds);
     }
   }, [map, activities]);
 
   // Check if a location is visible in the current map bounds
-  const isLocationVisible = useCallback((lat: number, lng: number): boolean => {
-    if (!map) return true;
+  const isLocationVisible = useCallback(
+    (lat: number, lng: number): boolean => {
+      if (!map) return true;
 
-    try {
-      const bounds = map.getBounds();
-      if (!bounds) return true;
-      
-      const ne = bounds.getNorthEast();
-      const sw = bounds.getSouthWest();
-      
-      return lat >= sw.lat() && lat <= ne.lat() && lng >= sw.lng() && lng <= ne.lng();
-    } catch (error) {
-      console.error('Error checking location visibility:', error);
-      return true;
-    }
-  }, [map]);
+      try {
+        const bounds = map.getBounds();
+        if (!bounds) return true;
+
+        const ne = bounds.getNorthEast();
+        const sw = bounds.getSouthWest();
+
+        return (
+          lat >= sw.lat() &&
+          lat <= ne.lat() &&
+          lng >= sw.lng() &&
+          lng <= ne.lng()
+        );
+      } catch (error) {
+        console.error("Error checking location visibility:", error);
+        return true;
+      }
+    },
+    [map]
+  );
 
   // Smart zoom when hovering over activities or selecting a day
   useEffect(() => {
     if (!map || highlightedActivities.length === 0) return;
 
     // Check if any highlighted activity is outside the visible bounds
-    const hasInvisibleActivity = highlightedActivities.some(activity => 
-      !isLocationVisible(activity.location.lat, activity.location.lng)
+    const hasInvisibleActivity = highlightedActivities.some(
+      (activity) =>
+        !isLocationVisible(activity.location.lat, activity.location.lng)
     );
 
     if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
 
     // Calculate bounds to include all highlighted activities
-    const locations = highlightedActivities.map(a => a.location);
-    
+    const locations = highlightedActivities.map((a) => a.location);
+
     try {
       const bounds = new google.maps.LatLngBounds();
-      locations.forEach(location => {
+      locations.forEach((location) => {
         bounds.extend({ lat: location.lat, lng: location.lng });
       });
-      
+
       map.fitBounds(bounds, 100);
-      
+
       // Limit max zoom for single points
       if (locations.length === 1) {
         setTimeout(() => {
@@ -92,14 +113,20 @@ function MapContent({
         }, 100);
       }
     } catch (error) {
-      console.error('Error fitting bounds:', error);
+      console.error("Error fitting bounds:", error);
     }
   }, [map, highlightedActivities, isLocationVisible]);
 
-  const handleMarkerClick = useCallback((activity: Activity) => {
-    setInfoWindowPosition({ lat: activity.location.lat, lng: activity.location.lng });
-    onMarkerClick(activity);
-  }, [onMarkerClick]);
+  const handleMarkerClick = useCallback(
+    (activity: Activity) => {
+      setInfoWindowPosition({
+        lat: activity.location.lat,
+        lng: activity.location.lng,
+      });
+      onMarkerClick(activity);
+    },
+    [onMarkerClick]
+  );
 
   const handleInfoWindowCloseClick = useCallback(() => {
     setInfoWindowPosition(null);
@@ -111,11 +138,14 @@ function MapContent({
       {/* Render markers for all activities */}
       {activities.map((activity) => {
         const iconData = getMarkerIcon(activity);
-        
+
         return (
           <AdvancedMarker
             key={activity.id}
-            position={{ lat: activity.location.lat, lng: activity.location.lng }}
+            position={{
+              lat: activity.location.lat,
+              lng: activity.location.lng,
+            }}
             onClick={() => handleMarkerClick(activity)}
             title={activity.title}
           >
@@ -124,7 +154,7 @@ function MapContent({
               width={iconData.width}
               height={iconData.height}
               alt={activity.title}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
             />
           </AdvancedMarker>
         );
@@ -168,7 +198,7 @@ export function GoogleMapRenderer({
   onInfoWindowClose,
   getMarkerIcon,
 }: MapRendererProps) {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const { resolvedTheme } = useTheme();
 
   if (!apiKey) {
@@ -211,7 +241,7 @@ export function GoogleMapRenderer({
         gestureHandling="greedy"
         disableDefaultUI={false}
         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
-        colorScheme={resolvedTheme === 'dark' ? 'DARK' : 'LIGHT'}
+        colorScheme={resolvedTheme === "dark" ? "DARK" : "LIGHT"}
       >
         <MapContent
           activities={activities}

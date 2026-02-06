@@ -1,11 +1,11 @@
 /**
  * Map Renderer Types
- * 
+ *
  * Common types for all map renderers
  */
 
-import type { Activity, ActivityWithDay } from '@/types/itinerary';
-import type { PinIconResult } from '@/lib/maps';
+import type { Activity, ActivityWithDay } from "@/types/itinerary";
+import type { PinIconResult } from "@/lib/maps";
 
 export interface MapRendererProps {
   activities: ActivityWithDay[];

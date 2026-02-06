@@ -1,9 +1,9 @@
 /**
  * Property-Based Tests for Drag-Drop Reordering
- * 
+ *
  * Feature: tripai-travel-planner, Property 16: Drag-Drop Reordering
  * Validates: Requirements 7.2
- * 
+ *
  * Property: For any activity dragged to a new position within the same day,
  * the itinerary order should update immediately with the activity at the new position.
  */
@@ -11,7 +11,10 @@
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { calculateDragOverUpdate } from "@/components/planner/itinerary/utils/drag-handlers";
-import { itineraryArbitrary, activityArbitrary } from "@/test/utils/property-test-helpers";
+import {
+  itineraryArbitrary,
+  activityArbitrary,
+} from "@/test/utils/property-test-helpers";
 import type { Itinerary, Activity } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 
@@ -157,11 +160,15 @@ describe("Drag-Drop Reordering Property Tests", () => {
             expect(newActivities.length).toBe(activities.length);
 
             // Find the moved activity in the new list
-            const movedActivity = newActivities.find(a => a.id === sourceActivity.id);
+            const movedActivity = newActivities.find(
+              (a) => a.id === sourceActivity.id
+            );
             expect(movedActivity).toBeDefined();
 
             // Verify the activity is at or near the target position
-            const newIndex = newActivities.findIndex(a => a.id === sourceActivity.id);
+            const newIndex = newActivities.findIndex(
+              (a) => a.id === sourceActivity.id
+            );
             expect(newIndex).not.toBe(sourceIdx);
 
             // Verify all activities have sequential order values
@@ -170,8 +177,8 @@ describe("Drag-Drop Reordering Property Tests", () => {
             });
 
             // Verify no activities were lost or duplicated
-            const originalIds = new Set(activities.map(a => a.id));
-            const newIds = new Set(newActivities.map(a => a.id));
+            const originalIds = new Set(activities.map((a) => a.id));
+            const newIds = new Set(newActivities.map((a) => a.id));
             expect(newIds).toEqual(originalIds);
           }
         }
@@ -259,14 +266,18 @@ describe("Drag-Drop Reordering Property Tests", () => {
           );
 
           if (result) {
-            const originalIds = activities.map(a => a.id).sort();
-            const newIds = result.newItinerary.days[0].activities.map(a => a.id).sort();
+            const originalIds = activities.map((a) => a.id).sort();
+            const newIds = result.newItinerary.days[0].activities
+              .map((a) => a.id)
+              .sort();
 
             // Verify same set of activity IDs
             expect(newIds).toEqual(originalIds);
 
             // Verify count is the same
-            expect(result.newItinerary.days[0].activities.length).toBe(activities.length);
+            expect(result.newItinerary.days[0].activities.length).toBe(
+              activities.length
+            );
           }
         }
       ),
@@ -292,7 +303,10 @@ describe("Drag-Drop Reordering Property Tests", () => {
           const targetActivity = activities[targetIdx];
 
           // Capture original state for comparison
-          const originalActivityOrders = activities.map(a => ({ id: a.id, order: a.order }));
+          const originalActivityOrders = activities.map((a) => ({
+            id: a.id,
+            order: a.order,
+          }));
           const originalActivityCount = activities.length;
 
           const { active, over } = createDragObjects(
@@ -312,10 +326,14 @@ describe("Drag-Drop Reordering Property Tests", () => {
 
           // Verify original itinerary structure was not mutated
           // Check that activity count hasn't changed
-          expect(itinerary.days[0].activities.length).toBe(originalActivityCount);
+          expect(itinerary.days[0].activities.length).toBe(
+            originalActivityCount
+          );
 
           // Check that order values haven't changed in original
-          const currentActivityOrders = itinerary.days[0].activities.map(a => ({ id: a.id, order: a.order }));
+          const currentActivityOrders = itinerary.days[0].activities.map(
+            (a) => ({ id: a.id, order: a.order })
+          );
           expect(currentActivityOrders).toEqual(originalActivityOrders);
         }
       ),
@@ -357,7 +375,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
 
           if (result) {
             const newActivities = result.newItinerary.days[0].activities;
-            const newIndex = newActivities.findIndex(a => a.id === sourceActivity.id);
+            const newIndex = newActivities.findIndex(
+              (a) => a.id === sourceActivity.id
+            );
 
             // Verify the activity moved from its original position
             expect(newIndex).not.toBe(sourceIdx);
@@ -451,7 +471,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
 
           if (result) {
             const newActivities = result.newItinerary.days[0].activities;
-            const movedActivity = newActivities.find(a => a.id === sourceActivity.id);
+            const movedActivity = newActivities.find(
+              (a) => a.id === sourceActivity.id
+            );
 
             expect(movedActivity).toBeDefined();
 
@@ -460,9 +482,13 @@ describe("Drag-Drop Reordering Property Tests", () => {
               expect(movedActivity.id).toBe(sourceActivity.id);
               expect(movedActivity.time).toBe(sourceActivity.time);
               expect(movedActivity.title).toBe(sourceActivity.title);
-              expect(movedActivity.description).toBe(sourceActivity.description);
+              expect(movedActivity.description).toBe(
+                sourceActivity.description
+              );
               expect(movedActivity.location).toEqual(sourceActivity.location);
-              expect(movedActivity.duration_minutes).toBe(sourceActivity.duration_minutes);
+              expect(movedActivity.duration_minutes).toBe(
+                sourceActivity.duration_minutes
+              );
             }
           }
         }
@@ -473,47 +499,46 @@ describe("Drag-Drop Reordering Property Tests", () => {
 
   it("Property 16 (Boundary Cases): Reordering works at list boundaries", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        itineraryWithActivitiesArbitrary,
-        async (itinerary) => {
-          const day = itinerary.days[0];
-          const activities = day.activities;
+      fc.asyncProperty(itineraryWithActivitiesArbitrary, async (itinerary) => {
+        const day = itinerary.days[0];
+        const activities = day.activities;
 
-          fc.pre(activities.length >= 2);
+        fc.pre(activities.length >= 2);
 
-          // Test moving first to last position
-          const firstActivity = activities[0];
-          const lastActivity = activities[activities.length - 1];
+        // Test moving first to last position
+        const firstActivity = activities[0];
+        const lastActivity = activities[activities.length - 1];
 
-          const { active, over } = createDragObjects(
-            firstActivity.id,
-            lastActivity.id,
-            day.day_number,
-            day.day_number
+        const { active, over } = createDragObjects(
+          firstActivity.id,
+          lastActivity.id,
+          day.day_number,
+          day.day_number
+        );
+
+        const result = calculateDragOverUpdate(
+          active,
+          over,
+          active.data.current,
+          over.data.current,
+          itinerary
+        );
+
+        if (result) {
+          const newActivities = result.newItinerary.days[0].activities;
+
+          // Verify the activity moved
+          const newIndex = newActivities.findIndex(
+            (a) => a.id === firstActivity.id
           );
+          expect(newIndex).not.toBe(0);
 
-          const result = calculateDragOverUpdate(
-            active,
-            over,
-            active.data.current,
-            over.data.current,
-            itinerary
-          );
-
-          if (result) {
-            const newActivities = result.newItinerary.days[0].activities;
-
-            // Verify the activity moved
-            const newIndex = newActivities.findIndex(a => a.id === firstActivity.id);
-            expect(newIndex).not.toBe(0);
-
-            // Verify all activities have valid order
-            newActivities.forEach((activity, index) => {
-              expect(activity.order).toBe(index);
-            });
-          }
+          // Verify all activities have valid order
+          newActivities.forEach((activity, index) => {
+            expect(activity.order).toBe(index);
+          });
         }
-      ),
+      }),
       { numRuns: 100 }
     );
   });

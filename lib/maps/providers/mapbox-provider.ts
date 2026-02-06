@@ -1,6 +1,6 @@
 /**
  * Mapbox Provider Implementation
- * 
+ *
  * Implements the MapProvider interface for Mapbox
  * Note: This is a basic implementation. Full integration requires:
  * - Installing mapbox-gl package: npm install mapbox-gl
@@ -8,13 +8,18 @@
  * - Creating a Mapbox account and getting an API key
  */
 
-import type { Location } from '@/types/itinerary';
-import type { MapProvider, MapConfig, MarkerIcon, PlaceDetails } from '../types';
-import { calculateMapBounds } from '../client';
-import { generatePinIcon } from '../pin-icons';
+import type { Location } from "@/types/itinerary";
+import type {
+  MapProvider,
+  MapConfig,
+  MarkerIcon,
+  PlaceDetails,
+} from "../types";
+import { calculateMapBounds } from "../client";
+import { generatePinIcon } from "../pin-icons";
 
 export class MapboxProvider implements MapProvider {
-  name: 'mapbox' = 'mapbox';
+  name: "mapbox" = "mapbox";
 
   async initialize(_config: MapConfig): Promise<void> {
     // Mapbox initialization would be handled by react-map-gl
@@ -28,7 +33,7 @@ export class MapboxProvider implements MapProvider {
     activityId: string;
   }): MarkerIcon {
     const { color, size, activityId } = config;
-    
+
     // Use the unified pin icon generator
     return generatePinIcon({
       color,
@@ -47,7 +52,7 @@ export class MapboxProvider implements MapProvider {
 
   createNavigationLink(location: Location): string {
     const { lat, lng } = location;
-    
+
     // Mapbox doesn't have a direct navigation URL like Google Maps
     // We can either:
     // 1. Open in Google Maps (most practical for users)
@@ -60,9 +65,9 @@ export class MapboxProvider implements MapProvider {
     // Mapbox Geocoding API implementation
     // Requires: NEXT_PUBLIC_MAPBOX_API_KEY environment variable
     const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
-    
+
     if (!apiKey) {
-      console.error('Mapbox API key not configured');
+      console.error("Mapbox API key not configured");
       return null;
     }
 
@@ -73,7 +78,7 @@ export class MapboxProvider implements MapProvider {
       );
 
       if (!response.ok) {
-        throw new Error('Geocoding request failed');
+        throw new Error("Geocoding request failed");
       }
 
       const data = await response.json();
@@ -92,7 +97,7 @@ export class MapboxProvider implements MapProvider {
 
       return null;
     } catch (error) {
-      console.error('Mapbox geocoding error:', error);
+      console.error("Mapbox geocoding error:", error);
       return null;
     }
   }
@@ -101,9 +106,9 @@ export class MapboxProvider implements MapProvider {
     // Mapbox Geocoding API - Retrieve a feature
     // https://docs.mapbox.com/api/search/geocoding/#retrieve-a-feature
     const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
-    
+
     if (!apiKey) {
-      console.error('Mapbox API key not configured');
+      console.error("Mapbox API key not configured");
       return null;
     }
 
@@ -114,7 +119,7 @@ export class MapboxProvider implements MapProvider {
       );
 
       if (!response.ok) {
-        throw new Error('Place details request failed');
+        throw new Error("Place details request failed");
       }
 
       const data = await response.json();
@@ -126,7 +131,7 @@ export class MapboxProvider implements MapProvider {
 
         const details: PlaceDetails = {
           id: feature.id,
-          name: feature.text || '',
+          name: feature.text || "",
           location: {
             lat,
             lng,
@@ -146,7 +151,7 @@ export class MapboxProvider implements MapProvider {
 
       return null;
     } catch (error) {
-      console.error('Mapbox place details error:', error);
+      console.error("Mapbox place details error:", error);
       return null;
     }
   }

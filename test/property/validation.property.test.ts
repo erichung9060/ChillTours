@@ -1,5 +1,5 @@
-import { describe, test, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, test, expect } from "vitest";
+import * as fc from "fast-check";
 import {
   LocationSchema,
   ActivitySchema,
@@ -7,19 +7,19 @@ import {
   ItinerarySchema,
   ChatMessageSchema,
   UserProfileSchema,
-} from '@/types';
-import { whitespaceStringArbitrary } from '../utils/property-test-helpers';
+} from "@/types";
+import { whitespaceStringArbitrary } from "../utils/property-test-helpers";
 
 /**
  * Property-based tests for data model validation
  * Feature: tripai-travel-planner
  */
 
-describe('Data Model Validation Properties', () => {
+describe("Data Model Validation Properties", () => {
   // Feature: tripai-travel-planner, Property 4: Input Validation Rejects Empty Values
   // Validates: Requirements 2.3
-  describe('Property 4: Input Validation Rejects Empty Values', () => {
-    test('LocationSchema rejects empty name', () => {
+  describe("Property 4: Input Validation Rejects Empty Values", () => {
+    test("LocationSchema rejects empty name", () => {
       fc.assert(
         fc.property(whitespaceStringArbitrary, (emptyName) => {
           const result = LocationSchema.safeParse({
@@ -33,16 +33,16 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ActivitySchema rejects empty title', () => {
+    test("ActivitySchema rejects empty title", () => {
       fc.assert(
         fc.property(whitespaceStringArbitrary, (emptyTitle) => {
           const result = ActivitySchema.safeParse({
             id: crypto.randomUUID(),
-            time: '10:00',
+            time: "10:00",
             title: emptyTitle.trim(),
-            description: 'Test description',
+            description: "Test description",
             location: {
-              name: 'Test Location',
+              name: "Test Location",
               lat: 0,
               lng: 0,
             },
@@ -55,16 +55,16 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ItinerarySchema rejects empty title', () => {
+    test("ItinerarySchema rejects empty title", () => {
       fc.assert(
         fc.property(whitespaceStringArbitrary, (emptyTitle) => {
           const result = ItinerarySchema.safeParse({
             id: crypto.randomUUID(),
             user_id: crypto.randomUUID(),
             title: emptyTitle.trim(),
-            destination: 'Paris',
-            start_date: '2024-01-01',
-            end_date: '2024-01-05',
+            destination: "Paris",
+            start_date: "2024-01-01",
+            end_date: "2024-01-05",
             days: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -76,16 +76,16 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ItinerarySchema rejects empty destination', () => {
+    test("ItinerarySchema rejects empty destination", () => {
       fc.assert(
         fc.property(whitespaceStringArbitrary, (emptyDestination) => {
           const result = ItinerarySchema.safeParse({
             id: crypto.randomUUID(),
             user_id: crypto.randomUUID(),
-            title: 'My Trip',
+            title: "My Trip",
             destination: emptyDestination.trim(),
-            start_date: '2024-01-01',
-            end_date: '2024-01-05',
+            start_date: "2024-01-01",
+            end_date: "2024-01-05",
             days: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -97,12 +97,12 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ChatMessageSchema rejects empty content for user messages', () => {
+    test("ChatMessageSchema rejects empty content for user messages", () => {
       fc.assert(
         fc.property(whitespaceStringArbitrary, (emptyContent) => {
           const result = ChatMessageSchema.safeParse({
             id: crypto.randomUUID(),
-            role: 'user',
+            role: "user",
             content: emptyContent.trim(),
             timestamp: Date.now(),
           });
@@ -114,17 +114,19 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('UserProfileSchema rejects invalid email format', () => {
+    test("UserProfileSchema rejects invalid email format", () => {
       fc.assert(
         fc.property(
-          fc.string({ minLength: 1, maxLength: 50 }).filter(s => !s.includes('@')),
+          fc
+            .string({ minLength: 1, maxLength: 50 })
+            .filter((s) => !s.includes("@")),
           (invalidEmail) => {
             const result = UserProfileSchema.safeParse({
               id: crypto.randomUUID(),
               email: invalidEmail,
-              full_name: 'Test User',
+              full_name: "Test User",
               avatar_url: null,
-              tier: 'free',
+              tier: "free",
               credits: 0,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
@@ -137,8 +139,8 @@ describe('Data Model Validation Properties', () => {
     });
   });
 
-  describe('Additional Validation Properties', () => {
-    test('LocationSchema validates latitude bounds', () => {
+  describe("Additional Validation Properties", () => {
+    test("LocationSchema validates latitude bounds", () => {
       fc.assert(
         fc.property(
           fc.oneof(
@@ -147,7 +149,7 @@ describe('Data Model Validation Properties', () => {
           ),
           (invalidLat) => {
             const result = LocationSchema.safeParse({
-              name: 'Test Location',
+              name: "Test Location",
               lat: invalidLat,
               lng: 0,
             });
@@ -158,7 +160,7 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('LocationSchema validates longitude bounds', () => {
+    test("LocationSchema validates longitude bounds", () => {
       fc.assert(
         fc.property(
           fc.oneof(
@@ -167,7 +169,7 @@ describe('Data Model Validation Properties', () => {
           ),
           (invalidLng) => {
             const result = LocationSchema.safeParse({
-              name: 'Test Location',
+              name: "Test Location",
               lat: 0,
               lng: invalidLng,
             });
@@ -178,18 +180,20 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ActivitySchema validates time format', () => {
+    test("ActivitySchema validates time format", () => {
       fc.assert(
         fc.property(
-          fc.string({ minLength: 1, maxLength: 10 }).filter(s => !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(s)),
+          fc
+            .string({ minLength: 1, maxLength: 10 })
+            .filter((s) => !/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(s)),
           (invalidTime) => {
             const result = ActivitySchema.safeParse({
               id: crypto.randomUUID(),
               time: invalidTime,
-              title: 'Test Activity',
-              description: 'Test description',
+              title: "Test Activity",
+              description: "Test description",
               location: {
-                name: 'Test Location',
+                name: "Test Location",
                 lat: 0,
                 lng: 0,
               },
@@ -203,7 +207,7 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ActivitySchema validates duration bounds', () => {
+    test("ActivitySchema validates duration bounds", () => {
       fc.assert(
         fc.property(
           fc.oneof(
@@ -213,11 +217,11 @@ describe('Data Model Validation Properties', () => {
           (invalidDuration) => {
             const result = ActivitySchema.safeParse({
               id: crypto.randomUUID(),
-              time: '10:00',
-              title: 'Test Activity',
-              description: 'Test description',
+              time: "10:00",
+              title: "Test Activity",
+              description: "Test description",
               location: {
-                name: 'Test Location',
+                name: "Test Location",
                 lat: 0,
                 lng: 0,
               },
@@ -231,50 +235,50 @@ describe('Data Model Validation Properties', () => {
       );
     });
 
-    test('ItinerarySchema validates date range', () => {
-      const validDate = fc.date({ 
-        min: new Date('2024-01-01'), 
-        max: new Date('2024-12-31') 
-      }).filter(d => !isNaN(d.getTime()));
+    test("ItinerarySchema validates date range", () => {
+      const validDate = fc
+        .date({
+          min: new Date("2024-01-01"),
+          max: new Date("2024-12-31"),
+        })
+        .filter((d) => !isNaN(d.getTime()));
 
       fc.assert(
-        fc.property(
-          validDate,
-          validDate,
-          (date1, date2) => {
-            const startDate = date1.toISOString().split('T')[0];
-            const endDate = date2.toISOString().split('T')[0];
-            
-            const result = ItinerarySchema.safeParse({
-              id: crypto.randomUUID(),
-              user_id: crypto.randomUUID(),
-              title: 'My Trip',
-              destination: 'Paris',
-              start_date: startDate,
-              end_date: endDate,
-              days: [{
+        fc.property(validDate, validDate, (date1, date2) => {
+          const startDate = date1.toISOString().split("T")[0];
+          const endDate = date2.toISOString().split("T")[0];
+
+          const result = ItinerarySchema.safeParse({
+            id: crypto.randomUUID(),
+            user_id: crypto.randomUUID(),
+            title: "My Trip",
+            destination: "Paris",
+            start_date: startDate,
+            end_date: endDate,
+            days: [
+              {
                 day_number: 1,
                 date: startDate,
                 activities: [],
-              }],
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              shared_with: [],
-            });
+              },
+            ],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            shared_with: [],
+          });
 
-            // Should succeed if end_date >= start_date
-            if (endDate >= startDate) {
-              expect(result.success).toBe(true);
-            } else {
-              expect(result.success).toBe(false);
-            }
+          // Should succeed if end_date >= start_date
+          if (endDate >= startDate) {
+            expect(result.success).toBe(true);
+          } else {
+            expect(result.success).toBe(false);
           }
-        ),
+        }),
         { numRuns: 100 }
       );
     });
 
-    test('DaySchema validates day_number bounds', () => {
+    test("DaySchema validates day_number bounds", () => {
       fc.assert(
         fc.property(
           fc.oneof(
@@ -284,7 +288,7 @@ describe('Data Model Validation Properties', () => {
           (invalidDayNumber) => {
             const result = DaySchema.safeParse({
               day_number: invalidDayNumber,
-              date: '2024-01-01',
+              date: "2024-01-01",
               activities: [],
             });
             expect(result.success).toBe(false);

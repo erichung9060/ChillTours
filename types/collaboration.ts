@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import * as Y from 'yjs';
-import { WebsocketProvider } from 'y-websocket';
+import { z } from "zod";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
 
 // ============================================================================
 // User Presence Types
@@ -22,8 +22,8 @@ export type UserPresence = z.infer<typeof UserPresenceSchema>;
 // We define the interface separately for these runtime objects
 
 export interface CollaborationSession {
-  room_id: string;  // Same as itinerary_id
-  doc: Y.Doc;       // Yjs document
+  room_id: string; // Same as itinerary_id
+  doc: Y.Doc; // Yjs document
   provider: WebsocketProvider;
 }
 
@@ -32,4 +32,6 @@ export const CollaborationSessionConfigSchema = z.object({
   room_id: z.uuid(),
 });
 
-export type CollaborationSessionConfig = z.infer<typeof CollaborationSessionConfigSchema>;
+export type CollaborationSessionConfig = z.infer<
+  typeof CollaborationSessionConfigSchema
+>;

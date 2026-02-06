@@ -17,12 +17,14 @@ This directory contains the Supabase database migrations for the TripAI Travel P
 ### 2. Run the Database Migration
 
 **Option A: Using SQL Editor (Recommended)**
+
 1. Go to SQL Editor in your Supabase dashboard
 2. Click "New query"
 3. Copy the contents of `migrations/001_initial_schema.sql`
 4. Paste and run the SQL
 
 **Option B: Using Supabase CLI**
+
 ```bash
 supabase link --project-ref your-project-ref
 supabase db push
@@ -31,6 +33,7 @@ supabase db push
 ### 3. Configure Environment Variables
 
 Add to your `.env.local`:
+
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -76,6 +79,7 @@ Get these values from: Settings > API in your Supabase dashboard
 ## Verification
 
 After setup, verify by:
+
 1. Checking Database > Tables for the 3 tables
 2. Checking Database > Policies for RLS policies
 3. Running tests: `npm run test`
@@ -91,14 +95,17 @@ After setup, verify by:
 ## Troubleshooting
 
 ### Migration Errors
+
 - Ensure PostgreSQL version matches (check Settings > General)
 - Verify auth.users table exists (created by Supabase)
 
 ### RLS Issues
+
 - Test policies in SQL Editor
 - Check Supabase logs for policy violations
 
 ### Realtime Not Working
+
 - Verify replication is enabled
 - Check RLS policies allow SELECT
 - Ensure WebSocket connections aren't blocked
@@ -109,4 +116,3 @@ After setup, verify by:
 - ❌ Never expose service_role key in frontend
 - ✅ Configure domain restrictions in dashboard
 - ✅ Keep `.env.local` in `.gitignore`
-
