@@ -9,7 +9,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const { user, signInWithGoogle, loading, error } = useAuth();
