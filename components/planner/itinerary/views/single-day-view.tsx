@@ -18,7 +18,6 @@ export function SingleDayView({
     goToPreviousDay,
     goToNextDay,
     onActivityHover,
-    onActivityUpdate,
 }: SingleDayViewProps) {
     const day = itinerary.days[currentDayIndex];
     if (!day) return null;
@@ -97,7 +96,6 @@ export function SingleDayView({
                     draggingActivityId={draggingActivityId}
                     crossDayDragInfo={crossDayDragInfo}
                     onActivityHover={onActivityHover}
-                    onActivityUpdate={onActivityUpdate}
                 />
             </div>
         </div>

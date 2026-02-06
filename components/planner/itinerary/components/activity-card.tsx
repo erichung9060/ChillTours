@@ -13,15 +13,16 @@ import { ExternalLink, Pencil } from 'lucide-react';
 import type { ActivityCardProps } from '../types';
 import { getMapProvider } from '@/lib/maps/provider-factory';
 import { EditActivityDialog } from './edit-activity-dialog';
+import { useItineraryStore } from '../store';
 
 export function ActivityCard({
     activity,
     className,
     onMouseEnter,
     onMouseLeave,
-    onActivityUpdate,
 }: ActivityCardProps) {
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const updateActivity = useItineraryStore((state) => state.updateActivity);
 
     const handleNavigationConfig = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -132,7 +133,7 @@ export function ActivityCard({
                 activity={activity}
                 isOpen={isEditDialogOpen}
                 onClose={() => setIsEditDialogOpen(false)}
-                onSave={(updatedActivity) => onActivityUpdate?.(updatedActivity)}
+                onSave={(updatedActivity) => updateActivity(updatedActivity)}
             />
         </Card >
     );

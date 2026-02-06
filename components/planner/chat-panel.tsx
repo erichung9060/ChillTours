@@ -23,7 +23,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useItineraryChat } from '@/hooks/use-itinerary-chat';
 import { MarkdownMessage } from './markdown-message';
-import { applyOperations } from '@/lib/ai/operations';
+import { aiClient } from '@/lib/ai/client';
+import { useItineraryStore } from '@/components/planner/itinerary/store';
 import type { Itinerary } from '@/types/itinerary';
 import type { ChatMessage } from '@/types/chat';
 
@@ -31,11 +32,12 @@ interface ChatPanelProps {
   itinerary: Itinerary;
   isOpen: boolean;
   onClose: () => void;
-  onItineraryUpdate: (itinerary: Itinerary) => void;
 }
 
-export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: ChatPanelProps) {
+export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
+  const applyOperations = useItineraryStore((state) => state.applyOperations);
+
   const [input, setInput] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
@@ -77,9 +79,6 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     const assistantMessageId = crypto.randomUUID();
 
     try {
-      // Import AI client
-      const { aiClient } = await import('@/lib/ai/client');
-      
       // Create streaming assistant message (Requirement 18.2)
       let streamingContent = '';
       
@@ -126,8 +125,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
 
       // Apply itinerary operations if present
       if (result.operations) {
-        const updatedItinerary = await applyOperations(itinerary, result.operations);
-        onItineraryUpdate(updatedItinerary);
+        await applyOperations(result.operations);
       }
     } catch (error) {
       console.error('Chat error:', error);
@@ -142,7 +140,7 @@ export function ChatPanel({ itinerary, isOpen, onClose, onItineraryUpdate }: Cha
     } finally {
       setIsStreaming(false);
     }
-  }, [input, isStreaming, messages, itinerary, addMessage, onItineraryUpdate]);
+  }, [input, isStreaming, messages, itinerary, addMessage, applyOperations]);
 
   return (
     <div className="h-full flex flex-col bg-background">

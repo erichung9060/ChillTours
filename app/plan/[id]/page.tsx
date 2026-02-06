@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ItineraryPanel } from '@/components/planner/itinerary-panel';
@@ -17,6 +17,7 @@ import { MapPanel } from '@/components/planner/map-panel';
 import { ChatPanel } from '@/components/planner/chat-panel';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
+import { useItineraryStore } from '@/components/planner/itinerary/store';
 import type { Itinerary } from '@/types/itinerary';
 
 // Panel width constraints
@@ -44,25 +45,28 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
 export default function PlanningPage() {
   const params = useParams();
   const itineraryId = params.id as string;
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+
+  // Store Lifecycle & Data
+  const fetchItinerary = useItineraryStore((state) => state.fetchItinerary);
+  const itinerary = useItineraryStore((state) => state.itinerary);
+  const isLoading = useItineraryStore((state) => state.isLoading);
+  const error = useItineraryStore((state) => state.error);
+  const hoveredDayNumber = useItineraryStore((state) => state.hoveredDayNumber);
+  const hoveredActivityId = useItineraryStore((state) => state.hoveredActivityId);
+
+  // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
-  const [itinerary, setItinerary] = useState<Itinerary | null>(null);
   const [viewMode, setViewMode] = useState<'expandable' | 'single-day' | 'side-by-side'>('side-by-side');
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
-  
-  const [hoveredDayNumber, setHoveredDayNumber] = useState<number | null>(null);
-  const [hoveredActivityId, setHoveredActivityId] = useState<string | null>(null);
 
   // Derived state for selected day in single-day view
-  const selectedDayNumber = viewMode === 'single-day' && itinerary 
-    ? itinerary.days[currentDayIndex]?.day_number 
+  const selectedDayNumber = viewMode === 'single-day' && itinerary
+    ? itinerary.days[currentDayIndex]?.day_number
     : null;
 
   // Reset currentDayIndex when switching to single-day mode or when itinerary changes
@@ -75,387 +79,10 @@ export default function PlanningPage() {
     }
   }, [viewMode, itinerary, currentDayIndex]);
 
-  // Load itinerary data
+  // Load itinerary data via Store Action
   useEffect(() => {
-    async function loadItinerary() {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        // TODO: Implement actual itinerary loading from database
-        // For now, use mock data
-        
-        // Simulate loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock itinerary for development
-        const mockItinerary: Itinerary = {
-          id: itineraryId,
-          user_id: 'mock-user-id',
-          title: 'Tokyo Adventure',
-          destination: 'Tokyo, Japan',
-          start_date: '2026-03-01',
-          end_date: '2026-03-05',
-          days: [
-            {
-              day_number: 1,
-              date: '2026-03-01',
-              activities: [
-                {
-                  id: crypto.randomUUID(),
-                  time: '09:00',
-                  title: 'Arrive at Narita Airport',
-                  description: 'Take the Narita Express to Tokyo Station',
-                  location: {
-                    name: 'Narita International Airport',
-                    lat: 35.7647,
-                    lng: 140.3864,
-                  },
-                  duration_minutes: 120,
-                  order: 0,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '14:00',
-                  title: 'Check into Hotel',
-                  description: 'Drop off luggage and freshen up',
-                  location: {
-                    name: 'Shibuya Hotel',
-                    lat: 35.6595,
-                    lng: 139.7004,
-                  },
-                  duration_minutes: 60,
-                  order: 1,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '16:00',
-                  title: 'Explore Shibuya Crossing',
-                  description: 'Visit the famous scramble crossing and surrounding area',
-                  location: {
-                    name: 'Shibuya Crossing',
-                    lat: 35.6595,
-                    lng: 139.7004,
-                  },
-                  duration_minutes: 120,
-                  order: 2,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '19:00',
-                  title: 'Dinner at Ichiran Ramen',
-                  description: 'Try authentic tonkotsu ramen at this famous chain',
-                  location: {
-                    name: 'Ichiran Shibuya',
-                    lat: 35.6627,
-                    lng: 139.6989,
-                  },
-                  duration_minutes: 90,
-                  order: 3,
-                },
-              ],
-            },
-            {
-              day_number: 2,
-              date: '2026-03-02',
-              activities: [
-                {
-                  id: crypto.randomUUID(),
-                  time: '08:00',
-                  title: 'Tsukiji Outer Market',
-                  description: 'Fresh sushi breakfast and explore the market',
-                  location: {
-                    name: 'Tsukiji Outer Market',
-                    lat: 35.6654,
-                    lng: 139.7707,
-                  },
-                  duration_minutes: 120,
-                  order: 0,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '11:00',
-                  title: 'Senso-ji Temple',
-                  description: 'Visit Tokyo\'s oldest temple in Asakusa',
-                  location: {
-                    name: 'Senso-ji Temple',
-                    lat: 35.7148,
-                    lng: 139.7967,
-                  },
-                  duration_minutes: 90,
-                  order: 1,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '13:00',
-                  title: 'Lunch at Nakamise Shopping Street',
-                  description: 'Try traditional Japanese street food',
-                  location: {
-                    name: 'Nakamise Shopping Street',
-                    lat: 35.7119,
-                    lng: 139.7965,
-                  },
-                  duration_minutes: 60,
-                  order: 2,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '15:00',
-                  title: 'Tokyo Skytree',
-                  description: 'Panoramic views from the observation deck',
-                  location: {
-                    name: 'Tokyo Skytree',
-                    lat: 35.7101,
-                    lng: 139.8107,
-                  },
-                  duration_minutes: 120,
-                  order: 3,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '18:30',
-                  title: 'Dinner in Akihabara',
-                  description: 'Explore the electric town and have dinner at a themed cafe',
-                  location: {
-                    name: 'Akihabara Electric Town',
-                    lat: 35.7022,
-                    lng: 139.7744,
-                  },
-                  duration_minutes: 150,
-                  order: 4,
-                },
-              ],
-            },
-            {
-              day_number: 3,
-              date: '2026-03-03',
-              activities: [
-                {
-                  id: crypto.randomUUID(),
-                  time: '09:00',
-                  title: 'Meiji Shrine',
-                  description: 'Peaceful shrine surrounded by forest in the heart of Tokyo',
-                  location: {
-                    name: 'Meiji Shrine',
-                    lat: 35.6764,
-                    lng: 139.6993,
-                  },
-                  duration_minutes: 90,
-                  order: 0,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '11:00',
-                  title: 'Harajuku Takeshita Street',
-                  description: 'Explore trendy fashion and unique shops',
-                  location: {
-                    name: 'Takeshita Street',
-                    lat: 35.6702,
-                    lng: 139.7037,
-                  },
-                  duration_minutes: 120,
-                  order: 1,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '13:30',
-                  title: 'Lunch at Omotesando',
-                  description: 'Upscale dining in Tokyo\'s Champs-Élysées',
-                  location: {
-                    name: 'Omotesando',
-                    lat: 35.6652,
-                    lng: 139.7125,
-                  },
-                  duration_minutes: 90,
-                  order: 2,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '16:00',
-                  title: 'teamLab Borderless',
-                  description: 'Immersive digital art museum experience',
-                  location: {
-                    name: 'teamLab Borderless',
-                    lat: 35.6251,
-                    lng: 139.7753,
-                  },
-                  duration_minutes: 150,
-                  order: 3,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '19:30',
-                  title: 'Dinner at Odaiba',
-                  description: 'Waterfront dining with Rainbow Bridge views',
-                  location: {
-                    name: 'Odaiba Seaside Park',
-                    lat: 35.6297,
-                    lng: 139.7744,
-                  },
-                  duration_minutes: 120,
-                  order: 4,
-                },
-              ],
-            },
-            {
-              day_number: 4,
-              date: '2026-03-04',
-              activities: [
-                {
-                  id: crypto.randomUUID(),
-                  time: '08:00',
-                  title: 'Day Trip to Mount Fuji',
-                  description: 'Scenic bus tour to Japan\'s iconic mountain',
-                  location: {
-                    name: 'Mount Fuji 5th Station',
-                    lat: 35.3606,
-                    lng: 138.7274,
-                  },
-                  duration_minutes: 180,
-                  order: 0,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '12:00',
-                  title: 'Lunch at Kawaguchiko',
-                  description: 'Local cuisine with lake and mountain views',
-                  location: {
-                    name: 'Lake Kawaguchi',
-                    lat: 35.5131,
-                    lng: 138.7634,
-                  },
-                  duration_minutes: 90,
-                  order: 1,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '14:00',
-                  title: 'Oshino Hakkai',
-                  description: 'Eight sacred ponds with crystal clear spring water',
-                  location: {
-                    name: 'Oshino Hakkai',
-                    lat: 35.4564,
-                    lng: 138.8419,
-                  },
-                  duration_minutes: 90,
-                  order: 2,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '16:30',
-                  title: 'Return to Tokyo',
-                  description: 'Bus ride back to the city',
-                  location: {
-                    name: 'Shinjuku Station',
-                    lat: 35.6896,
-                    lng: 139.7006,
-                  },
-                  duration_minutes: 150,
-                  order: 3,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '20:00',
-                  title: 'Dinner at Shinjuku',
-                  description: 'Explore the vibrant nightlife and dining scene',
-                  location: {
-                    name: 'Omoide Yokocho',
-                    lat: 35.6938,
-                    lng: 139.7009,
-                  },
-                  duration_minutes: 120,
-                  order: 4,
-                },
-              ],
-            },
-            {
-              day_number: 5,
-              date: '2026-03-05',
-              activities: [
-                {
-                  id: crypto.randomUUID(),
-                  time: '09:00',
-                  title: 'Imperial Palace East Gardens',
-                  description: 'Stroll through the beautiful palace gardens',
-                  location: {
-                    name: 'Imperial Palace East Gardens',
-                    lat: 35.6852,
-                    lng: 139.7528,
-                  },
-                  duration_minutes: 120,
-                  order: 0,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '11:30',
-                  title: 'Ginza Shopping District',
-                  description: 'Luxury shopping and window browsing',
-                  location: {
-                    name: 'Ginza',
-                    lat: 35.6717,
-                    lng: 139.7650,
-                  },
-                  duration_minutes: 150,
-                  order: 1,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '14:30',
-                  title: 'Last Minute Souvenir Shopping',
-                  description: 'Pick up gifts and souvenirs at Tokyo Station',
-                  location: {
-                    name: 'Tokyo Station',
-                    lat: 35.6812,
-                    lng: 139.7671,
-                  },
-                  duration_minutes: 90,
-                  order: 2,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '16:30',
-                  title: 'Check out from Hotel',
-                  description: 'Collect luggage and head to the airport',
-                  location: {
-                    name: 'Shibuya Hotel',
-                    lat: 35.6595,
-                    lng: 139.7004,
-                  },
-                  duration_minutes: 60,
-                  order: 3,
-                },
-                {
-                  id: crypto.randomUUID(),
-                  time: '18:00',
-                  title: 'Depart from Narita Airport',
-                  description: 'Check-in and departure',
-                  location: {
-                    name: 'Narita International Airport',
-                    lat: 35.7647,
-                    lng: 140.3864,
-                  },
-                  duration_minutes: 180,
-                  order: 4,
-                },
-              ],
-            },
-          ],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          shared_with: [],
-        };
-
-        setItinerary(mockItinerary);
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Failed to load itinerary:', err);
-        setError('Failed to load itinerary. Please try again.');
-        setIsLoading(false);
-      }
-    }
-
-    loadItinerary();
-  }, [itineraryId]);
+    fetchItinerary(itineraryId);
+  }, [itineraryId, fetchItinerary]);
 
   // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
   useEffect(() => {
@@ -464,11 +91,6 @@ export default function PlanningPage() {
       setItineraryPanelWidth(initialWidth);
     }
   }, [itinerary?.days.length]); // Only recalculate when days count changes
-
-  // Handle itinerary updates
-  const handleItineraryUpdate = (updatedItinerary: Itinerary) => {
-    setItinerary(updatedItinerary);
-  };
 
   // Handle fullscreen mode change
   const handleFullscreenChange = (isFullscreen: boolean) => {
@@ -559,7 +181,7 @@ export default function PlanningPage() {
           <ErrorMessage
             title="Failed to Load Itinerary"
             message={error || 'Itinerary not found'}
-            onRetry={() => window.history.back()}
+            onRetry={() => fetchItinerary(itineraryId)}
           />
         </main>
       </>
@@ -573,13 +195,11 @@ export default function PlanningPage() {
         {/* Three-panel layout (Requirement 4.1) */}
         <div className="flex-1 flex overflow-hidden">
           {/* Itinerary Panel (Requirement 4.2) - Resizable */}
-          <div 
+          <div
             className={`hidden md:block border-r border-border overflow-y-auto relative ${!isMapVisible ? 'flex-1' : ''}`}
             style={isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined}
           >
             <ItineraryPanel
-              itinerary={itinerary}
-              onUpdate={handleItineraryUpdate}
               onFullscreenChange={handleFullscreenChange}
               onToggleChat={toggleChat}
               isChatOpen={isChatOpen}
@@ -587,8 +207,6 @@ export default function PlanningPage() {
               onViewModeChange={setViewMode}
               currentDayIndex={currentDayIndex}
               onCurrentDayChange={setCurrentDayIndex}
-              onDayHover={setHoveredDayNumber}
-              onActivityHover={setHoveredActivityId}
             />
             
             {/* Resize Handle - Only show when map is visible */}
@@ -604,8 +222,6 @@ export default function PlanningPage() {
           {/* Mobile: Full-width Itinerary Panel */}
           <div className="md:hidden w-full border-r border-border overflow-y-auto">
             <ItineraryPanel
-              itinerary={itinerary}
-              onUpdate={handleItineraryUpdate}
               onFullscreenChange={handleFullscreenChange}
               onToggleChat={toggleChat}
               isChatOpen={isChatOpen}
@@ -613,15 +229,13 @@ export default function PlanningPage() {
               onViewModeChange={setViewMode}
               currentDayIndex={currentDayIndex}
               onCurrentDayChange={setCurrentDayIndex}
-              onDayHover={setHoveredDayNumber}
-              onActivityHover={setHoveredActivityId}
             />
           </div>
 
           {/* Center Panel: Map (Requirement 4.3) - Conditionally rendered */}
           {isMapVisible && (
             <div className="hidden md:flex flex-1 relative">
-              <MapPanel 
+              <MapPanel
                 itinerary={itinerary}
                 hoveredDayNumber={hoveredDayNumber}
                 hoveredActivityId={hoveredActivityId}
@@ -647,7 +261,6 @@ export default function PlanningPage() {
                 itinerary={itinerary}
                 isOpen={isChatOpen}
                 onClose={() => setIsChatOpen(false)}
-                onItineraryUpdate={handleItineraryUpdate}
               />
             </div>
           )}

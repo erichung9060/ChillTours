@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -28,24 +28,35 @@ import {
   ExpandableView,
   SingleDayView,
   SideBySideView,
-  calculateDragOverUpdate,
 } from './itinerary';
 import type { ItineraryPanelProps, ViewMode } from './itinerary';
 import type { Activity } from '@/types/itinerary';
+import { useItineraryStore } from './itinerary/store';
 
 export function ItineraryPanel({
-  itinerary,
-  onUpdate,
   onFullscreenChange,
   onToggleChat,
   isChatOpen,
   viewMode: externalViewMode,
   onViewModeChange,
-  onDayHover,
-  onActivityHover,
   currentDayIndex,
   onCurrentDayChange,
 }: ItineraryPanelProps) {
+  // Store state - Read itinerary directly from store
+  const itinerary = useItineraryStore((state) => state.itinerary);
+  const draggingActivityId = useItineraryStore((state) => state.draggingActivityId);
+  const crossDayDragInfo = useItineraryStore((state) => state.crossDayDragInfo);
+  const setDraggingActivityId = useItineraryStore((state) => state.setDraggingActivityId);
+  const setCrossDayDragInfo = useItineraryStore((state) => state.setCrossDayDragInfo);
+  const handleDragOverAction = useItineraryStore((state) => state.handleDragOver);
+  const setHoveredDay = useItineraryStore((state) => state.setHoveredDay);
+  const setHoveredActivity = useItineraryStore((state) => state.setHoveredActivity);
+
+  // Early return if no itinerary loaded
+  if (!itinerary) {
+    return null;
+  }
+
   // View mode state
   const [internalViewMode, setInternalViewMode] = useState<ViewMode>('side-by-side');
   const viewMode = externalViewMode ?? internalViewMode;
@@ -56,13 +67,6 @@ export function ItineraryPanel({
   const [expandedDays, setExpandedDays] = useState<Set<number>>(
     new Set(itinerary.days.map(day => day.day_number))
   );
-
-  // Drag and drop state
-  const [draggingActivityId, setDraggingActivityId] = useState<string | null>(null);
-  const [crossDayDragInfo, setCrossDayDragInfo] = useState<{
-    sourceDayNumber: number;
-    targetDayNumber: number;
-  } | null>(null);
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
@@ -110,56 +114,15 @@ export function ItineraryPanel({
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
-
-    if (!over) {
-      setCrossDayDragInfo(null);
-      return;
-    }
-
     const activeData = active.data.current;
-    const overData = over.data.current;
+    const overData = over?.data.current;
 
-    if (!activeData || !overData) return;
-    if (active.id === over.id) return;
-
-    const result = calculateDragOverUpdate(
-      active,
-      over,
-      activeData,
-      overData,
-      itinerary
-    );
-
-    if (result) {
-      setCrossDayDragInfo(result.crossDayInfo);
-      onUpdate(result.newItinerary);
-    }
+    handleDragOverAction(active, over, activeData, overData);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     setDraggingActivityId(null);
     setCrossDayDragInfo(null);
-  };
-
-  const handleActivityUpdate = (updatedActivity: Activity) => {
-    const newDays = itinerary.days.map((day) => {
-      const activityIndex = day.activities.findIndex((a) => a.id === updatedActivity.id);
-      if (activityIndex === -1) return day;
-
-      const newActivities = [...day.activities];
-      newActivities[activityIndex] = updatedActivity;
-
-      return {
-        ...day,
-        activities: newActivities,
-      };
-    });
-
-    onUpdate({
-      ...itinerary,
-      days: newDays,
-      updated_at: new Date().toISOString(),
-    });
   };
 
   // Get the active activity for drag overlay
@@ -178,9 +141,8 @@ export function ItineraryPanel({
         crossDayDragInfo={crossDayDragInfo}
         expandedDays={expandedDays}
         toggleDay={toggleDay}
-        onDayHover={onDayHover}
-        onActivityHover={onActivityHover}
-        onActivityUpdate={handleActivityUpdate}
+        onDayHover={setHoveredDay}
+        onActivityHover={setHoveredActivity}
       />
     ),
     'single-day': () => (
@@ -191,8 +153,7 @@ export function ItineraryPanel({
         crossDayDragInfo={crossDayDragInfo}
         goToPreviousDay={goToPreviousDay}
         goToNextDay={goToNextDay}
-        onActivityHover={onActivityHover}
-        onActivityUpdate={handleActivityUpdate}
+        onActivityHover={setHoveredActivity}
       />
     ),
     'side-by-side': () => (
@@ -200,9 +161,8 @@ export function ItineraryPanel({
         itinerary={itinerary}
         draggingActivityId={draggingActivityId}
         crossDayDragInfo={crossDayDragInfo}
-        onDayHover={onDayHover}
-        onActivityHover={onActivityHover}
-        onActivityUpdate={handleActivityUpdate}
+        onDayHover={setHoveredDay}
+        onActivityHover={setHoveredActivity}
       />
     ),
   };

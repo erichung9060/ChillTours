@@ -17,7 +17,6 @@ export function DayActivitiesList({
     draggingActivityId,
     crossDayDragInfo,
     onActivityHover,
-    onActivityUpdate,
 }: DayActivitiesListProps) {
     const activities = day.activities;
     const itemIds = useMemo(() => activities.map((activity) => activity.id), [activities]);
@@ -44,7 +43,6 @@ export function DayActivitiesList({
                         dayNumber={day.day_number}
                         onActivityHover={onActivityHover}
                         disableAnimation={crossDayDragInfo?.targetDayNumber === day.day_number}
-                        onActivityUpdate={onActivityUpdate}
                     />
                 ))}
             </div>

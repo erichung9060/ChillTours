@@ -16,7 +16,6 @@ export function SideBySideView({
     crossDayDragInfo,
     onDayHover,
     onActivityHover,
-    onActivityUpdate,
 }: SideBySideViewProps) {
     const formatDayInfo = (date: string) => {
         const dayDate = new Date(date);
@@ -55,7 +54,6 @@ export function SideBySideView({
                                         draggingActivityId={draggingActivityId}
                                         crossDayDragInfo={crossDayDragInfo}
                                         onActivityHover={onActivityHover}
-                                        onActivityUpdate={onActivityUpdate}
                                     />
                                 </CardContent>
                             </Card>
