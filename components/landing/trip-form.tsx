@@ -85,7 +85,7 @@ export function TripForm() {
                 Where to next?
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <span className="absolute left-3 top-5 -translate-y-1/2 text-muted-foreground">
                   📍
                 </span>
                 <Input
