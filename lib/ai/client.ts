@@ -14,7 +14,7 @@ import type { Itinerary, ChatMessage } from "@/types";
 import { StreamingJSONParser } from "./streaming-parser";
 import { parseItinerary, extractJSON } from "./parser";
 import { parseOperations, type OperationsUpdate } from "./operations";
-import { supabase } from "@/lib/supabase/client";
+import { getAccessToken } from "@/lib/supabase/client";
 
 /**
  * Error types for AI API
@@ -78,8 +78,7 @@ export class AIClient {
     const { destination, startDate, endDate, customRequirements, userId } =
       options;
 
-    // Get auth token if user is logged in
-    const token = await this.getAuthToken();
+    const token = await getAccessToken();
 
     const response = await fetch("/api/generate-itinerary", {
       method: "POST",
@@ -150,8 +149,7 @@ export class AIClient {
   ): Promise<{ message: string; operations?: OperationsUpdate }> {
     const { message, history, context } = options;
 
-    // Get auth token if user is logged in
-    const token = await this.getAuthToken();
+    const token = await getAccessToken();
 
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -297,30 +295,6 @@ export class AIClient {
     }
 
     return new AIError(errorMessage, errorCode);
-  }
-
-  /**
-   * Get authentication token from Supabase session
-   *
-   * @returns Access token or null if not logged in
-   */
-  private async getAuthToken(): Promise<string | null> {
-    try {
-      // Only run on client-side
-      if (typeof window === "undefined") {
-        return null;
-      }
-
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      // 返回用戶的 access token（這是真正的 JWT）
-      return session?.access_token || null;
-    } catch (error) {
-      console.warn("Failed to get auth token:", error);
-      return null;
-    }
   }
 }
 

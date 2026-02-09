@@ -68,6 +68,11 @@ export async function getCurrentSession() {
   return session;
 }
 
+export async function getAccessToken(): Promise<string | null> {
+  const session = await getCurrentSession();
+  return session?.access_token ?? null;
+}
+
 /**
  * Sign out the current user
  * Requirements: 1.5
