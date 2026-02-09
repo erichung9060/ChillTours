@@ -88,3 +88,14 @@ export async function signOut() {
   // Clear session storage (chat history, etc.)
   sessionStorage.clear();
 }
+
+export async function handleAuthCallback(code: string) {
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    console.error("Error exchanging code for session:", error);
+    throw error;
+  }
+
+  return data;
+}
