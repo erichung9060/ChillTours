@@ -1,4 +1,4 @@
-# TripAI Travel Planner
+# CheerTour Travel Planner
 
 An AI-powered travel planning web application built with Next.js 15, React, Supabase, and Google Gemini 2.0 Flash.
 

@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 
 export const metadata: Metadata = {
-  title: "TripAI - AI-Powered Travel Planner",
+  title: "CheerTour - AI-Powered Travel Planner",
   description: "Create personalized travel itineraries with AI assistance",
 };
 
