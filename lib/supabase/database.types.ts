@@ -56,6 +56,7 @@ export interface Database {
           destination: string;
           start_date: string;
           end_date: string;
+          requirements: string | null;
           data: Json | null;
           created_at: string;
           updated_at: string;
@@ -67,6 +68,7 @@ export interface Database {
           destination: string;
           start_date: string;
           end_date: string;
+          requirements?: string | null;
           data?: Json | null;
           created_at?: string;
           updated_at?: string;
@@ -78,6 +80,7 @@ export interface Database {
           destination?: string;
           start_date?: string;
           end_date?: string;
+          requirements?: string | null;
           data?: Json | null;
           created_at?: string;
           updated_at?: string;

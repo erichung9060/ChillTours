@@ -71,6 +71,7 @@ export function TripForm() {
         destination,
         start_date: formattedStart,
         end_date: formattedEnd,
+        requirements: vibe.trim() || undefined,
       });
 
       router.push(`/plan/${itinerary.id}`);

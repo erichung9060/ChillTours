@@ -49,6 +49,7 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     destination: row.destination,
     start_date: row.start_date,
     end_date: row.end_date,
+    requirements: row.requirements || undefined,
     days: data?.days || [],
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -67,6 +68,7 @@ function itineraryToInsert(
     destination: itinerary.destination,
     start_date: itinerary.start_date,
     end_date: itinerary.end_date,
+    requirements: itinerary.requirements || null,
     data: {
       days: itinerary.days,
     } as Json,
@@ -88,6 +90,7 @@ export async function createItineraryMetadata(metadata: {
   destination: string;
   start_date: string;
   end_date: string;
+  requirements?: string;
 }): Promise<Itinerary> {
   const insertData: ItineraryInsert = {
     user_id: metadata.user_id,
@@ -95,6 +98,7 @@ export async function createItineraryMetadata(metadata: {
     destination: metadata.destination,
     start_date: metadata.start_date,
     end_date: metadata.end_date,
+    requirements: metadata.requirements || null,
   };
 
   const { data, error } = await (supabase
@@ -221,6 +225,8 @@ export async function updateItinerary(
   if (updates.start_date !== undefined)
     updateData.start_date = updates.start_date;
   if (updates.end_date !== undefined) updateData.end_date = updates.end_date;
+  if (updates.requirements !== undefined)
+    updateData.requirements = updates.requirements || null;
 
   if (updates.days !== undefined) {
     updateData.data = {
