@@ -185,8 +185,8 @@ describe("useItineraryChat", () => {
       .mockImplementation(() => {});
 
     // Mock localStorage.setItem to throw an error
-    const originalSetItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = vi.fn(() => {
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = vi.fn(() => {
       throw new Error("QuotaExceededError");
     });
 
@@ -210,7 +210,7 @@ describe("useItineraryChat", () => {
     expect(consoleErrorSpy).toHaveBeenCalled();
 
     // Restore
-    Storage.prototype.setItem = originalSetItem;
+    localStorage.setItem = originalSetItem;
     consoleErrorSpy.mockRestore();
   });
 

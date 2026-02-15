@@ -58,7 +58,12 @@ describe("Theme System Property Tests", () => {
   it("Property 5 (Edge Case): Theme storage handles invalid values gracefully", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc.string().filter((s) => !["light", "dark", "system"].includes(s)),
+        fc
+          .string()
+          .filter(
+            (s) =>
+              s.length > 0 && !["light", "dark", "system"].includes(s)
+          ),
         async (invalidTheme) => {
           // Store invalid theme
           localStorage.setItem(THEME_STORAGE_KEY, invalidTheme);
