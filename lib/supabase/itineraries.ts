@@ -49,10 +49,10 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     destination: row.destination,
     start_date: row.start_date,
     end_date: row.end_date,
-    days: data.days || [],
+    days: data?.days || [],
     created_at: row.created_at,
     updated_at: row.updated_at,
-    shared_with: data.shared_with || [],
+    shared_with: data?.shared_with || [],
   };
 }
 
@@ -73,6 +73,56 @@ function itineraryToInsert(
       shared_with: itinerary.shared_with,
     } as Json,
   };
+}
+
+/**
+ * Create itinerary metadata only (without days/activities)
+ * Used for "metadata-first" creation flow
+ *
+ * @param metadata - The itinerary metadata to save
+ * @returns The created itinerary with empty days array
+ * @throws FreeTierLimitError if user has reached free tier limit
+ * @throws Error if save fails
+ */
+export async function createItineraryMetadata(metadata: {
+  user_id: string;
+  title: string;
+  destination: string;
+  start_date: string;
+  end_date: string;
+}): Promise<Itinerary> {
+  const insertData: ItineraryInsert = {
+    user_id: metadata.user_id,
+    title: metadata.title,
+    destination: metadata.destination,
+    start_date: metadata.start_date,
+    end_date: metadata.end_date,
+  };
+
+  const { data, error } = await (supabase
+    .from("itineraries")
+    // @ts-ignore - Supabase type inference issue with complex Json types
+    .insert(insertData)
+    .select()
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+  if (error) {
+    // Check if it's a free tier limit error
+    if (
+      error.message.includes("Free tier users can only create 3 itineraries")
+    ) {
+      throw new FreeTierLimitError();
+    }
+
+    console.error("Error creating itinerary metadata:", error);
+    throw new Error(`Failed to create itinerary metadata: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("No data returned from insert operation");
+  }
+
+  return rowToItinerary(data);
 }
 
 /**

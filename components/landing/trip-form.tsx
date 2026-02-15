@@ -1,14 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingDestinations } from "./trending-destinations";
 import { DateRangePicker } from "./date-range-picker";
+import { getCurrentUser } from "@/lib/supabase/client";
+import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 
 export function TripForm() {
+  const router = useRouter();
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
@@ -17,10 +21,11 @@ export function TripForm() {
   const [errors, setErrors] = useState<{
     destination?: string;
     dates?: string;
+    general?: string;
   }>({});
 
   const validateForm = () => {
-    const newErrors: { destination?: string; dates?: string } = {};
+    const newErrors: { destination?: string; dates?: string; general?: string } = {};
 
     // Validate destination (required, non-empty)
     if (!destination.trim()) {
@@ -44,23 +49,41 @@ export function TripForm() {
     }
 
     setIsLoading(true);
+    setErrors({});
 
-    // Format dates for API
-    const formattedStart = startDate?.toISOString().split("T")[0];
-    const formattedEnd = endDate?.toISOString().split("T")[0];
+    try {
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        setErrors({ general: "You must be logged in to create an itinerary" });
+        setIsLoading(false);
+        return;
+      }
 
-    // TODO: Navigate to planning interface with form data
-    // For now, just simulate loading
-    setTimeout(() => {
-      console.log("Form submitted:", {
+      const formattedStart = startDate!.toISOString().split("T")[0];
+      const formattedEnd = endDate!.toISOString().split("T")[0];
+
+      const title = `${destination} Trip`;
+
+      const itinerary = await createItineraryMetadata({
+        user_id: user.id,
+        title,
         destination,
-        startDate: formattedStart,
-        endDate: formattedEnd,
-        vibe,
+        start_date: formattedStart,
+        end_date: formattedEnd,
+      });
+
+      router.push(`/plan/${itinerary.id}`);
+    } catch (error) {
+      console.error("Error creating itinerary:", error);
+      setErrors({
+        general:
+          error instanceof Error
+            ? error.message
+            : "Failed to create itinerary. Please try again.",
       });
       setIsLoading(false);
-      // router.push(`/plan/new?destination=${encodeURIComponent(destination)}&startDate=${formattedStart}&endDate=${formattedEnd}&vibe=${encodeURIComponent(vibe)}`);
-    }, 1000);
+    }
   };
 
   const handleDestinationClick = (dest: string) => {
@@ -141,6 +164,13 @@ export function TripForm() {
               className="min-h-[120px] resize-none"
             />
           </div>
+
+          {/* General Error Message */}
+          {errors.general && (
+            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+              <p className="text-sm text-destructive">{errors.general}</p>
+            </div>
+          )}
 
           {/* Submit Button */}
           <Button
