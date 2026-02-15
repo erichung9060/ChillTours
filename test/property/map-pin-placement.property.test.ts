@@ -82,7 +82,6 @@ const arbitraryItinerary = (): fc.Arbitrary<Itinerary> =>
         baseDate.setDate(baseDate.getDate() + days);
         return baseDate.toISOString();
       }),
-      shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
     })
     .filter((it) => it.end_date >= it.start_date);
 
@@ -195,7 +194,6 @@ describe("Map Pin Placement Property Tests", () => {
       ],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      shared_with: [],
     };
 
     const totalActivities = emptyItinerary.days.reduce(
@@ -225,7 +223,6 @@ describe("Map Pin Placement Property Tests", () => {
             })),
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            shared_with: [],
           };
 
           const totalActivities = itinerary.days.reduce(

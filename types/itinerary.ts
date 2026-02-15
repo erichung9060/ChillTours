@@ -68,7 +68,6 @@ export const ItinerarySchema = z
     days: z.array(DaySchema).min(1),
     created_at: z.iso.datetime(),
     updated_at: z.iso.datetime(),
-    shared_with: z.array(z.uuid()),
   })
   .refine((data) => data.end_date >= data.start_date, {
     message: "End date must be on or after start date",

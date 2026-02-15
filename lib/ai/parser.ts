@@ -63,7 +63,6 @@ export async function parseItinerary(
       days: await parseDays(daysArray, startDate),
       created_at: data.created_at || new Date().toISOString(),
       updated_at: data.updated_at || new Date().toISOString(),
-      shared_with: data.shared_with || [],
     };
 
     // Validate against schema

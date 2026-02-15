@@ -68,7 +68,6 @@ describe("Property 22: Itinerary Database Persistence", () => {
               end_date: savedItinerary.end_date,
               data: {
                 days: savedItinerary.days,
-                shared_with: savedItinerary.shared_with,
               },
               created_at: savedItinerary.created_at,
               updated_at: savedItinerary.updated_at,
@@ -89,8 +88,6 @@ describe("Property 22: Itinerary Database Persistence", () => {
         expect(result.start_date).toBe(itineraryToSave.start_date);
         expect(result.end_date).toBe(itineraryToSave.end_date);
         expect(result.days).toEqual(itineraryToSave.days);
-        expect(result.shared_with).toEqual(itineraryToSave.shared_with);
-
         // Verify generated fields exist
         expect(result.id).toBeDefined();
         expect(result.created_at).toBeDefined();
@@ -121,7 +118,6 @@ describe("Property 22: Itinerary Database Persistence", () => {
               end_date: itinerary.end_date,
               data: {
                 days: itinerary.days,
-                shared_with: itinerary.shared_with,
               },
               created_at: itinerary.created_at,
               updated_at: itinerary.updated_at,
@@ -143,7 +139,6 @@ describe("Property 22: Itinerary Database Persistence", () => {
         expect(result.start_date).toBe(itinerary.start_date);
         expect(result.end_date).toBe(itinerary.end_date);
         expect(result.days).toEqual(itinerary.days);
-        expect(result.shared_with).toEqual(itinerary.shared_with);
         expect(result.created_at).toBe(itinerary.created_at);
         expect(result.updated_at).toBe(itinerary.updated_at);
 
@@ -244,7 +239,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
               end_date: itineraryToSave.end_date,
               data: {
                 days: itineraryToSave.days,
-                shared_with: itineraryToSave.shared_with,
               },
               created_at: savedCreatedAt,
               updated_at: savedUpdatedAt,
@@ -272,7 +266,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
               end_date: saved.end_date,
               data: {
                 days: saved.days,
-                shared_with: saved.shared_with,
               },
               created_at: saved.created_at,
               updated_at: saved.updated_at,
@@ -294,7 +287,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
         expect(loaded.start_date).toBe(itineraryToSave.start_date);
         expect(loaded.end_date).toBe(itineraryToSave.end_date);
         expect(loaded.days).toEqual(itineraryToSave.days);
-        expect(loaded.shared_with).toEqual(itineraryToSave.shared_with);
         expect(loaded.created_at).toBe(saved.created_at);
         expect(loaded.updated_at).toBe(saved.updated_at);
 
@@ -350,7 +342,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
               end_date: itineraryToSave.end_date,
               data: {
                 days: itineraryToSave.days,
-                shared_with: itineraryToSave.shared_with,
               },
               created_at: savedCreatedAt,
               updated_at: savedUpdatedAt,
@@ -376,7 +367,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
               end_date: saved.end_date,
               data: {
                 days: saved.days,
-                shared_with: saved.shared_with,
               },
               created_at: saved.created_at,
               updated_at: saved.updated_at,

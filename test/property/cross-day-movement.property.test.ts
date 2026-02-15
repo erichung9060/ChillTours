@@ -119,7 +119,6 @@ describe("Cross-Day Activity Movement Property Tests", () => {
           ],
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-          shared_with: [],
         };
 
         return itinerary;
@@ -690,7 +689,6 @@ describe("Cross-Day Activity Movement Property Tests", () => {
                 ],
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
-                shared_with: [],
               };
               return itinerary;
             }

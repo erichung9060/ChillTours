@@ -1,3 +1,5 @@
+import { vi } from "vitest";
+
 /**
  * Test utility functions and helpers
  */
@@ -57,7 +59,6 @@ export function createMockItinerary() {
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    shared_with: [],
   };
 }
 

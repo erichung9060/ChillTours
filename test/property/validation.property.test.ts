@@ -68,7 +68,6 @@ describe("Data Model Validation Properties", () => {
             days: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            shared_with: [],
           });
           expect(result.success).toBe(false);
         }),
@@ -89,7 +88,6 @@ describe("Data Model Validation Properties", () => {
             days: [],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            shared_with: [],
           });
           expect(result.success).toBe(false);
         }),
@@ -264,7 +262,6 @@ describe("Data Model Validation Properties", () => {
             ],
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-            shared_with: [],
           });
 
           // Should succeed if end_date >= start_date

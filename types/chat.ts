@@ -48,7 +48,6 @@ export const PartialItineraryUpdateSchema = z.object({
   days: z.array(DaySchema).min(1).optional(),
   created_at: z.iso.datetime().optional(),
   updated_at: z.iso.datetime().optional(),
-  shared_with: z.array(z.uuid()).optional(),
 });
 
 export const StreamingResponseMetadataSchema = z.object({

@@ -83,7 +83,6 @@ export const itineraryArbitrary = fc.record({
       max: new Date("2030-12-31").getTime(),
     })
     .map((ts) => new Date(ts).toISOString()),
-  shared_with: fc.array(fc.uuid(), { maxLength: 5 }),
 });
 
 /**

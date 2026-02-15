@@ -61,7 +61,6 @@ function parseItinerary(aiResponse: string): Itinerary | null {
       days,
       created_at: now,
       updated_at: now,
-      shared_with: parsed.shared_with || [],
     };
   } catch (error) {
     return null;

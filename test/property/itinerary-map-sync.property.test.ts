@@ -119,12 +119,12 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
             days: itinerary.days.map((day, index) =>
               index === 0
                 ? {
-                    ...day,
-                    activities: [
-                      ...day.activities,
-                      { ...validNewActivity, order: day.activities.length },
-                    ],
-                  }
+                  ...day,
+                  activities: [
+                    ...day.activities,
+                    { ...validNewActivity, order: day.activities.length },
+                  ],
+                }
                 : day
             ),
           };
@@ -232,13 +232,13 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
                     activities: day.activities.map((a, idx) =>
                       idx === activityIndex
                         ? {
-                            ...a,
-                            location: {
-                              ...a.location,
-                              lat: newLat,
-                              lng: newLng,
-                            },
-                          }
+                          ...a,
+                          location: {
+                            ...a.location,
+                            lat: newLat,
+                            lng: newLng,
+                          },
+                        }
                         : a
                     ),
                   };
@@ -310,7 +310,6 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
       ],
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      shared_with: [],
     };
 
     const activities = extractActivitiesWithDay(emptyItinerary);

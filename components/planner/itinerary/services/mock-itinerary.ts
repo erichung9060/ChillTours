@@ -361,7 +361,6 @@ export const loadItinerary = async (id: string): Promise<Itinerary> => {
     ],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    shared_with: [],
   };
 
   return mockItinerary;

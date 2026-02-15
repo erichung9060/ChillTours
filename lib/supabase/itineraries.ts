@@ -52,7 +52,6 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     days: data?.days || [],
     created_at: row.created_at,
     updated_at: row.updated_at,
-    shared_with: data?.shared_with || [],
   };
 }
 
@@ -70,7 +69,6 @@ function itineraryToInsert(
     end_date: itinerary.end_date,
     data: {
       days: itinerary.days,
-      shared_with: itinerary.shared_with,
     } as Json,
   };
 }
@@ -224,15 +222,9 @@ export async function updateItinerary(
     updateData.start_date = updates.start_date;
   if (updates.end_date !== undefined) updateData.end_date = updates.end_date;
 
-  if (updates.days !== undefined || updates.shared_with !== undefined) {
-    // Need to merge with existing data
-    const existing = await loadItinerary(id);
+  if (updates.days !== undefined) {
     updateData.data = {
-      days: updates.days !== undefined ? updates.days : existing.days,
-      shared_with:
-        updates.shared_with !== undefined
-          ? updates.shared_with
-          : existing.shared_with,
+      days: updates.days,
     } as Json;
   }
 
