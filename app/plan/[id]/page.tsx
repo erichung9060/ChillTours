@@ -29,17 +29,17 @@ const PANEL_PADDING = 35; // Padding inside the panel
 
 // Calculate initial itinerary panel width based on number of days
 const calculateInitialItineraryWidth = (numDays: number): number => {
-  if (typeof window === "undefined") return 500; // SSR fallback
+  if (typeof window === "undefined") return 500;
+
+  if (numDays === 0) return 500;
 
   const windowWidth = window.innerWidth;
-  const minMapWidth = windowWidth * 0.25; // Map must be at least 1/4 of screen
+  const minMapWidth = windowWidth * 0.25;
   const maxItineraryWidth = windowWidth - minMapWidth;
 
-  // Calculate width needed to show all days
   const neededWidth =
     numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING;
 
-  // Return the smaller of needed width or max allowed width
   return Math.min(neededWidth, maxItineraryWidth);
 };
 

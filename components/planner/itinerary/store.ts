@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { Itinerary, Activity } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
-import { loadItinerary } from "./services/mock-itinerary";
+import { loadItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 
 interface ItineraryState {
