@@ -50,6 +50,7 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     start_date: row.start_date,
     end_date: row.end_date,
     requirements: row.requirements || undefined,
+    status: row.status,
     days: data?.days || [],
     created_at: row.created_at,
     updated_at: row.updated_at,
