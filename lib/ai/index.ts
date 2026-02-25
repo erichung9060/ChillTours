@@ -7,12 +7,11 @@
 
 export { AIClient, aiClient, AIError } from "./client";
 export type {
-  GenerateItineraryOptions,
   ChatOptions,
-  StreamingCallback,
+  SSEActivityEvent,
+  SSECompleteEvent,
+  SSEErrorEvent,
 } from "./client";
-
-export { StreamingJSONParser } from "./streaming-parser";
 
 export { parseItinerary, extractJSON } from "./parser";
 
