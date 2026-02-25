@@ -13,7 +13,7 @@ export type {
   SSEErrorEvent,
 } from "./client";
 
-export { parseItinerary, extractJSON } from "./parser";
+export { extractJSON } from "./parser";
 
 export {
   parseOperations,
