@@ -4,12 +4,18 @@ import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
+import { aiClient } from "@/lib/ai/client";
 
 interface ItineraryState {
   // Data State
   itinerary: Itinerary | null;
   isLoading: boolean;
   error: string | null;
+
+  // Generation State
+  isGenerating: boolean;
+  generationAbortController: AbortController | null;
+  pollingIntervalId: ReturnType<typeof setInterval> | null;
 
   // Interaction State
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
@@ -20,6 +26,13 @@ interface ItineraryState {
   // Actions
   setItinerary: (itinerary: Itinerary) => void;
   updateActivity: (updatedActivity: Activity) => void;
+
+  // Generation Actions
+  startStreaming: (itineraryId: string) => Promise<void>;
+  addActivity: (dayNumber: number, activity: Activity, startDate: string) => void;
+  completeGeneration: () => void;
+  startPolling: (itineraryId: string) => void;
+  stopPolling: () => void;
 
   // Lifecycle Actions
   fetchItinerary: (id: string) => Promise<void>;
@@ -47,6 +60,9 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   itinerary: null,
   isLoading: false,
   error: null,
+  isGenerating: false,
+  generationAbortController: null,
+  pollingIntervalId: null,
   crossDayDragInfo: null,
   draggingActivityId: null,
   hoveredDayNumber: null,
@@ -103,6 +119,132 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         },
       };
     }),
+
+  // Generation Actions
+  addActivity: (dayNumber, activity, startDate) =>
+    set((state) => {
+      if (!state.itinerary) return state;
+
+      const days = [...state.itinerary.days];
+      const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
+
+      if (existingDayIdx !== -1) {
+        days[existingDayIdx] = {
+          ...days[existingDayIdx],
+          activities: [...days[existingDayIdx].activities, activity],
+        };
+      } else {
+        // Calculate date using explicit UTC parsing to avoid timezone issues
+        const [year, month, day] = startDate.split("-").map(Number);
+        const dateObj = new Date(Date.UTC(year, month - 1, day));
+        dateObj.setUTCDate(dateObj.getUTCDate() + (dayNumber - 1));
+        const date = dateObj.toISOString().split("T")[0];
+
+        days.push({ day_number: dayNumber, date, activities: [activity] });
+        days.sort((a, b) => a.day_number - b.day_number);
+      }
+
+      return {
+        itinerary: {
+          ...state.itinerary,
+          days,
+          updated_at: new Date().toISOString(),
+        },
+      };
+    }),
+
+  completeGeneration: () =>
+    set({ isGenerating: false, generationAbortController: null }),
+
+  startStreaming: async (itineraryId) => {
+    const state = get();
+
+    // Concurrency guard: abort any in-flight stream (handles React StrictMode double-invoke)
+    if (state.generationAbortController) {
+      state.generationAbortController.abort();
+    }
+
+    const controller = new AbortController();
+    set({ isGenerating: true, generationAbortController: controller });
+
+    try {
+      await aiClient.streamItinerary(
+        itineraryId,
+        // onActivity
+        (data) => {
+          const startDate = get().itinerary?.start_date ?? "";
+          get().addActivity(data.day_number, data.activity, startDate);
+        },
+        // onComplete
+        () => {
+          get().completeGeneration();
+        },
+        // onError
+        (data) => {
+          console.error("Generation error from server:", data.message);
+          set({ isGenerating: false, error: data.message, generationAbortController: null });
+        },
+        controller.signal
+      );
+    } catch (err) {
+      // AbortError is expected on cleanup — not a real error
+      if (err instanceof Error && err.name === "AbortError") return;
+      if (err instanceof Error && err.message === "ALREADY_GENERATING") {
+        // 發現已經在生成中，平滑切換到 Polling 模式
+        get().startPolling(itineraryId);
+        return;
+      }
+      console.error("Stream failed:", err);
+      set({
+        isGenerating: false,
+        error: "Generation failed. Please try again.",
+        generationAbortController: null,
+      });
+    }
+  },
+
+  startPolling: (itineraryId) => {
+    const existing = get().pollingIntervalId;
+    if (existing) clearInterval(existing);
+
+    set({ isGenerating: true });
+
+    let attempts = 0;
+    const MAX_ATTEMPTS = 100; // ~5 minutes at 3s interval
+
+    const intervalId = setInterval(async () => {
+      attempts++;
+
+      if (attempts > MAX_ATTEMPTS) {
+        get().stopPolling();
+        set({ error: "Generation timed out. Please try again." });
+        return;
+      }
+
+      try {
+        const data = await loadItinerary(itineraryId);
+        if (data.status === "completed") {
+          get().stopPolling();
+          set({ itinerary: data, isGenerating: false });
+        } else if (data.status === "failed") {
+          get().stopPolling();
+          set({ isGenerating: false, error: "Generation failed. Please try again." });
+        }
+        // status === "generating" → keep polling
+      } catch (err) {
+        console.error("Polling error:", err);
+        // Transient errors: keep polling
+      }
+    }, 3000);
+
+    set({ pollingIntervalId: intervalId });
+  },
+
+  stopPolling: () => {
+    const { pollingIntervalId } = get();
+    if (pollingIntervalId) clearInterval(pollingIntervalId);
+    set({ pollingIntervalId: null, isGenerating: false });
+  },
 
   // Drag & Drop Logic
   handleDragOver: (active, over, activeData, overData) => {
