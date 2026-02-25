@@ -108,7 +108,7 @@ export default function PlanningPage() {
     if (!itinerary) return;
 
     if (
-      (itinerary.status === "draft" || !itinerary.status) &&
+      (!itinerary.status || itinerary.status === "draft" || itinerary.status === "failed") &&
       itinerary.days.length === 0
     ) {
       // Fresh itinerary — trigger SSE streaming
