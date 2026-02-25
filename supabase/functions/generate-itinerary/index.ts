@@ -170,6 +170,7 @@ Deno.serve(async (req) => {
       }
 
       // Unknown error
+      console.error("Failed to start generation:", updateError, "Current status:", currentRow?.status);
       return new Response(
         JSON.stringify({ error: "Failed to start generation", code: "UPDATE_FAILED" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
