@@ -19,13 +19,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { destination, startDate, endDate, custom_requirements } = body;
+    const { itinerary_id } = body;
 
     // Validate required fields
-    if (!destination || !startDate || !endDate) {
+    if (!itinerary_id) {
       return new Response(
         JSON.stringify({
-          error: "Missing required fields: destination, startDate, or endDate",
+          error: "Missing required field: itinerary_id",
         }),
         {
           status: 400,
@@ -65,8 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("🔑 Proxying request to Edge Function");
-    console.log("📍 Destination:", destination);
-    console.log("📅 Dates:", startDate, "to", endDate);
+    console.log("📍 Itinerary ID:", itinerary_id);
 
     // ✅ CORRECT: Use fetch() for streaming support
     // DO NOT use supabase.functions.invoke() - it doesn't support streaming!
@@ -79,10 +78,7 @@ export async function POST(request: NextRequest) {
           Authorization: authHeader,
         },
         body: JSON.stringify({
-          destination,
-          startDate,
-          endDate,
-          custom_requirements,
+          itinerary_id,
         }),
       }
     );
@@ -119,9 +115,9 @@ export async function POST(request: NextRequest) {
     // This maintains the streaming capability
     return new Response(response.body, {
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        Connection: "keep-alive",
+        "Connection": "keep-alive",
       },
     });
   } catch (error) {
