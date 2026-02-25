@@ -1,17 +1,19 @@
 import { GoogleGenerativeAI } from "npm:@google/generative-ai";
+import { JSONParser } from "npm:@streamparser/json";
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 
 interface GenerateItineraryRequest {
-  destination: string;
-  startDate: string;
-  endDate: string;
-  custom_requirements?: string;
+  itinerary_id: string;
 }
 
-/**
- * Build a structured prompt for itinerary generation
- */
+function createSupabaseAdminClient() {
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  return createClient(url, serviceKey);
+}
+
 function buildItineraryPrompt(
   destination: string,
   startDate: string,
@@ -23,14 +25,12 @@ function buildItineraryPrompt(
   const duration =
     Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-  let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} starting from ${startDate} to ${endDate}.
+  let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
-IMPORTANT: You must respond with a valid JSON object that follows this exact structure:
+Respond ONLY with a valid JSON object in this exact structure, no markdown, no extra text:
 
 {
-  "title": "Trip to [Destination]",
-  "destination": "${destination}",
-  "days": [
+  "itinerary": [
     {
       "day_number": 1,
       "activities": [
@@ -51,134 +51,271 @@ IMPORTANT: You must respond with a valid JSON object that follows this exact str
 }
 
 Requirements:
-- Generate exactly ${duration} days, numbered 1 to ${duration}.
-- Do NOT include a "date" field in the JSON for days; only use "day_number".
+- Generate exactly ${duration} days, numbered 1 to ${duration}
 - Each day should have 3-5 activities
-- Include realistic times (HH:MM format in 24-hour)
-- Provide accurate GPS coordinates (lat/lng) for each location
-- Duration should be in minutes (typical: 60-240 minutes per activity)
-- Activities should be ordered chronologically within each day
-`;
+- Use 24-hour HH:MM time format
+- Provide accurate GPS coordinates for each location
+- duration_minutes should be between 60 and 240
+- Activities must be in chronological order within each day`;
 
   if (customRequirements) {
-    prompt += `\nCustom Requirements: ${customRequirements}\n`;
+    prompt += `\n- Custom requirements: ${customRequirements}`;
   }
-
-  prompt += `\nRespond ONLY with the JSON object, no additional text or markdown formatting.`;
 
   return prompt;
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // 驗證用戶是否已登入
     const user = await verifyUser(req);
-
     if (!user) {
       return new Response(
-        JSON.stringify({
-          error: "Unauthorized. Please log in to generate itineraries.",
-          code: "UNAUTHORIZED",
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Unauthorized.", code: "UNAUTHORIZED" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Parse request body
-    const {
-      destination,
-      startDate,
-      endDate,
-      custom_requirements,
-    }: GenerateItineraryRequest = await req.json();
+    const { itinerary_id }: GenerateItineraryRequest = await req.json();
 
-    // Validate required fields
-    if (!destination || !startDate || !endDate) {
+    if (!itinerary_id) {
       return new Response(
-        JSON.stringify({
-          error: "Missing required fields: destination, startDate, or endDate",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Missing required field: itinerary_id" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Get Gemini API key from environment
+    const modelName = Deno.env.get("GEMINI_MODEL");
+    if (!modelName) {
+      console.error("GEMINI_MODEL env var not configured");
+      return new Response(
+        JSON.stringify({ error: "Internal server error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
-      console.error("GEMINI_API_KEY not configured");
+      console.error("GEMINI_API_KEY env var not configured");
       return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ error: "Internal server error" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Initialize Gemini AI
+    const supabase = createSupabaseAdminClient();
+
+    // Fetch itinerary from DB — single source of truth + implicit ownership check
+    // (service role reads all rows; we verify user_id matches the authenticated user)
+    const { data: itineraryRow, error: fetchError } = await supabase
+      .from("itineraries")
+      .select("id, user_id, destination, start_date, end_date, requirements, status")
+      .eq("id", itinerary_id)
+      .single();
+
+    if (fetchError || !itineraryRow) {
+      return new Response(
+        JSON.stringify({ error: "Itinerary not found", code: "NOT_FOUND" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Ownership check: ensure the itinerary belongs to the authenticated user
+    if (itineraryRow.user_id !== user.userId) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden", code: "FORBIDDEN" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { destination, start_date: startDate, end_date: endDate, requirements } = itineraryRow;
+
+    // Atomic concurrency guard: use conditional update to prevent race conditions
+    // Only allow transition from draft/failed to generating
+    const { data: updateResult, error: updateError } = await supabase
+      .from("itineraries")
+      .update({ status: "generating" })
+      .eq("id", itinerary_id)
+      .or("status.eq.draft,status.eq.failed,status.is.null")
+      .select("id")
+      .single();
+
+    if (updateError || !updateResult) {
+      // Update failed — either already generating or already completed
+      // Re-fetch to get current status for accurate error message
+      const { data: currentRow } = await supabase
+        .from("itineraries")
+        .select("status")
+        .eq("id", itinerary_id)
+        .single();
+
+      if (currentRow?.status === "generating") {
+        return new Response(
+          JSON.stringify({ error: "Generation already in progress", code: "ALREADY_GENERATING" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (currentRow?.status === "completed") {
+        return new Response(
+          JSON.stringify({ error: "Itinerary already generated", code: "ALREADY_COMPLETED" }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // Unknown error
+      return new Response(
+        JSON.stringify({ error: "Failed to start generation", code: "UPDATE_FAILED" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
+    const model = genAI.getGenerativeModel({ model: modelName });
+    const prompt = buildItineraryPrompt(destination, startDate, endDate, requirements ?? undefined);
 
-    // Build prompt
-    const prompt = buildItineraryPrompt(
-      destination,
-      startDate,
-      endDate,
-      custom_requirements
-    );
-
-    // Generate content with streaming
-    const result = await model.generateContentStream(prompt);
-
-    // Set up streaming response
     const stream = new ReadableStream({
       async start(controller) {
+        const encoder = new TextEncoder();
+        let clientDisconnected = false;
+
+        function emitSSE(eventType: string, data: object) {
+          if (clientDisconnected) return;
+          try {
+            const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
+            controller.enqueue(encoder.encode(message));
+          } catch (e) {
+            console.log("Client disconnected, background generation continuing...");
+            clientDisconnected = true;
+          }
+        }
+
+        // Track days and activities for DB save
+        const dayMap = new Map<number, {
+          day_number: number;
+          date: string;
+          activities: object[];
+        }>();
+
+        // @streamparser/json: fire onValue for each complete activity object
+        // paths: ["$.itinerary.*.activities.*"] means each activity in each day
+        const parser = new JSONParser({ paths: ["$.itinerary.*.activities.*"] });
+
+        parser.onValue = ({ value, key, parent, stack }: { value: unknown; key: unknown; parent: unknown; stack: unknown }) => {
+          const activity = value as {
+            time: string;
+            title: string;
+            description: string;
+            location: { name: string; lat: number; lng: number };
+            duration_minutes: number;
+          };
+
+          if (!activity.time || !activity.title) return;
+
+          // Extract day_number from JSONPath stack
+          // stack format: [root, "itinerary", dayIndex, "activities", activityIndex]
+          // Each element is a StackElement { key, value, partial }
+          const dayIndex = (stack as any[])[2].key as number;
+          const day_number = dayIndex + 1; // Convert 0-based index to 1-based day number
+
+          // Calculate actual date for this day using explicit UTC parsing
+          // Avoid timezone issues by using Date.UTC instead of new Date(string)
+          const [year, month, day] = startDate.split("-").map(Number);
+          const dateObj = new Date(Date.UTC(year, month - 1, day));
+          dateObj.setUTCDate(dateObj.getUTCDate() + dayIndex);
+          const date = dateObj.toISOString().split("T")[0];
+
+          // Add UUID and order
+          const activityWithId = {
+            ...activity,
+            id: crypto.randomUUID(),
+            order: dayMap.get(day_number)?.activities.length ?? 0,
+          };
+
+          // Emit immediately
+          emitSSE("activity", {
+            day_number,
+            activity: activityWithId,
+          });
+
+          // Accumulate for DB save
+          if (!dayMap.has(day_number)) {
+            dayMap.set(day_number, { day_number, date, activities: [] });
+          }
+          dayMap.get(day_number)!.activities.push(activityWithId);
+        };
+
         try {
-          // Stream chunks from Gemini
+          const result = await model.generateContentStream(prompt);
+
           for await (const chunk of result.stream) {
             const text = chunk.text();
             if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
+              parser.write(text);
             }
           }
-          controller.close();
+
+          // Convert map to sorted array
+          const allDays = Array.from(dayMap.values()).sort((a, b) => a.day_number - b.day_number);
+
+          // Save complete itinerary to DB
+          const { error: updateError } = await supabase
+            .from("itineraries")
+            .update({
+              status: "completed",
+              data: { days: allDays },
+            })
+            .eq("id", itinerary_id);
+
+          if (updateError) {
+            console.error("Failed to save itinerary to DB:", updateError);
+            await supabase
+              .from("itineraries")
+              .update({ status: "failed" })
+              .eq("id", itinerary_id);
+            emitSSE("error", { message: "Internal server error" });
+            if (!clientDisconnected) {
+              try { controller.close(); } catch (e) {}
+            }
+            return;
+          }
+
+          emitSSE("complete", {});
+          if (!clientDisconnected) {
+            try { controller.close(); } catch (e) {}
+          }
         } catch (error) {
-          console.error("Error during streaming:", error);
-          controller.error(error);
+          console.error("Streaming error:", error);
+
+          await supabase
+            .from("itineraries")
+            .update({ status: "failed" })
+            .eq("id", itinerary_id);
+
+          emitSSE("error", { message: "Internal server error" });
+          if (!clientDisconnected) {
+            try { controller.close(); } catch (e) {}
+          }
         }
       },
     });
 
-    // Return streaming response
     return new Response(stream, {
       headers: {
         ...corsHeaders,
-        "Content-Type": "text/plain; charset=utf-8",
+        "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        Connection: "keep-alive",
+        "Connection": "keep-alive",
       },
     });
   } catch (error) {
-    console.error("Error in generate-itinerary function:", error);
+    console.error("Handler error:", error);
     return new Response(
-      JSON.stringify({
-        error: error instanceof Error ? error.message : "Internal server error",
-      }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
