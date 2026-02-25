@@ -56,6 +56,10 @@ export default function PlanningPage() {
   const hoveredActivityId = useItineraryStore(
     (state) => state.hoveredActivityId
   );
+  const isGenerating = useItineraryStore((state) => state.isGenerating);
+  const startStreaming = useItineraryStore((state) => state.startStreaming);
+  const startPolling = useItineraryStore((state) => state.startPolling);
+  const stopPolling = useItineraryStore((state) => state.stopPolling);
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -99,6 +103,28 @@ export default function PlanningPage() {
       setItineraryPanelWidth(initialWidth);
     }
   }, [itinerary?.days.length]); // Only recalculate when days count changes
+
+  useEffect(() => {
+    if (!itinerary) return;
+
+    if (
+      (itinerary.status === "draft" || !itinerary.status) &&
+      itinerary.days.length === 0
+    ) {
+      // Fresh itinerary — trigger SSE streaming
+      startStreaming(itinerary.id); // metadata read from DB in Edge Function
+    } else if (itinerary.status === "generating") {
+      // User returned mid-generation — use polling
+      startPolling(itinerary.id);
+    }
+
+    return () => {
+      // Cleanup: stop polling and abort any in-flight SSE streaming
+      stopPolling();
+      const controller = useItineraryStore.getState().generationAbortController;
+      controller?.abort();
+    };
+  }, [itinerary?.id, itinerary?.status]);
 
   // Handle fullscreen mode change
   const handleFullscreenChange = (isFullscreen: boolean) => {
@@ -184,16 +210,27 @@ export default function PlanningPage() {
     );
   }
 
-  if (error || !itinerary) {
+  if (error) {
     return (
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
           <ErrorMessage
             title="Failed to Load Itinerary"
-            message={error || "Itinerary not found"}
+            message={error}
             onRetry={() => fetchItinerary(itineraryId)}
           />
+        </main>
+      </>
+    );
+  }
+
+  if (!itinerary) {
+    return (
+      <>
+        <Header />
+        <main className="min-h-screen flex items-center justify-center pt-16">
+          <Loading size="lg" text="Loading your itinerary..." />
         </main>
       </>
     );
@@ -202,6 +239,33 @@ export default function PlanningPage() {
   return (
     <>
       <Header />
+      {isGenerating && (
+        <div className="fixed top-16 left-0 right-0 z-50 flex justify-center pointer-events-none">
+          <div className="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border rounded-full px-4 py-2 shadow-lg pointer-events-auto mt-2">
+            <svg
+              className="animate-spin h-4 w-4 text-primary"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            <span className="text-sm font-medium">Generating your itinerary...</span>
+          </div>
+        </div>
+      )}
       <main className="h-screen flex flex-col pt-16">
         {/* Three-panel layout (Requirement 4.1) */}
         <div className="flex-1 flex overflow-hidden">
