@@ -11,8 +11,7 @@
  */
 
 import type { Itinerary, ChatMessage } from "@/types";
-import { StreamingJSONParser } from "./streaming-parser";
-import { parseItinerary, extractJSON } from "./parser";
+import { extractJSON } from "./parser";
 import { parseOperations, type OperationsUpdate } from "./operations";
 import { getAccessToken } from "@/lib/supabase/client";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
@@ -72,78 +71,6 @@ export type StreamingCallback = (
  * Provides methods for interacting with AI API through Next.js API Routes
  */
 export class AIClient {
-  /**
-   * Generate an itinerary with streaming support
-   *
-   * @param options - Generation options
-   * @param onChunk - Callback for each streaming chunk
-   * @returns Complete parsed itinerary
-   * @throws AIError if generation fails
-   */
-  async generateItinerary(
-    options: GenerateItineraryOptions,
-    onChunk?: StreamingCallback
-  ): Promise<Itinerary> {
-    const { destination, startDate, endDate, customRequirements, userId } =
-      options;
-
-    const token = await getAccessToken();
-
-    const response = await fetch("/api/generate-itinerary", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      body: JSON.stringify({
-        destination,
-        startDate,
-        endDate,
-        custom_requirements: customRequirements,
-      }),
-    });
-
-    if (!response.ok) {
-      throw await this.handleErrorResponse(response);
-    }
-
-    if (!response.body) {
-      throw new AIError("No response body received", "NO_RESPONSE_BODY");
-    }
-
-    // Stream and parse response
-    const parser = new StreamingJSONParser();
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-
-        // Try to parse partial JSON
-        const partial = parser.appendChunk(chunk);
-
-        // Notify callback with chunk and partial data
-        if (onChunk) {
-          onChunk(chunk, partial);
-        }
-      }
-
-      // Parse final complete itinerary
-      const finalJSON = parser.getBuffer();
-      const extracted = extractJSON(finalJSON) || finalJSON;
-      return await parseItinerary(extracted, userId, startDate);
-    } catch (error) {
-      throw new AIError(
-        `Failed to parse streaming response: ${error instanceof Error ? error.message : "Unknown error"}`,
-        "PARSE_ERROR"
-      );
-    }
-  }
-
   async streamItinerary(
     itineraryId: string,
     onActivity: (data: SSEActivityEvent) => void,
