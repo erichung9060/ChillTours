@@ -14,6 +14,16 @@ function createSupabaseAdminClient() {
   return createClient(url, serviceKey);
 }
 
+function createSupabaseClient(authHeader: string) {
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  return createClient(url, anonKey, {
+    global: {
+      headers: { Authorization: authHeader },
+    },
+  });
+}
+
 function buildItineraryPrompt(
   destination: string,
   startDate: string,
@@ -107,17 +117,7 @@ Deno.serve(async (req) => {
     }
 
     const supabaseAdmin = createSupabaseAdminClient();
-
-    // Create user client to rely on RLS
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const supabaseClient = createSupabaseClient(req.headers.get("Authorization")!);
 
     // Fetch itinerary from DB — relying on RLS to enforce user ownership
     const { data: itineraryRow, error: fetchError } = await supabaseClient
