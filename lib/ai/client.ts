@@ -15,6 +15,15 @@ import { StreamingJSONParser } from "./streaming-parser";
 import { parseItinerary, extractJSON } from "./parser";
 import { parseOperations, type OperationsUpdate } from "./operations";
 import { getAccessToken } from "@/lib/supabase/client";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import type { Activity } from "@/types/itinerary";
+
+export type SSEActivityEvent = {
+  day_number: number;
+  activity: Activity;
+};
+export type SSECompleteEvent = {};
+export type SSEErrorEvent = { message: string };
 
 /**
  * Error types for AI API
@@ -133,6 +142,59 @@ export class AIClient {
         "PARSE_ERROR"
       );
     }
+  }
+
+  async streamItinerary(
+    itineraryId: string,
+    onActivity: (data: SSEActivityEvent) => void,
+    onComplete: () => void,
+    onError: (data: SSEErrorEvent) => void,
+    signal: AbortSignal
+  ): Promise<void> {
+    const token = await getAccessToken();
+
+    // Capture handleErrorResponse reference to avoid 'this' binding issues
+    const handleError = this.handleErrorResponse.bind(this);
+
+    await fetchEventSource("/api/generate-itinerary", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        itinerary_id: itineraryId,
+      }),
+      signal,
+      async onopen(response) {
+        if (response.status === 409) {
+          throw new Error("ALREADY_GENERATING");
+        }
+        if (!response.ok) {
+          throw await handleError(response);
+        }
+        if (!response.headers.get("content-type")?.includes("text/event-stream")) {
+          throw new AIError("Invalid content type", "INVALID_CONTENT_TYPE");
+        }
+      },
+      onmessage(msg) {
+        // fetchEventSource automatically parses SSE format and provides event type
+        if (msg.event === "activity") {
+          const data = JSON.parse(msg.data) as SSEActivityEvent;
+          onActivity(data);
+        } else if (msg.event === "complete") {
+          onComplete();
+        } else if (msg.event === "error") {
+          const data = JSON.parse(msg.data) as SSEErrorEvent;
+          onError(data);
+        }
+      },
+      onerror(err) {
+        // Prevent automatic reconnection by throwing
+        throw err;
+      },
+      openWhenHidden: true, // Continue streaming even when tab is hidden
+    });
   }
 
   /**
