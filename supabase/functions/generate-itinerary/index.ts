@@ -106,11 +106,21 @@ Deno.serve(async (req) => {
       );
     }
 
-    const supabase = createSupabaseAdminClient();
+    const supabaseAdmin = createSupabaseAdminClient();
 
-    // Fetch itinerary from DB — single source of truth + implicit ownership check
-    // (service role reads all rows; we verify user_id matches the authenticated user)
-    const { data: itineraryRow, error: fetchError } = await supabase
+    // Create user client to rely on RLS
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      }
+    );
+
+    // Fetch itinerary from DB — relying on RLS to enforce user ownership
+    const { data: itineraryRow, error: fetchError } = await supabaseClient
       .from("itineraries")
       .select("id, user_id, destination, start_date, end_date, requirements, status")
       .eq("id", itinerary_id)
@@ -118,16 +128,8 @@ Deno.serve(async (req) => {
 
     if (fetchError || !itineraryRow) {
       return new Response(
-        JSON.stringify({ error: "Itinerary not found", code: "NOT_FOUND" }),
+        JSON.stringify({ error: "Itinerary not found or forbidden", code: "NOT_FOUND" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Ownership check: ensure the itinerary belongs to the authenticated user
-    if (itineraryRow.user_id !== user.userId) {
-      return new Response(
-        JSON.stringify({ error: "Forbidden", code: "FORBIDDEN" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -135,7 +137,8 @@ Deno.serve(async (req) => {
 
     // Atomic concurrency guard: use conditional update to prevent race conditions
     // Only allow transition from draft/failed to generating
-    const { data: updateResult, error: updateError } = await supabase
+    // Using Admin client to bypass RLS for background updates
+    const { data: updateResult, error: updateError } = await supabaseAdmin
       .from("itineraries")
       .update({ status: "generating" })
       .eq("id", itinerary_id)
@@ -146,7 +149,7 @@ Deno.serve(async (req) => {
     if (updateError || !updateResult) {
       // Update failed — either already generating or already completed
       // Re-fetch to get current status for accurate error message
-      const { data: currentRow } = await supabase
+      const { data: currentRow } = await supabaseAdmin
         .from("itineraries")
         .select("status")
         .eq("id", itinerary_id)
@@ -262,7 +265,7 @@ Deno.serve(async (req) => {
           const allDays = Array.from(dayMap.values()).sort((a, b) => a.day_number - b.day_number);
 
           // Save complete itinerary to DB
-          const { error: updateError } = await supabase
+          const { error: updateError } = await supabaseAdmin
             .from("itineraries")
             .update({
               status: "completed",
@@ -272,7 +275,7 @@ Deno.serve(async (req) => {
 
           if (updateError) {
             console.error("Failed to save itinerary to DB:", updateError);
-            await supabase
+            await supabaseAdmin
               .from("itineraries")
               .update({ status: "failed" })
               .eq("id", itinerary_id);
@@ -290,7 +293,7 @@ Deno.serve(async (req) => {
         } catch (error) {
           console.error("Streaming error:", error);
 
-          await supabase
+          await supabaseAdmin
             .from("itineraries")
             .update({ status: "failed" })
             .eq("id", itinerary_id);
