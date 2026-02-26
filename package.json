@@ -22,6 +22,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@supabase/supabase-js": "^2.89.0",
+    "@vercel/analytics": "^1.6.1",
     "@vis.gl/react-google-maps": "^1.7.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
