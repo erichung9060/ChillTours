@@ -6,6 +6,9 @@ import { AuthProvider } from "@/lib/auth/auth-context";
 export const metadata: Metadata = {
   title: "CheerTour - AI-Powered Travel Planner",
   description: "Create personalized travel itineraries with AI assistance",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

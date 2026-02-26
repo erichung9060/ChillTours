@@ -33,3 +33,6 @@ export {
 export type { DialogProps, DialogContentProps } from "./dialog";
 
 export { ThemeToggle } from "./theme-toggle";
+
+export { Logo } from "./logo";
+export type { LogoProps } from "./logo";
