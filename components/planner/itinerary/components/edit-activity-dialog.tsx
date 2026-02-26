@@ -78,7 +78,7 @@ export function EditActivityDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
         <form onSubmit={handleSave}>
           <DialogHeader>
             <DialogTitle>Edit Activity</DialogTitle>
