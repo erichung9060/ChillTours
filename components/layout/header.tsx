@@ -51,13 +51,8 @@ export function Header() {
           ) : (
             <>
               <Link href="/auth/login">
-                <Button variant="ghost" size="sm">
+                <Button size="sm">
                   Log in
-                </Button>
-              </Link>
-              <Link href="/auth/login">
-                <Button variant="primary" size="sm">
-                  Signup
                 </Button>
               </Link>
             </>
