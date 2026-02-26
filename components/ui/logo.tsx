@@ -55,7 +55,7 @@ export function Logo({ className = "", showText = true, size = "md" }: LogoProps
       {/* Logo Text */}
       {showText && (
         <span className={`${textSizeClasses[size]} font-bold text-foreground`}>
-          CheerTour
+          ChillTour
         </span>
       )}
     </Link>

@@ -37,7 +37,7 @@ export default function LoginPage() {
           {/* Logo/Title */}
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-              CheerTour
+              ChillTour
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               Your AI-powered travel companion

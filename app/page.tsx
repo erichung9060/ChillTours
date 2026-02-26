@@ -17,7 +17,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="py-4 text-center text-sm text-muted-foreground border-t border-border/40">
-          <p>© 2026 CheerTour. Made for the curious</p>
+          <p>© 2026 ChillTour. Made for the curious</p>
         </footer>
       </main>
     </>
