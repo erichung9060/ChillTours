@@ -152,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error: null,
       });
 
-      router.push("/auth/login");
+      router.push("/");
     } catch (error) {
       setState((prev) => ({
         ...prev,

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingDestinations } from "./trending-destinations";
 import { DateRangePicker } from "./date-range-picker";
+import { LoginDialog } from "@/components/auth/login-dialog";
 import { getCurrentUser } from "@/lib/supabase/client";
 import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 
@@ -18,6 +19,7 @@ export function TripForm() {
   const [endDate, setEndDate] = useState<Date>();
   const [vibe, setVibe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const [errors, setErrors] = useState<{
     destination?: string;
     dates?: string;
@@ -55,7 +57,7 @@ export function TripForm() {
       const user = await getCurrentUser();
       
       if (!user) {
-        setErrors({ general: "You must be logged in to create an itinerary" });
+        setLoginOpen(true);
         setIsLoading(false);
         return;
       }
@@ -96,6 +98,7 @@ export function TripForm() {
   };
 
   return (
+    <>
     <Card className="w-full max-w-2xl mx-auto">
       <CardContent className="p-6 md:p-8">
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -231,5 +234,8 @@ export function TripForm() {
         <TrendingDestinations onDestinationClick={handleDestinationClick} />
       </CardContent>
     </Card>
+
+    <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+    </>
   );
 }

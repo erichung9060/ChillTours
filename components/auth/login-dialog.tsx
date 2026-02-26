@@ -1,26 +1,21 @@
-/**
- * Login Page
- *
- * Provides Google OAuth authentication for users.
- * Requirements: 1.1, 1.3
- */
-
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
-export default function LoginPage() {
-  const { user, signInWithGoogle, loading, error } = useAuth();
-  const router = useRouter();
+interface LoginDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user && !loading) {
-      router.push("/");
-    }
-  }, [user, loading, router]);
+export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+  const { signInWithGoogle, loading, error } = useAuth();
 
   const handleSignIn = async () => {
     try {
@@ -31,20 +26,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-          {/* Logo/Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-              ChillTour
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Your AI-powered travel companion
-            </p>
-          </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent onClose={() => onOpenChange(false)} className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            ChillTour
+          </DialogTitle>
+          <DialogDescription className="text-center">
+            Your AI-powered travel companion
+          </DialogDescription>
+        </DialogHeader>
 
-          {/* Sign-in Button */}
+        <div className="mt-6">
           <button
             onClick={handleSignIn}
             disabled={loading}
@@ -80,7 +73,6 @@ export default function LoginPage() {
             )}
           </button>
 
-          {/* Error Message */}
           {error && (
             <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <p className="text-sm text-red-600 dark:text-red-400">
@@ -89,12 +81,11 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Info Text */}
           <p className="mt-6 text-xs text-center text-gray-500 dark:text-gray-400">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
