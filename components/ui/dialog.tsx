@@ -92,7 +92,7 @@ const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
           <button
             onClick={onClose}
             className={cn(
-              "absolute right-4 top-4 rounded-lg p-1.5",
+              "absolute right-4 top-4 rounded-lg p-1.5 z-20",
               "opacity-70 ring-offset-background",
               "transition-all duration-200 ease-out",
               "hover:opacity-100 hover:bg-accent hover:scale-110",
