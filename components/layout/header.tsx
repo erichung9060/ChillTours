@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
@@ -23,6 +24,14 @@ export function Header() {
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
+                <Link href="/itineraries">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
+                    My Itineraries
+                  </Button>
+                </Link>
                 <div className="flex items-center gap-2">
                   {user.user_metadata?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
