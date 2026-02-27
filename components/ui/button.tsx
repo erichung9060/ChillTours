@@ -71,11 +71,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "dark:hover:shadow-md dark:hover:shadow-primary/10":
               variant === "outline",
 
-            "hover:bg-accent hover:text-accent-foreground text-muted-foreground/60":
+            "hover:bg-accent hover:text-accent-foreground text-muted-foreground":
               variant === "ghost",
-            "dark:hover:bg-accent/50 dark:text-muted-foreground/60":
+            "dark:hover:bg-accent/50 dark:text-foreground":
               variant === "ghost",
-            "opacity-60 hover:opacity-100": variant === "ghost",
           },
           // Size styles
           {
