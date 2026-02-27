@@ -2,6 +2,16 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TripForm } from "@/components/landing/trip-form";
 
+// Mock auth context
+vi.mock("@/lib/auth/auth-context", () => ({
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    signInWithGoogle: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
