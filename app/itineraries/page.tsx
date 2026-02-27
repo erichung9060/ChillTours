@@ -31,9 +31,9 @@ export default function ItinerariesPage() {
     }
   }, [user, authLoading, router]);
 
-  // Handle card click navigation
+  // Handle card click navigation - open in new tab
   const handleCardClick = (id: string) => {
-    router.push(`/plan/${id}`);
+    window.open(`/plan/${id}`, "_blank");
   };
 
   // Handle create button click
