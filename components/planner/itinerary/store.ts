@@ -5,6 +5,7 @@ import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
+import { calculateDayDate } from "./utils/date-helpers";
 
 interface ItineraryState {
   // Data State
@@ -29,7 +30,7 @@ interface ItineraryState {
 
   // Generation Actions
   startStreaming: (itineraryId: string) => Promise<void>;
-  addActivity: (dayNumber: number, activity: Activity, startDate: string) => void;
+  addActivity: (dayNumber: number, activity: Activity) => void;
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
   stopPolling: () => void;
@@ -121,7 +122,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }),
 
   // Generation Actions
-  addActivity: (dayNumber, activity, startDate) =>
+  addActivity: (dayNumber, activity) =>
     set((state) => {
       if (!state.itinerary) return state;
 
@@ -129,17 +130,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
 
       if (existingDayIdx !== -1) {
+        // Day already exists, add activity to it
         days[existingDayIdx] = {
           ...days[existingDayIdx],
           activities: [...days[existingDayIdx].activities, activity],
         };
       } else {
-        // Calculate date using explicit UTC parsing to avoid timezone issues
-        const [year, month, day] = startDate.split("-").map(Number);
-        const dateObj = new Date(Date.UTC(year, month - 1, day));
-        dateObj.setUTCDate(dateObj.getUTCDate() + (dayNumber - 1));
-        const date = dateObj.toISOString().split("T")[0];
-
+        // Day doesn't exist, create new day with calculated date
+        const date = calculateDayDate(state.itinerary.start_date, dayNumber);
         days.push({ day_number: dayNumber, date, activities: [activity] });
         days.sort((a, b) => a.day_number - b.day_number);
       }
@@ -172,8 +170,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         itineraryId,
         // onActivity
         (data) => {
-          const startDate = get().itinerary?.start_date ?? "";
-          get().addActivity(data.day_number, data.activity, startDate);
+          get().addActivity(data.day_number, data.activity);
         },
         // onComplete
         () => {

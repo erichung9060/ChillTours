@@ -15,7 +15,7 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Itinerary, Day, Activity } from "@/types";
 import { ensureLocationData } from "@/lib/maps/geocoding";
-import type { PartialLocation } from "@/lib/maps/geocoding";
+import { calculateDayDate } from "@/components/planner/itinerary/utils/date-helpers";
 
 // ============================================================================
 // Operation Types
@@ -240,10 +240,7 @@ function applyRemoveOperation(
     // Renumber remaining days and update dates
     itinerary.days.forEach((day, index) => {
       day.day_number = index + 1;
-      // Calculate date from start_date + index
-      const date = new Date(itinerary.start_date);
-      date.setDate(date.getDate() + index);
-      day.date = date.toISOString().split("T")[0];
+      day.date = calculateDayDate(itinerary.start_date, day.day_number);
     });
 
     // Update end_date based on new duration
@@ -461,15 +458,10 @@ function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
 
   // Calculate how many days to add
   const daysToAdd = dayNumber - currentDays;
-  const startDate = new Date(itinerary.start_date);
 
   for (let i = 0; i < daysToAdd; i++) {
     const newDayNumber = currentDays + i + 1;
-
-    // Calculate date for the new day
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + (newDayNumber - 1));
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = calculateDayDate(itinerary.start_date, newDayNumber);
 
     const newDay: Day = {
       day_number: newDayNumber,
