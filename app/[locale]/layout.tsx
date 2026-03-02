@@ -9,10 +9,11 @@ import { Analytics } from "@vercel/analytics/next";
 import "../globals.css";
 
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'metadata' });
 
   // Determine the base URL (use environment variable or default)
@@ -55,11 +56,13 @@ export async function generateMetadata({
 
 export default async function LocaleLayout({
   children,
-  params: { locale },
+  params,
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+
   // Validate locale - return 404 for unsupported locales
   if (!locales.includes(locale as any)) {
     notFound();
