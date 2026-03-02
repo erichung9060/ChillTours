@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
   
   // Validate required fields
-  const { itinerary_id } = body;
+  const { itinerary_id, locale } = body;
   if (!itinerary_id) {
     return new Response(
       JSON.stringify({

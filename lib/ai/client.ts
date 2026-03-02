@@ -55,6 +55,7 @@ export interface ChatOptions {
   message: string;
   history: ChatMessage[];
   context: Itinerary | null;
+  locale: string;
 }
 
 /**
@@ -73,6 +74,7 @@ export type StreamingCallback = (
 export class AIClient {
   async streamItinerary(
     itineraryId: string,
+    locale: string,
     onActivity: (data: SSEActivityEvent) => void,
     onComplete: () => void,
     onError: (data: SSEErrorEvent) => void,
@@ -91,6 +93,7 @@ export class AIClient {
       },
       body: JSON.stringify({
         itinerary_id: itineraryId,
+        locale,
       }),
       signal,
       async onopen(response) {
@@ -136,7 +139,7 @@ export class AIClient {
     options: ChatOptions,
     onChunk: (chunk: string) => void
   ): Promise<{ message: string; operations?: OperationsUpdate }> {
-    const { message, history, context } = options;
+    const { message, history, context, locale } = options;
 
     const token = await getAccessToken();
 
@@ -153,6 +156,7 @@ export class AIClient {
           content: msg.content,
         })),
         itinerary_context: context,
+        locale,
       }),
     });
 

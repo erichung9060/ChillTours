@@ -5,7 +5,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 export async function POST(request: NextRequest) {
   const body = await request.json();
   
-  const { message } = body;
+  const { message, locale } = body;
   if (!message) {
     return new Response(
       JSON.stringify({ error: "Missing required field: message" }),

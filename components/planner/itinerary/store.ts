@@ -29,7 +29,7 @@ interface ItineraryState {
   updateActivity: (updatedActivity: Activity) => void;
 
   // Generation Actions
-  startStreaming: (itineraryId: string) => Promise<void>;
+  startStreaming: (itineraryId: string, locale: string) => Promise<void>;
   addActivity: (dayNumber: number, activity: Activity) => void;
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
@@ -154,7 +154,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   completeGeneration: () =>
     set({ isGenerating: false, generationAbortController: null }),
 
-  startStreaming: async (itineraryId) => {
+  startStreaming: async (itineraryId, locale) => {
     const state = get();
 
     // Concurrency guard: abort any in-flight stream (handles React StrictMode double-invoke)
@@ -168,6 +168,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     try {
       await aiClient.streamItinerary(
         itineraryId,
+        locale,
         // onActivity
         (data) => {
           get().addActivity(data.day_number, data.activity);

@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "@/lib/i18n/navigation";
+import { useLocale } from "next-intl";
 import { Header } from "@/components/layout/header";
 import { ItineraryPanel } from "@/components/planner/itinerary-panel";
 import { MapPanel } from "@/components/planner/map-panel";
@@ -18,7 +19,6 @@ import { ChatPanel } from "@/components/planner/chat-panel";
 import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
-import type { Itinerary } from "@/types/itinerary";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 200;
@@ -46,6 +46,7 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
 export default function PlanningPage() {
   const params = useParams();
   const itineraryId = params.id as string;
+  const locale = useLocale();
 
   // Store Lifecycle & Data
   const fetchItinerary = useItineraryStore((state) => state.fetchItinerary);
@@ -112,7 +113,7 @@ export default function PlanningPage() {
       itinerary.days.length === 0
     ) {
       // Fresh itinerary — trigger SSE streaming
-      startStreaming(itinerary.id); // metadata read from DB in Edge Function
+      startStreaming(itinerary.id, locale); // metadata read from DB in Edge Function
     } else if (itinerary.status === "generating") {
       // User returned mid-generation — use polling
       startPolling(itinerary.id);
@@ -124,7 +125,7 @@ export default function PlanningPage() {
       const controller = useItineraryStore.getState().generationAbortController;
       controller?.abort();
     };
-  }, [itinerary?.id, itinerary?.status]);
+  }, [itinerary?.id, itinerary?.status, locale]);
 
   // Handle fullscreen mode change
   const handleFullscreenChange = (isFullscreen: boolean) => {

@@ -19,6 +19,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useItineraryChat } from "@/hooks/use-itinerary-chat";
@@ -35,6 +36,7 @@ interface ChatPanelProps {
 }
 
 export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
+  const locale = useLocale();
   const { messages, addMessage, clearMessages } = useItineraryChat(
     itinerary.id
   );
@@ -101,6 +103,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             message: userMessage.content,
             history: messages,
             context: itinerary,
+            locale,
           },
           (chunk) => {
             // Update streaming message content progressively
@@ -144,7 +147,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         setIsStreaming(false);
       }
     },
-    [input, isStreaming, messages, itinerary, addMessage, applyOperations]
+    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations]
   );
 
   return (
