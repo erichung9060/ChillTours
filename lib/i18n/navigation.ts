@@ -4,5 +4,5 @@ import { localeConfig } from './config';
 export const { Link, redirect, usePathname, useRouter } =
   createNavigation(localeConfig);
 
-// Re-export useSearchParams from next/navigation as it's not locale-specific
-export { useSearchParams } from 'next/navigation';
+// Re-export hooks from next/navigation that are not locale-specific
+export { useSearchParams, useParams } from 'next/navigation';
