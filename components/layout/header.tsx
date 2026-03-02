@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/lib/i18n/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { LoginDialog } from "@/components/auth/login-dialog";
 import { LanguageSelector } from "@/components/language-selector";
 
 export function Header() {
+  const t = useTranslations("navigation");
   const { user, signOut } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -31,7 +33,7 @@ export function Header() {
                     variant="ghost"
                     size="sm"
                   >
-                    My Itineraries
+                    {t("myItineraries")}
                   </Button>
                 </Link>
                 <div className="flex items-center gap-2">
@@ -59,12 +61,12 @@ export function Header() {
                   onClick={() => signOut()}
                   className="text-muted-foreground hover:text-foreground"
                 >
-                  Sign out
+                  {t("signOut")}
                 </Button>
               </div>
             ) : (
               <Button size="sm" onClick={() => setLoginOpen(true)}>
-                Log in
+                {t("logIn")}
               </Button>
             )}
           </div>
