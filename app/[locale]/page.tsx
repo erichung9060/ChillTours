@@ -1,8 +1,11 @@
 import { Header } from "@/components/layout/header";
 import { HeroSection } from "@/components/landing/hero-section";
 import { TripForm } from "@/components/landing/trip-form";
+import { getTranslations } from "next-intl/server";
 
-export default function Home() {
+export default async function Home() {
+  const t = await getTranslations("landing");
+
   return (
     <>
       <Header />
@@ -17,7 +20,7 @@ export default function Home() {
 
         {/* Footer */}
         <footer className="py-4 text-center text-sm text-muted-foreground border-t border-border/40">
-          <p>© 2026 ChillTour. Made for the curious</p>
+          <p>{t("footer")}</p>
         </footer>
       </main>
     </>

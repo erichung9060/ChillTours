@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "@/lib/i18n/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useItineraries } from "@/hooks/use-itineraries";
+import { useTranslations } from "next-intl";
 import { Header } from "@/components/layout/header";
 import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
@@ -20,6 +21,7 @@ import { Button } from "@/components/ui/button";
  * Requirements: 1.1, 1.2, 1.3, 2.1, 2.4, 2.5, 3.1, 4.2, 5.1, 5.2
  */
 export default function ItinerariesPage() {
+  const t = useTranslations("itineraries");
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { itineraries, loading: dataLoading, error, refetch } = useItineraries();
@@ -59,16 +61,16 @@ export default function ItinerariesPage() {
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              我的行程
+              {t("title")}
             </h1>
             <p className="text-muted-foreground">
-              管理和查看您的所有旅行計畫
+              {t("subtitle")}
             </p>
           </div>
           
           {!dataLoading && !error && itineraries.length > 0 && (
             <Button variant="primary" size="lg" onClick={handleCreateClick}>
-              建立新行程
+              {t("createNew")}
             </Button>
           )}
         </div>
@@ -76,15 +78,15 @@ export default function ItinerariesPage() {
         {/* Loading state */}
         {dataLoading && (
           <div className="flex justify-center items-center min-h-[60vh]">
-            <Loading size="lg" text="載入行程中..." />
+            <Loading size="lg" text={t("loading")} />
           </div>
         )}
 
         {/* Error state */}
         {error && (
           <ErrorMessage
-            title="載入失敗"
-            message="無法載入您的行程。請稍後再試。"
+            title={t("loadError")}
+            message={t("loadErrorMessage")}
             onRetry={refetch}
           />
         )}
