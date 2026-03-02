@@ -42,5 +42,6 @@ next-env.d.ts
 # supabase
 supabase/.temp
 
-# vscode
+# IDE
 .vscode
+.kiro
