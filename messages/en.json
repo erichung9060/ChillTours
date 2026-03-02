@@ -1,14 +1,74 @@
 {
   "metadata": {
-    "title": "ChillTour - AI-Powered Travel Planner",
-    "description": "Create personalized travel itineraries with AI assistance. Plan your perfect trip with intelligent recommendations and interactive maps."
+    "title": "ChillTour - Plan Your Perfect Trip",
+    "description": "Create personalized travel itineraries with AI-powered trip planning"
   },
   "common": {
     "loading": "Loading...",
-    "error": "An error occurred",
-    "save": "Save",
-    "cancel": "Cancel",
-    "delete": "Delete",
-    "edit": "Edit"
+    "error": "Error",
+    "retry": "Try again"
+  },
+  "landing": {
+    "hero": {
+      "whereToNext": "Where to ",
+      "next": "Next?",
+      "subtitle": "Plan your dream trip in seconds."
+    },
+    "form": {
+      "whereToNext": "Where to next?",
+      "destinationPlaceholder": "e.g. Tokyo, Bali, Paris",
+      "whenAreYouGoing": "When are you going?",
+      "describeYourVibe": "Describe your vibe",
+      "vibePlaceholder": "Budget-friendly foodie tour, hiking spots, vintage shopping...",
+      "generateButton": "Generate Free Itinerary",
+      "generating": "Generating...",
+      "destinationRequired": "Destination is required",
+      "datesRequired": "Please select your travel dates"
+    },
+    "footer": "© 2026 ChillTour. Made for the curious"
+  },
+  "navigation": {
+    "myItineraries": "My Itineraries",
+    "signOut": "Sign out",
+    "logIn": "Log in"
+  },
+  "auth": {
+    "dialogTitle": "ChillTour",
+    "dialogDescription": "Your AI-powered travel companion",
+    "continueWithGoogle": "Continue with Google",
+    "signingIn": "Signing in...",
+    "signInError": "Failed to sign in. Please try again.",
+    "termsNotice": "By continuing, you agree to our Terms of Service and Privacy Policy"
+  },
+  "itineraries": {
+    "title": "My Itineraries",
+    "subtitle": "Manage and view all your travel plans",
+    "createNew": "Create New Itinerary",
+    "loading": "Loading itineraries...",
+    "loadError": "Failed to Load",
+    "loadErrorMessage": "Unable to load your itineraries. Please try again later.",
+    "empty": {
+      "title": "You haven't created any itineraries yet",
+      "description": "Start planning your next trip and create your first itinerary",
+      "createFirst": "Create Your First Itinerary"
+    },
+    "card": {
+      "destination": "Destination:",
+      "dates": "Dates:"
+    }
+  },
+  "planner": {
+    "loading": "Loading your itinerary...",
+    "loadError": "Failed to Load Itinerary",
+    "generating": "Generating your itinerary..."
+  },
+  "chat": {
+    "title": "Chat",
+    "deleteConfirm": "Delete all chat history for this itinerary?",
+    "emptyTitle": "Start a conversation",
+    "emptyDescription": "Ask me to modify your itinerary, suggest activities, or answer questions about your trip.",
+    "placeholder": "Ask me anything about your trip...",
+    "sendHint": "Press Enter to send, Shift+Enter for new line",
+    "error": "Sorry, I encountered an error. Please try again."
   }
 }

@@ -1,14 +1,74 @@
 {
   "metadata": {
-    "title": "趣淘 - AI 智能旅行規劃",
-    "description": "使用 AI 協助創建個性化旅行行程。透過智能推薦和互動地圖規劃您的完美旅程。"
+    "title": "趣淘 - 規劃您的完美旅行",
+    "description": "使用 AI 驅動的行程規劃建立個人化旅行行程"
   },
   "common": {
     "loading": "載入中...",
-    "error": "發生錯誤",
-    "save": "儲存",
-    "cancel": "取消",
-    "delete": "刪除",
-    "edit": "編輯"
+    "error": "錯誤",
+    "retry": "重試"
+  },
+  "landing": {
+    "hero": {
+      "whereToNext": "下一站去",
+      "next": "哪裡？",
+      "subtitle": "幾秒鐘內規劃您的夢想旅行。"
+    },
+    "form": {
+      "whereToNext": "下一站去哪裡？",
+      "destinationPlaceholder": "例如：東京、峇里島、巴黎",
+      "whenAreYouGoing": "您什麼時候出發？",
+      "describeYourVibe": "描述您的旅行風格",
+      "vibePlaceholder": "經濟實惠的美食之旅、登山景點、復古購物...",
+      "generateButton": "產生行程",
+      "generating": "產生中...",
+      "destinationRequired": "請輸入目的地",
+      "datesRequired": "請選擇您的旅行日期"
+    },
+    "footer": "© 2026 ChillTour."
+  },
+  "navigation": {
+    "myItineraries": "我的行程",
+    "signOut": "登出",
+    "logIn": "登入"
+  },
+  "auth": {
+    "dialogTitle": "趣淘",
+    "dialogDescription": "您的 AI 旅行夥伴",
+    "continueWithGoogle": "使用 Google 繼續",
+    "signingIn": "登入中...",
+    "signInError": "登入失敗，請重試。",
+    "termsNotice": "繼續即表示您同意我們的服務條款和隱私政策"
+  },
+  "itineraries": {
+    "title": "我的行程",
+    "subtitle": "管理和查看您的所有旅行計畫",
+    "createNew": "建立新行程",
+    "loading": "載入行程中...",
+    "loadError": "載入失敗",
+    "loadErrorMessage": "無法載入您的行程。請稍後再試。",
+    "empty": {
+      "title": "您還沒有建立任何行程",
+      "description": "開始規劃您的下一趟旅行，建立您的第一個行程",
+      "createFirst": "建立第一個行程"
+    },
+    "card": {
+      "destination": "目的地：",
+      "dates": "日期："
+    }
+  },
+  "planner": {
+    "loading": "載入您的行程中...",
+    "loadError": "載入行程失敗",
+    "generating": "產生您的行程中..."
+  },
+  "chat": {
+    "title": "聊天",
+    "deleteConfirm": "刪除此行程的所有聊天記錄？",
+    "emptyTitle": "開始對話",
+    "emptyDescription": "請我修改您的行程、建議活動，或回答關於您旅行的問題。",
+    "placeholder": "詢問關於您旅行的任何問題...",
+    "sendHint": "按 Enter 傳送，Shift+Enter 換行",
+    "error": "抱歉，發生錯誤。請重試。"
   }
 }
