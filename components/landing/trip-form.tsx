@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "@/lib/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { getCurrentUser } from "@/lib/supabase/client";
 import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 
 export function TripForm() {
+  const t = useTranslations("landing.form");
   const router = useRouter();
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState<Date>();
@@ -31,12 +33,12 @@ export function TripForm() {
 
     // Validate destination (required, non-empty)
     if (!destination.trim()) {
-      newErrors.destination = "Destination is required";
+      newErrors.destination = t("destinationRequired");
     }
 
     // Validate dates
     if (!startDate || !endDate) {
-      newErrors.dates = "Please select your travel dates";
+      newErrors.dates = t("datesRequired");
     }
 
     setErrors(newErrors);
@@ -83,7 +85,7 @@ export function TripForm() {
         general:
           error instanceof Error
             ? error.message
-            : "Failed to create itinerary. Please try again.",
+            : t("createError"),
       });
       setIsLoading(false);
     }
@@ -109,7 +111,7 @@ export function TripForm() {
                 htmlFor="destination"
                 className="block text-sm font-medium mb-2 text-foreground/80"
               >
-                Where to next?
+                {t("whereToNext")}
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-5 -translate-y-1/2 text-muted-foreground">
@@ -118,7 +120,7 @@ export function TripForm() {
                 <Input
                   id="destination"
                   type="text"
-                  placeholder="e.g. Tokyo, Bali, Paris"
+                  placeholder={t("destinationPlaceholder")}
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                   error={!!errors.destination}
@@ -132,7 +134,7 @@ export function TripForm() {
             {/* Date Range Picker */}
             <div className="min-w-[300px]">
               <label className="block text-sm font-medium mb-2 text-foreground/80">
-                When are you going?
+                {t("whenAreYouGoing")}
               </label>
               <DateRangePicker
                 startDate={startDate}
@@ -157,11 +159,11 @@ export function TripForm() {
               htmlFor="vibe"
               className="block text-sm font-medium mb-2 text-foreground/80"
             >
-              Describe your vibe
+              {t("describeYourVibe")}
             </label>
             <Textarea
               id="vibe"
-              placeholder="Budget-friendly foodie tour, hiking spots, vintage shopping..."
+              placeholder={t("vibePlaceholder")}
               value={vibe}
               onChange={(e) => setVibe(e.target.value)}
               disabled={isLoading}
@@ -206,7 +208,7 @@ export function TripForm() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Generating...
+                {t("generating")}
               </span>
             ) : (
               <span className="flex items-center gap-2">
@@ -224,7 +226,7 @@ export function TripForm() {
                   <path d="M5 12h14" />
                   <path d="m12 5 7 7-7 7" />
                 </svg>
-                Generate Free Itinerary
+                {t("generateButton")}
               </span>
             )}
           </Button>

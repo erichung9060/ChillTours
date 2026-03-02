@@ -23,7 +23,8 @@
       "generateButton": "產生行程",
       "generating": "產生中...",
       "destinationRequired": "請輸入目的地",
-      "datesRequired": "請選擇您的旅行日期"
+      "datesRequired": "請選擇您的旅行日期",
+      "createError": "建立行程失敗。請重試。"
     },
     "footer": "© 2026 ChillTour."
   },

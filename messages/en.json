@@ -23,7 +23,8 @@
       "generateButton": "Generate Free Itinerary",
       "generating": "Generating...",
       "destinationRequired": "Destination is required",
-      "datesRequired": "Please select your travel dates"
+      "datesRequired": "Please select your travel dates",
+      "createError": "Failed to create itinerary. Please try again."
     },
     "footer": "© 2026 ChillTour. Made for the curious"
   },
