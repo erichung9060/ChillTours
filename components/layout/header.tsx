@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginDialog } from "@/components/auth/login-dialog";
+import { LanguageSelector } from "@/components/language-selector";
 
 export function Header() {
   const { user, signOut } = useAuth();
@@ -19,8 +20,9 @@ export function Header() {
           {/* Logo */}
           <Logo />
 
-          {/* Right side - Theme toggle and auth buttons */}
+          {/* Right side - Language selector, theme toggle and auth buttons */}
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
