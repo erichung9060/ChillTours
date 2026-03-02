@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginDialog } from "@/components/auth/login-dialog";
-import { LanguageSelector } from "@/components/language-selector";
+import { LanguageSelector } from "@/components/ui/language-selector";
 
 export function Header() {
   const t = useTranslations("navigation");
