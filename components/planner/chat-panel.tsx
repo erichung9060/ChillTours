@@ -19,7 +19,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useItineraryChat } from "@/hooks/use-itinerary-chat";
@@ -37,6 +37,7 @@ interface ChatPanelProps {
 
 export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   const locale = useLocale();
+  const t = useTranslations('chat');
   const { messages, addMessage, clearMessages } = useItineraryChat(
     itinerary.id
   );
@@ -138,7 +139,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         const errorMessage: ChatMessage = {
           id: assistantMessageId,
           role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
+          content: t('error'),
           timestamp: Date.now(),
           streaming: false,
         };
@@ -169,14 +170,14 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <h2 className="font-semibold">Chat</h2>
+          <h2 className="font-semibold">{t('title')}</h2>
         </div>
         <div className="flex items-center gap-2">
           {/* Delete chat history button */}
           {messages.length > 0 && (
             <button
               onClick={() => {
-                if (confirm("Delete all chat history for this itinerary?")) {
+                if (confirm(t('deleteConfirm'))) {
                   clearMessages();
                 }
               }}
@@ -245,10 +246,9 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
-              <h3 className="font-medium mb-2">Start a conversation</h3>
+              <h3 className="font-medium mb-2">{t('emptyTitle')}</h3>
               <p className="text-sm text-muted-foreground">
-                Ask me to modify your itinerary, suggest activities, or answer
-                questions about your trip.
+                {t('emptyDescription')}
               </p>
             </div>
           </div>
@@ -303,7 +303,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                   {/* Show timestamp only for completed messages */}
                   {!message.streaming && (
                     <p className="text-xs opacity-70 mt-1">
-                      {new Date(message.timestamp).toLocaleTimeString([], {
+                      {new Date(message.timestamp).toLocaleTimeString(locale, {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}
@@ -324,7 +324,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask me anything about your trip..."
+            placeholder={t('placeholder')}
             disabled={isStreaming}
             className="min-h-[60px] max-h-[120px] resize-none"
             onCompositionStart={() => setIsComposing(true)}
@@ -377,7 +377,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
           </Button>
         </form>
         <p className="text-xs text-muted-foreground mt-2">
-          Press Enter to send, Shift+Enter for new line
+          {t('sendHint')}
         </p>
       </div>
     </div>
