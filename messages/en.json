@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "title": "ChillTour - AI-Powered Travel Planner",
+    "description": "Create personalized travel itineraries with AI assistance. Plan your perfect trip with intelligent recommendations and interactive maps."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "metadata": {
+    "title": "趣淘 - AI 智能旅行規劃",
+    "description": "使用 AI 協助創建個性化旅行行程。透過智能推薦和互動地圖規劃您的完美旅程。"
+  },
+  "common": {
+    "loading": "載入中...",
+    "error": "發生錯誤",
+    "save": "儲存",
+    "cancel": "取消",
+    "delete": "刪除",
+    "edit": "編輯"
+  }
+}

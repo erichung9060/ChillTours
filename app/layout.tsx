@@ -1,30 +1,28 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { ThemeProvider } from "@/lib/theme/theme-provider";
-import { AuthProvider } from "@/lib/auth/auth-context";
-import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
-  title: "ChillTour - AI-Powered Travel Planner",
-  description: "Create personalized travel itineraries with AI assistance",
-  icons: {
-    icon: "/logo.svg",
-  },
+  title: "ChillTour",
+  description: "AI-Powered Travel Planner",
 };
 
+/**
+ * Root Layout
+ * 
+ * This minimal layout only handles routes outside [locale]:
+ * - /api/* (API routes)
+ * - /auth/callback (OAuth callback)
+ * 
+ * All user-facing pages are handled by app/[locale]/layout.tsx
+ */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
-        <Analytics />
-        <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </ThemeProvider>
-      </body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }

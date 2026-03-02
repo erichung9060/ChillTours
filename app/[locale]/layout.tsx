@@ -1,0 +1,83 @@
+import type { Metadata } from "next";
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getTranslations } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { locales } from '@/lib/i18n/config';
+import { ThemeProvider } from "@/lib/theme/theme-provider";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import { Analytics } from "@vercel/analytics/next";
+import "../globals.css";
+
+export async function generateMetadata({
+  params: { locale },
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'metadata' });
+
+  // Determine the base URL (use environment variable or default)
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://chilltour.com';
+  
+  // Generate canonical URL
+  const canonicalPath = locale === 'en' ? '/' : `/${locale}`;
+  const canonical = `${baseUrl}${canonicalPath}`;
+
+  return {
+    title: t('title'),
+    description: t('description'),
+    icons: {
+      icon: "/logo.svg",
+    },
+    metadataBase: new URL(baseUrl),
+    alternates: {
+      canonical: canonicalPath,
+      languages: {
+        'en': '/',
+        'zh-TW': '/zh-TW',
+      },
+    },
+    openGraph: {
+      title: t('title'),
+      description: t('description'),
+      url: canonical,
+      siteName: 'ChillTour',
+      locale: locale,
+      alternateLocale: locale === 'en' ? 'zh-TW' : 'en',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: t('title'),
+      description: t('description'),
+    },
+  };
+}
+
+export default async function LocaleLayout({
+  children,
+  params: { locale },
+}: {
+  children: React.ReactNode;
+  params: { locale: string };
+}) {
+  // Validate locale - return 404 for unsupported locales
+  if (!locales.includes(locale as any)) {
+    notFound();
+  }
+
+  // Load messages for the locale
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale} suppressHydrationWarning>
+      <body>
+        <Analytics />
+        <NextIntlClientProvider messages={messages}>
+          <ThemeProvider>
+            <AuthProvider>{children}</AuthProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
+      </body>
+    </html>
+  );
+}

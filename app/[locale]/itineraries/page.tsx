@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/lib/i18n/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { useItineraries } from "@/hooks/use-itineraries";
 import { Header } from "@/components/layout/header";

@@ -1,5 +1,8 @@
-import { createSharedPathnamesNavigation } from 'next-intl/navigation';
+import { createNavigation } from 'next-intl/navigation';
 import { localeConfig } from './config';
 
 export const { Link, redirect, usePathname, useRouter } =
-  createSharedPathnamesNavigation(localeConfig);
+  createNavigation(localeConfig);
+
+// Re-export useSearchParams from next/navigation as it's not locale-specific
+export { useSearchParams } from 'next/navigation';

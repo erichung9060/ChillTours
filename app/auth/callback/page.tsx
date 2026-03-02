@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "@/lib/i18n/navigation";
 import { handleAuthCallback } from "@/lib/supabase/client";
 
 function AuthCallbackContent() {

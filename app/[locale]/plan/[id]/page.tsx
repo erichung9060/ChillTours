@@ -10,7 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams } from "@/lib/i18n/navigation";
 import { Header } from "@/components/layout/header";
 import { ItineraryPanel } from "@/components/planner/itinerary-panel";
 import { MapPanel } from "@/components/planner/map-panel";
