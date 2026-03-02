@@ -9,20 +9,13 @@ export const metadata: Metadata = {
 /**
  * Root Layout
  * 
- * This minimal layout only handles routes outside [locale]:
- * - /api/* (API routes)
- * - /auth/callback (OAuth callback)
- * 
- * All user-facing pages are handled by app/[locale]/layout.tsx
+ * This is the root layout that wraps all routes.
+ * The [locale] layout will handle locale-specific configuration.
  */
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
+  return children;
 }
