@@ -6,6 +6,7 @@ import { verifyUser } from "../_shared/auth.ts";
 
 interface GenerateItineraryRequest {
   itinerary_id: string;
+  locale?: string;
 }
 
 function createSupabaseAdminClient() {
@@ -24,56 +25,7 @@ function createSupabaseClient(authHeader: string) {
   });
 }
 
-function buildItineraryPrompt(
-  destination: string,
-  startDate: string,
-  endDate: string,
-  customRequirements?: string
-): string {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const duration =
-    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-
-  let prompt = `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
-
-Respond ONLY with a valid JSON object in this exact structure, no markdown, no extra text:
-
-{
-  "itinerary": [
-    {
-      "day_number": 1,
-      "activities": [
-        {
-          "time": "HH:MM",
-          "title": "Activity name",
-          "description": "Detailed description",
-          "location": {
-            "name": "Location name",
-            "lat": 0.0,
-            "lng": 0.0
-          },
-          "duration_minutes": 120
-        }
-      ]
-    }
-  ]
-}
-
-Requirements:
-- Generate exactly ${duration} days, numbered 1 to ${duration}
-- Each day should have 3-5 activities
-- Use 24-hour HH:MM time format
-- Provide accurate GPS coordinates for each location
-- duration_minutes should be between 60 and 240
-- Activities must be in chronological order within each day`;
-
-  if (customRequirements) {
-    prompt += `\n- Custom requirements: ${customRequirements}`;
-  }
-
-  return prompt;
-}
+import { buildItineraryPrompt } from "./prompt.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -89,7 +41,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { itinerary_id }: GenerateItineraryRequest = await req.json();
+    const { itinerary_id, locale }: GenerateItineraryRequest = await req.json();
 
     if (!itinerary_id) {
       return new Response(
@@ -179,7 +131,7 @@ Deno.serve(async (req) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
-    const prompt = buildItineraryPrompt(destination, startDate, endDate, requirements ?? undefined);
+    const prompt = buildItineraryPrompt(destination, startDate, endDate, requirements ?? undefined, locale);
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -282,14 +234,14 @@ Deno.serve(async (req) => {
               .eq("id", itinerary_id);
             emitSSE("error", { message: "Internal server error" });
             if (!clientDisconnected) {
-              try { controller.close(); } catch (e) {}
+              try { controller.close(); } catch (e) { }
             }
             return;
           }
 
           emitSSE("complete", {});
           if (!clientDisconnected) {
-            try { controller.close(); } catch (e) {}
+            try { controller.close(); } catch (e) { }
           }
         } catch (error) {
           console.error("Streaming error:", error);
@@ -301,7 +253,7 @@ Deno.serve(async (req) => {
 
           emitSSE("error", { message: "Internal server error" });
           if (!clientDisconnected) {
-            try { controller.close(); } catch (e) {}
+            try { controller.close(); } catch (e) { }
           }
         }
       },
