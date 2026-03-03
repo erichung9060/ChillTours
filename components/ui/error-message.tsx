@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
+import { useTranslations } from "next-intl";
 
 export interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;
@@ -8,7 +9,10 @@ export interface ErrorMessageProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
-  ({ className, title = "Error", message, onRetry, ...props }, ref) => {
+  ({ className, title, message, onRetry, ...props }, ref) => {
+    const t = useTranslations("common");
+    const displayTitle = title || t("error");
+
     return (
       <div
         ref={ref}
@@ -61,7 +65,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-destructive dark:text-destructive transition-colors duration-200">
-              {title}
+              {displayTitle}
             </h3>
             <p className="mt-1 text-sm text-destructive/90 dark:text-destructive/80 transition-colors duration-200">
               {message}
@@ -78,7 +82,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
                   "focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1"
                 )}
               >
-                Try again →
+                {t("retry")} →
               </button>
             )}
           </div>

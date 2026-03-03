@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,7 @@ export function EditActivityDialog({
   onClose,
   onSave,
 }: EditActivityDialogProps) {
+  const t = useTranslations("planner.editDialog");
   const initialFocusRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
@@ -81,15 +83,15 @@ export function EditActivityDialog({
       <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
         <form onSubmit={handleSave}>
           <DialogHeader>
-            <DialogTitle>Edit Activity</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
             <DialogDescription>
-              Make changes to your activity here. Click save when you're done.
+              {t("description")}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <label htmlFor="title" className="text-sm font-medium">
-                Title
+                {t("labelTitle")}
               </label>
               <Input
                 ref={initialFocusRef}
@@ -102,7 +104,7 @@ export function EditActivityDialog({
             </div>
             <div className="grid gap-2">
               <label htmlFor="location" className="text-sm font-medium">
-                Location
+                {t("labelLocation")}
               </label>
               <Input
                 id="location"
@@ -115,7 +117,7 @@ export function EditActivityDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <label htmlFor="time" className="text-sm font-medium">
-                  Time
+                  {t("labelTime")}
                 </label>
                 <Input
                   id="time"
@@ -128,7 +130,7 @@ export function EditActivityDialog({
               </div>
               <div className="grid gap-2">
                 <label htmlFor="duration" className="text-sm font-medium">
-                  Duration (min)
+                  {t("labelDuration")}
                 </label>
                 <Input
                   id="duration"
@@ -145,7 +147,7 @@ export function EditActivityDialog({
             </div>
             <div className="grid gap-2">
               <label htmlFor="url" className="text-sm font-medium">
-                URL
+                {t("labelUrl")}
               </label>
               <Input
                 id="url"
@@ -158,7 +160,7 @@ export function EditActivityDialog({
             </div>
             <div className="grid gap-2">
               <label htmlFor="description" className="text-sm font-medium">
-                Description
+                {t("labelDescription")}
               </label>
               <Textarea
                 id="description"
@@ -170,7 +172,7 @@ export function EditActivityDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Save changes</Button>
+            <Button type="submit">{t("save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

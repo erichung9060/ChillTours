@@ -15,6 +15,7 @@ import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 
 export function TripForm() {
   const t = useTranslations("landing.form");
+  const ti = useTranslations("itineraries");
   const router = useRouter();
   const [destination, setDestination] = useState("");
   const [startDate, setStartDate] = useState<Date>();
@@ -57,7 +58,7 @@ export function TripForm() {
 
     try {
       const user = await getCurrentUser();
-      
+
       if (!user) {
         setLoginOpen(true);
         setIsLoading(false);
@@ -67,7 +68,7 @@ export function TripForm() {
       const formattedStart = startDate!.toISOString().split("T")[0];
       const formattedEnd = endDate!.toISOString().split("T")[0];
 
-      const title = `${destination} Trip`;
+      const title = ti("titleFormat", { destination });
 
       const itinerary = await createItineraryMetadata({
         user_id: user.id,
@@ -101,143 +102,143 @@ export function TripForm() {
 
   return (
     <>
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardContent className="p-6 md:p-8">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
-            {/* Destination Input */}
-            <div className="flex-1">
-              <label
-                htmlFor="destination"
-                className="block text-sm font-medium mb-2 text-foreground/80"
-              >
-                {t("whereToNext")}
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-5 -translate-y-1/2 text-muted-foreground">
-                  📍
-                </span>
-                <Input
-                  id="destination"
-                  type="text"
-                  placeholder={t("destinationPlaceholder")}
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value)}
-                  error={!!errors.destination}
-                  helperText={errors.destination}
-                  disabled={isLoading}
-                  className="pl-10"
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardContent className="p-6 md:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+              {/* Destination Input */}
+              <div className="flex-1">
+                <label
+                  htmlFor="destination"
+                  className="block text-sm font-medium mb-2 text-foreground/80"
+                >
+                  {t("whereToNext")}
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-5 -translate-y-1/2 text-muted-foreground">
+                    📍
+                  </span>
+                  <Input
+                    id="destination"
+                    type="text"
+                    placeholder={t("destinationPlaceholder")}
+                    value={destination}
+                    onChange={(e) => setDestination(e.target.value)}
+                    error={!!errors.destination}
+                    helperText={errors.destination}
+                    disabled={isLoading}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Date Range Picker */}
+              <div className="min-w-[300px]">
+                <label className="block text-sm font-medium mb-2 text-foreground/80">
+                  {t("whenAreYouGoing")}
+                </label>
+                <DateRangePicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                    if (start && end && errors.dates) {
+                      setErrors({ ...errors, dates: undefined });
+                    }
+                  }}
                 />
+                {errors.dates && (
+                  <p className="text-xs text-destructive mt-1">{errors.dates}</p>
+                )}
               </div>
             </div>
 
-            {/* Date Range Picker */}
-            <div className="min-w-[300px]">
-              <label className="block text-sm font-medium mb-2 text-foreground/80">
-                {t("whenAreYouGoing")}
+            {/* Vibe/Custom Requirements Textarea */}
+            <div>
+              <label
+                htmlFor="vibe"
+                className="block text-sm font-medium mb-2 text-foreground/80"
+              >
+                {t("describeYourVibe")}
               </label>
-              <DateRangePicker
-                startDate={startDate}
-                endDate={endDate}
-                onChange={(start, end) => {
-                  setStartDate(start);
-                  setEndDate(end);
-                  if (start && end && errors.dates) {
-                    setErrors({ ...errors, dates: undefined });
-                  }
-                }}
+              <Textarea
+                id="vibe"
+                placeholder={t("vibePlaceholder")}
+                value={vibe}
+                onChange={(e) => setVibe(e.target.value)}
+                disabled={isLoading}
+                className="min-h-[120px] resize-none"
               />
-              {errors.dates && (
-                <p className="text-xs text-destructive mt-1">{errors.dates}</p>
-              )}
             </div>
-          </div>
 
-          {/* Vibe/Custom Requirements Textarea */}
-          <div>
-            <label
-              htmlFor="vibe"
-              className="block text-sm font-medium mb-2 text-foreground/80"
-            >
-              {t("describeYourVibe")}
-            </label>
-            <Textarea
-              id="vibe"
-              placeholder={t("vibePlaceholder")}
-              value={vibe}
-              onChange={(e) => setVibe(e.target.value)}
-              disabled={isLoading}
-              className="min-h-[120px] resize-none"
-            />
-          </div>
-
-          {/* General Error Message */}
-          {errors.general && (
-            <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-              <p className="text-sm text-destructive">{errors.general}</p>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-2">
-                <svg
-                  className="animate-spin h-5 w-5"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                {t("generating")}
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14" />
-                  <path d="m12 5 7 7-7 7" />
-                </svg>
-                {t("generateButton")}
-              </span>
+            {/* General Error Message */}
+            {errors.general && (
+              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className="text-sm text-destructive">{errors.general}</p>
+              </div>
             )}
-          </Button>
-        </form>
 
-        {/* Trending Destinations */}
-        <TrendingDestinations onDestinationClick={handleDestinationClick} />
-      </CardContent>
-    </Card>
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  {t("generating")}
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M5 12h14" />
+                    <path d="m12 5 7 7-7 7" />
+                  </svg>
+                  {t("generateButton")}
+                </span>
+              )}
+            </Button>
+          </form>
 
-    <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+          {/* Trending Destinations */}
+          <TrendingDestinations onDestinationClick={handleDestinationClick} />
+        </CardContent>
+      </Card>
+
+      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
     </>
   );
 }

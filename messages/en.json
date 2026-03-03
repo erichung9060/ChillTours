@@ -3,6 +3,11 @@
     "title": "ChillTour - Plan Your Perfect Trip",
     "description": "Create personalized travel itineraries with AI-powered trip planning"
   },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Try again"
+  },
   "landing": {
     "hero": {
       "whereToNext": "Where to ",
@@ -76,12 +81,24 @@
     "card": {
       "destination": "Destination:",
       "dates": "Dates:"
-    }
+    },
+    "titleFormat": "{destination} Trip"
   },
   "planner": {
     "loading": "Loading your itinerary...",
     "loadError": "Failed to Load Itinerary",
-    "generating": "Generating your itinerary..."
+    "generating": "Generating your itinerary...",
+    "editDialog": {
+      "title": "Edit Activity",
+      "description": "Make changes to your activity here. Click save when you're done.",
+      "labelTitle": "Title",
+      "labelLocation": "Location",
+      "labelTime": "Time",
+      "labelDuration": "Duration (min)",
+      "labelUrl": "URL",
+      "labelDescription": "Description",
+      "save": "Save changes"
+    }
   },
   "chat": {
     "title": "Chat",

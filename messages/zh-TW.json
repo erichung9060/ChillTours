@@ -3,6 +3,11 @@
     "title": "ChillTour - 規劃您的完美旅行",
     "description": "使用 AI 驅動的行程規劃建立個人化旅行行程"
   },
+  "common": {
+    "loading": "載入中...",
+    "error": "錯誤",
+    "retry": "重試"
+  },
   "landing": {
     "hero": {
       "whereToNext": "下一站去",
@@ -76,12 +81,24 @@
     "card": {
       "destination": "目的地：",
       "dates": "日期："
-    }
+    },
+    "titleFormat": "{destination}之旅"
   },
   "planner": {
     "loading": "載入您的行程中...",
     "loadError": "載入行程失敗",
-    "generating": "正在產生您的行程中..."
+    "generating": "正在產生您的行程中...",
+    "editDialog": {
+      "title": "編輯活動",
+      "description": "在此修改您的活動細節。完成後請點擊儲存。",
+      "labelTitle": "標題",
+      "labelLocation": "地點",
+      "labelTime": "時間",
+      "labelDuration": "持續時間 (分鐘)",
+      "labelUrl": "網址",
+      "labelDescription": "描述",
+      "save": "儲存修改"
+    }
   },
   "chat": {
     "title": "聊天",
