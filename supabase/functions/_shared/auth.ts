@@ -39,8 +39,6 @@ export async function verifyUser(
       return null;
     }
 
-    console.log("✅ User authenticated:", user.email);
-
     return {
       userId: user.id,
       email: user.email || "",
