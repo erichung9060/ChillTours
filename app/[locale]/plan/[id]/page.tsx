@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "@/lib/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Header } from "@/components/layout/header";
 import { ItineraryPanel } from "@/components/planner/itinerary-panel";
 import { MapPanel } from "@/components/planner/map-panel";
@@ -47,6 +47,7 @@ export default function PlanningPage() {
   const params = useParams();
   const itineraryId = params.id as string;
   const locale = useLocale();
+  const t = useTranslations("planner");
 
   // Store Lifecycle & Data
   const fetchItinerary = useItineraryStore((state) => state.fetchItinerary);
@@ -205,7 +206,7 @@ export default function PlanningPage() {
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16">
-          <Loading size="lg" text="Loading your itinerary..." />
+          <Loading size="lg" text={t("loading")} />
         </main>
       </>
     );
@@ -217,7 +218,7 @@ export default function PlanningPage() {
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
           <ErrorMessage
-            title="Failed to Load Itinerary"
+            title={t("loadError")}
             message={error}
             onRetry={() => fetchItinerary(itineraryId)}
           />
@@ -231,7 +232,7 @@ export default function PlanningPage() {
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16">
-          <Loading size="lg" text="Loading your itinerary..." />
+          <Loading size="lg" text={t("loading")} />
         </main>
       </>
     );
@@ -263,7 +264,7 @@ export default function PlanningPage() {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span className="text-sm font-medium">Generating your itinerary...</span>
+            <span className="text-sm font-medium">{t("generating")}</span>
           </div>
         </div>
       )}

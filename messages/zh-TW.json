@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "趣淘 - 規劃您的完美旅行",
+    "title": "ChillTour - 規劃您的完美旅行",
     "description": "使用 AI 驅動的行程規劃建立個人化旅行行程"
   },
   "common": {
@@ -26,6 +26,23 @@
       "datesRequired": "請選擇您的旅行日期",
       "createError": "建立行程失敗。請重試。"
     },
+    "trending": {
+      "title": "熱門目的地",
+      "destinations": {
+        "Seoul": "首爾",
+        "Tokyo": "東京",
+        "Los Angeles": "洛杉磯",
+        "Hong Kong": "香港"
+      }
+    },
+    "datePicker": {
+      "selectDates": "選擇日期",
+      "selectEndDate": "選擇結束日期",
+      "days": "天",
+      "weekdays": {
+        "short": ["日", "一", "二", "三", "四", "五", "六"]
+      }
+    },
     "footer": "© 2026 ChillTour."
   },
   "navigation": {
@@ -34,7 +51,7 @@
     "logIn": "登入"
   },
   "auth": {
-    "dialogTitle": "趣淘",
+    "dialogTitle": "ChillTour",
     "dialogDescription": "您的 AI 旅行夥伴",
     "continueWithGoogle": "使用 Google 繼續",
     "signingIn": "登入中...",
@@ -61,7 +78,7 @@
   "planner": {
     "loading": "載入您的行程中...",
     "loadError": "載入行程失敗",
-    "generating": "產生您的行程中..."
+    "generating": "正在產生您的行程中..."
   },
   "chat": {
     "title": "聊天",

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 const destinations = [
   { name: "Seoul", flag: "🇰🇷" },
   { name: "Tokyo", flag: "🇯🇵" },
@@ -14,20 +16,27 @@ interface TrendingDestinationsProps {
 export function TrendingDestinations({
   onDestinationClick,
 }: TrendingDestinationsProps) {
+  const t = useTranslations("landing.trending");
+
+  const handleClick = (destName: string) => {
+    const translatedName = t(`destinations.${destName}`);
+    onDestinationClick?.(translatedName);
+  };
+
   return (
     <div className="mt-8 text-center">
       <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wider">
-        Trending Destinations
+        {t("title")}
       </p>
       <div className="flex flex-wrap justify-center gap-2">
         {destinations.map((dest) => (
           <button
             key={dest.name}
-            onClick={() => onDestinationClick?.(dest.name)}
+            onClick={() => handleClick(dest.name)}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border/50 bg-secondary/30 hover:bg-secondary hover:border-border transition-all duration-200 hover:scale-105 active:scale-95 text-sm"
           >
             <span>{dest.flag}</span>
-            <span className="font-medium">{dest.name}</span>
+            <span className="font-medium">{t(`destinations.${dest.name}`)}</span>
           </button>
         ))}
       </div>

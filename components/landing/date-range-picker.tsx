@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -17,6 +18,8 @@ export function DateRangePicker({
   endDate,
   onChange,
 }: DateRangePickerProps) {
+  const t = useTranslations("landing.datePicker");
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
@@ -117,8 +120,8 @@ export function DateRangePicker({
   };
 
   const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
+    return date.toLocaleDateString(locale, {
+      month: locale === "zh-TW" ? "numeric" : "short",
       day: "numeric",
       year: "numeric",
     });
@@ -188,16 +191,18 @@ export function DateRangePicker({
       );
     }
 
+    const weekdayLabels = t.raw("weekdays.short") as string[];
+
     return (
       <div className="p-4 w-72">
         <div className="font-semibold text-center mb-4">
-          {monthDate.toLocaleDateString("en-US", {
+          {monthDate.toLocaleDateString(locale, {
             month: "long",
             year: "numeric",
           })}
         </div>
         <div className="grid grid-cols-7 gap-y-2 text-center">
-          {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+          {weekdayLabels.map((d, i) => (
             <div
               key={`${d}-${i}`}
               className="text-[hsl(var(--muted-foreground))] text-xs font-medium"
@@ -233,9 +238,9 @@ export function DateRangePicker({
         <span className="mr-2">📅</span>
         {startDate
           ? endDate
-            ? `${formatDate(startDate)} - ${formatDate(endDate)} (${duration} days)`
-            : `${formatDate(startDate)} - Select end date`
-          : "Select dates"}
+            ? `${formatDate(startDate)} - ${formatDate(endDate)} (${duration} ${t("days")})`
+            : `${formatDate(startDate)} - ${t("selectEndDate")}`
+          : t("selectDates")}
       </Button>
 
       {isOpen &&

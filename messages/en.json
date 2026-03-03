@@ -26,6 +26,23 @@
       "datesRequired": "Please select your travel dates",
       "createError": "Failed to create itinerary. Please try again."
     },
+    "trending": {
+      "title": "Trending Destinations",
+      "destinations": {
+        "Seoul": "Seoul",
+        "Tokyo": "Tokyo",
+        "Los Angeles": "Los Angeles",
+        "Hong Kong": "Hong Kong"
+      }
+    },
+    "datePicker": {
+      "selectDates": "Select dates",
+      "selectEndDate": "Select end date",
+      "days": "days",
+      "weekdays": {
+        "short": ["S", "M", "T", "W", "T", "F", "S"]
+      }
+    },
     "footer": "© 2026 ChillTour. Made for the curious"
   },
   "navigation": {

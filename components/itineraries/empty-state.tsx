@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {
@@ -5,6 +8,8 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ onCreateClick }: EmptyStateProps) {
+  const t = useTranslations("itineraries.empty");
+
   return (
     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
       <div className="mb-6">
@@ -25,15 +30,15 @@ export function EmptyState({ onCreateClick }: EmptyStateProps) {
       </div>
       
       <h2 className="text-2xl font-semibold text-foreground mb-2">
-        您還沒有建立任何行程
+        {t("title")}
       </h2>
       
       <p className="text-muted-foreground mb-8 max-w-md">
-        開始規劃您的下一趟旅行，建立您的第一個行程
+        {t("description")}
       </p>
       
       <Button variant="primary" size="lg" onClick={onCreateClick}>
-        建立第一個行程
+        {t("createFirst")}
       </Button>
     </div>
   );

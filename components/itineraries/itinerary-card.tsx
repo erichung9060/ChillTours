@@ -1,22 +1,12 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import type { ItinerarySummary } from "@/lib/supabase/itineraries";
 
 interface ItineraryCardProps {
   itinerary: ItinerarySummary;
   onClick: (id: string) => void;
-}
-
-/**
- * Format date from YYYY-MM-DD to YYYY / M / D
- */
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1; // getMonth() returns 0-11
-  const day = date.getDate();
-  return `${year} / ${month} / ${day}`;
 }
 
 /**
@@ -28,12 +18,24 @@ function formatDate(dateString: string): string {
  * Requirements: 2.3, 3.1, 3.2, 3.3, 3.4, 7.1, 7.2, 7.3
  */
 export function ItineraryCard({ itinerary, onClick }: ItineraryCardProps) {
+  const t = useTranslations("itineraries.card");
+  const locale = useLocale();
+
   const handleClick = () => {
     onClick(itinerary.id);
   };
 
-  const startDate = formatDate(itinerary.start_date);
-  const endDate = formatDate(itinerary.end_date);
+  // Format dates according to locale
+  const startDate = new Date(itinerary.start_date).toLocaleDateString(locale, {
+    year: "numeric",
+    month: locale === "zh-TW" ? "numeric" : "short",
+    day: "numeric",
+  });
+  const endDate = new Date(itinerary.end_date).toLocaleDateString(locale, {
+    year: "numeric",
+    month: locale === "zh-TW" ? "numeric" : "short",
+    day: "numeric",
+  });
 
   return (
     <Card
@@ -46,11 +48,11 @@ export function ItineraryCard({ itinerary, onClick }: ItineraryCardProps) {
       <CardContent>
         <div className="space-y-2">
           <div className="flex items-center text-sm text-muted-foreground">
-            <span className="font-medium">目的地：</span>
+            <span className="font-medium">{t("destination")}</span>
             <span className="ml-2">{itinerary.destination}</span>
           </div>
           <div className="flex items-center text-sm text-muted-foreground">
-            <span className="font-medium">日期：</span>
+            <span className="font-medium">{t("dates")}</span>
             <span className="ml-2">
               {startDate} - {endDate}
             </span>
