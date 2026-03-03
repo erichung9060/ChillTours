@@ -361,7 +361,7 @@ export default function PlanningPage() {
             >
               {/* Resize Handle - on the left side of chat panel */}
               <div
-                className="absolute top-0 left-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors z-10"
+                className="absolute top-0 left-0 w-3 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors z-10"
                 onMouseDown={handleChatPanelResize}
               ></div>
               <ChatPanel
