@@ -94,7 +94,7 @@ Deno.serve(async (req) => {
       .from("itineraries")
       .update({ status: "generating" })
       .eq("id", itinerary_id)
-      .or("status.eq.draft,status.eq.failed,status.is.null")
+      .in("status", ["draft", "failed"])
       .select("id")
       .single();
 
