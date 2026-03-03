@@ -1,6 +1,20 @@
 @import "tailwindcss";
 @import "mapbox-gl/dist/mapbox-gl.css";
 
+@keyframes bounce-high {
+
+  0%,
+  100% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+
+  50% {
+    transform: translateY(-10px);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -39,18 +53,7 @@
     }
   }
 
-  @keyframes bounce-high {
-    0%,
-    100% {
-      transform: translateY(0);
-      animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-    }
-    50% {
-      transform: translateY(-7px);
-      animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-    }
-  }
-
+  --animate-bounce-high: bounce-high 1s infinite;
   --animate-in: dialog-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   @keyframes dialog-in {

@@ -262,9 +262,9 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  }`}
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
+                    }`}
                 >
                   {/* Render message content with Markdown support for assistant messages */}
                   {message.role === "assistant" ? (
@@ -276,27 +276,18 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                   )}
                   {/* Show streaming indicator for streaming messages (Requirement 18.2) */}
                   {message.streaming && (
-                    <div className="flex items-center gap-1 mt-2">
-                      <div
-                        className="w-1.5 h-1.5 bg-current rounded-full"
-                        style={{
-                          animation: "bounce-high 1s infinite",
-                          animationDelay: "0ms",
-                        }}
+                    <div className={`flex items-center gap-1.5 ${message.content ? 'mt-3 mb-1' : 'h-6'}`}>
+                      <span
+                        className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high inline-block"
+                        style={{ animationDelay: "0ms" }}
                       />
-                      <div
-                        className="w-1.5 h-1.5 bg-current rounded-full"
-                        style={{
-                          animation: "bounce-high 1s infinite",
-                          animationDelay: "200ms",
-                        }}
+                      <span
+                        className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high inline-block"
+                        style={{ animationDelay: "200ms" }}
                       />
-                      <div
-                        className="w-1.5 h-1.5 bg-current rounded-full"
-                        style={{
-                          animation: "bounce-high 1s infinite",
-                          animationDelay: "400ms",
-                        }}
+                      <span
+                        className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high inline-block"
+                        style={{ animationDelay: "400ms" }}
                       />
                     </div>
                   )}
