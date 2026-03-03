@@ -42,7 +42,7 @@ export function MarkdownMessage({
   }, []);
 
   return (
-    <div className={`text-sm ${className}`}>
+    <div className={`text-sm break-words [word-break:break-word] [overflow-wrap:anywhere] ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeHighlight]}
@@ -106,7 +106,7 @@ export function MarkdownMessage({
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary hover:underline underline-offset-2"
+              className="text-primary hover:underline underline-offset-2 break-all inline-block max-w-full"
             >
               {children}
             </a>
