@@ -3,11 +3,6 @@
     "title": "ChillTour - 規劃您的完美旅行",
     "description": "使用 AI 驅動的行程規劃建立個人化旅行行程"
   },
-  "common": {
-    "loading": "載入中...",
-    "error": "錯誤",
-    "retry": "重試"
-  },
   "landing": {
     "hero": {
       "whereToNext": "下一站去",
@@ -40,7 +35,15 @@
       "selectEndDate": "選擇結束日期",
       "days": "天",
       "weekdays": {
-        "short": ["日", "一", "二", "三", "四", "五", "六"]
+        "short": [
+          "日",
+          "一",
+          "二",
+          "三",
+          "四",
+          "五",
+          "六"
+        ]
       }
     },
     "footer": "© 2026 ChillTour."

@@ -3,11 +3,6 @@
     "title": "ChillTour - Plan Your Perfect Trip",
     "description": "Create personalized travel itineraries with AI-powered trip planning"
   },
-  "common": {
-    "loading": "Loading...",
-    "error": "Error",
-    "retry": "Try again"
-  },
   "landing": {
     "hero": {
       "whereToNext": "Where to ",
@@ -40,7 +35,15 @@
       "selectEndDate": "Select end date",
       "days": "days",
       "weekdays": {
-        "short": ["S", "M", "T", "W", "T", "F", "S"]
+        "short": [
+          "S",
+          "M",
+          "T",
+          "W",
+          "T",
+          "F",
+          "S"
+        ]
       }
     },
     "footer": "© 2026 ChillTour. Made for the curious"
