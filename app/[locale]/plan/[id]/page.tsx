@@ -22,6 +22,7 @@ import { useItineraryStore } from "@/components/planner/itinerary/store";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 200;
+const MIN_MAP_PANEL_WIDTH = 300;
 const MIN_CHAT_PANEL_WIDTH = 200;
 const DAY_CARD_WIDTH = 320; // Width of each day card in side-by-side view
 const DAY_CARD_GAP = 16; // Gap between day cards
@@ -34,8 +35,8 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
   if (numDays === 0) return 500;
 
   const windowWidth = window.innerWidth;
-  const minMapWidth = windowWidth * 0.25;
-  const maxItineraryWidth = windowWidth - minMapWidth;
+  const minMapWidth = Math.max(windowWidth * 0.25, MIN_MAP_PANEL_WIDTH);
+  const maxItineraryWidth = Math.max(MIN_ITINERARY_PANEL_WIDTH, windowWidth - minMapWidth - (MIN_CHAT_PANEL_WIDTH / 2)); // Leave some space for chat if needed
 
   const neededWidth =
     numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING;
@@ -135,7 +136,30 @@ export default function PlanningPage() {
 
   // Toggle chat panel (Requirement 4.4)
   const toggleChat = () => {
-    setIsChatOpen((prev) => !prev);
+    const nextOpen = !isChatOpen;
+    if (nextOpen && typeof window !== "undefined") {
+      const windowWidth = window.innerWidth;
+      const availableWidthForAll = windowWidth - MIN_MAP_PANEL_WIDTH;
+
+      // If current widths + map min width exceed window, adjust them
+      if (itineraryPanelWidth + chatPanelWidth > availableWidthForAll) {
+        // Try to keep chat width, reduce itinerary width
+        const newItineraryWidth = Math.max(
+          MIN_ITINERARY_PANEL_WIDTH,
+          windowWidth - chatPanelWidth - MIN_MAP_PANEL_WIDTH
+        );
+        setItineraryPanelWidth(newItineraryWidth);
+
+        // If itinerary is at min and still exceeds, reduce chat width
+        if (newItineraryWidth + chatPanelWidth > availableWidthForAll) {
+          setChatPanelWidth(Math.max(
+            MIN_CHAT_PANEL_WIDTH,
+            windowWidth - newItineraryWidth - MIN_MAP_PANEL_WIDTH
+          ));
+        }
+      }
+    }
+    setIsChatOpen(nextOpen);
   };
 
   // Handle resizing of itinerary panel
@@ -157,23 +181,26 @@ export default function PlanningPage() {
       // Handle itinerary panel resizing
       if (isResizingItinerary) {
         const newItineraryWidth = e.clientX;
+        const currentChatWidth = isChatOpen ? chatPanelWidth : 0;
+        const maxItineraryWidth = windowWidth - currentChatWidth - MIN_MAP_PANEL_WIDTH;
 
-        // Only enforce minimum width
+        // Enforce minimum itinerary width and minimum map width
         if (newItineraryWidth >= MIN_ITINERARY_PANEL_WIDTH) {
-          setItineraryPanelWidth(newItineraryWidth);
+          setItineraryPanelWidth(Math.min(newItineraryWidth, maxItineraryWidth));
         }
       }
 
       // Handle chat panel resizing
       if (isResizingChat) {
         const newChatWidth = windowWidth - e.clientX;
+        const maxChatWidth = windowWidth - itineraryPanelWidth - MIN_MAP_PANEL_WIDTH;
 
-        // Only enforce minimum width
+        // Enforce minimum chat width, minimum itinerary width, and minimum map width
         if (
           newChatWidth >= MIN_CHAT_PANEL_WIDTH &&
           e.clientX >= MIN_ITINERARY_PANEL_WIDTH
         ) {
-          setChatPanelWidth(newChatWidth);
+          setChatPanelWidth(Math.min(newChatWidth, maxChatWidth));
         }
       }
     };
@@ -312,7 +339,10 @@ export default function PlanningPage() {
 
           {/* Center Panel: Map (Requirement 4.3) - Conditionally rendered */}
           {isMapVisible && (
-            <div className="hidden md:flex flex-1 relative">
+            <div
+              className="hidden md:flex flex-1 relative bg-muted/20"
+              style={{ minWidth: `${MIN_MAP_PANEL_WIDTH}px` }}
+            >
               <MapPanel
                 itinerary={itinerary}
                 hoveredDayNumber={hoveredDayNumber}
