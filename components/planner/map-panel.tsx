@@ -22,6 +22,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useLocale } from "next-intl";
 import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
 import {
   getMapProvider,
@@ -54,6 +55,7 @@ export function MapPanel({
   // Get the map provider (abstraction layer)
   const mapProvider = getMapProvider();
   const providerType = getConfiguredProviderType();
+  const locale = useLocale();
 
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
     null
@@ -153,6 +155,7 @@ export function MapPanel({
     onMarkerClick: handleMarkerClick,
     onInfoWindowClose: handleInfoWindowClose,
     getMarkerIcon,
+    locale,
   };
 
   // Render the appropriate map based on provider type

@@ -16,4 +16,5 @@ export interface MapRendererProps {
   onMarkerClick: (activity: Activity) => void;
   onInfoWindowClose: () => void;
   getMarkerIcon: (activity: ActivityWithDay) => PinIconResult;
+  locale: string;
 }

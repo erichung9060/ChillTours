@@ -22,6 +22,7 @@ export function MapboxMapRenderer({
   onMarkerClick,
   onInfoWindowClose,
   getMarkerIcon,
+  locale,
 }: MapRendererProps) {
   const mapRef = useRef<MapRef>(null);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -177,6 +178,9 @@ export function MapboxMapRenderer({
     );
   }
 
+  // Convert locale to Mapbox language code (e.g., 'zh-TW' -> 'zh-Hant')
+  const mapboxLanguage = locale === 'zh-TW' ? 'zh-Hant' : locale.split('-')[0];
+
   return (
     <Map
       ref={mapRef}
@@ -189,6 +193,7 @@ export function MapboxMapRenderer({
       style={{ width: "100%", height: "100%" }}
       mapStyle={mapStyle}
       onLoad={handleMapLoad}
+      language={mapboxLanguage}
     >
       {/* Render markers for all activities */}
       {activities.map((activity) => {

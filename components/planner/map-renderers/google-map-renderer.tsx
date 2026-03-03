@@ -31,6 +31,7 @@ function MapContent({
   getMarkerIcon,
   selectedActivity,
   onInfoWindowClose,
+  locale,
 }: MapRendererProps) {
   const map = useMap();
   const [infoWindowPosition, setInfoWindowPosition] = useState<{
@@ -197,6 +198,7 @@ export function GoogleMapRenderer({
   onMarkerClick,
   onInfoWindowClose,
   getMarkerIcon,
+  locale,
 }: MapRendererProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const { resolvedTheme } = useTheme();
@@ -233,7 +235,7 @@ export function GoogleMapRenderer({
   }
 
   return (
-    <APIProvider apiKey={apiKey}>
+    <APIProvider apiKey={apiKey} language={locale}>
       <Map
         style={mapContainerStyle}
         defaultCenter={mapCenter}
@@ -252,6 +254,7 @@ export function GoogleMapRenderer({
           onMarkerClick={onMarkerClick}
           onInfoWindowClose={onInfoWindowClose}
           getMarkerIcon={getMarkerIcon}
+          locale={locale}
         />
       </Map>
     </APIProvider>
