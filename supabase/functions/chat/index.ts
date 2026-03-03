@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from "npm:@google/generative-ai";
 import { corsHeaders } from "../_shared/cors.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { verifyUser } from "../_shared/auth.ts";
 
 interface ChatMessage {
@@ -225,9 +224,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Initialize Gemini AI
+    // Initialize Gemini AI with Google Search Grounding
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+    const modelName = Deno.env.get("GEMINI_MODEL");
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      tools: [
+        {
+          googleSearch: {},
+        },
+      ],
+    });
 
     // Build conversation history for Gemini
     const conversationHistory = history.map((msg) => ({
