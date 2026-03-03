@@ -290,7 +290,7 @@ export default function PlanningPage() {
             {/* Resize Handle - Only show when map is visible */}
             {isMapVisible && (
               <div
-                className="absolute top-0 right-0 w-5 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors group"
+                className="absolute top-0 right-0 w-3 h-full cursor-col-resize hover:bg-primary/20 active:bg-primary/40 transition-colors group"
                 onMouseDown={handleItineraryPanelResize}
               ></div>
             )}
