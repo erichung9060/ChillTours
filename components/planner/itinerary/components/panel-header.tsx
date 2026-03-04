@@ -11,7 +11,9 @@ import { VIEW_MODES } from "../constants";
 import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { Pencil, Maximize, Minimize } from "lucide-react";
+import { formatDateDisplay } from "@/lib/utils/date";
 
 export function PanelHeader({
   itinerary,
@@ -20,6 +22,7 @@ export function PanelHeader({
   isFullscreen,
   toggleFullscreen,
 }: PanelHeaderProps) {
+  const locale = useLocale();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   return (
@@ -41,8 +44,8 @@ export function PanelHeader({
           {itinerary.destination}
         </p>
         <p className="text-xs text-muted-foreground mt-1">
-          {new Date(itinerary.start_date).toLocaleDateString()} -{" "}
-          {new Date(itinerary.end_date).toLocaleDateString()}
+          {formatDateDisplay(itinerary.start_date, locale)} -{" "}
+          {formatDateDisplay(itinerary.end_date, locale)}
         </p>
       </div>
 

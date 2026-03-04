@@ -6,8 +6,11 @@
 
 "use client";
 
+import { useLocale } from "next-intl";
+
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { formatDayHeader } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
 
 export function SingleDayView({
@@ -19,20 +22,11 @@ export function SingleDayView({
   goToNextDay,
   onActivityHover,
 }: SingleDayViewProps) {
+  const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
   if (!day) return null;
 
-  const formatDayInfo = (date: string) => {
-    const dayDate = new Date(date);
-    const weekday = dayDate.toLocaleDateString("en-US", { weekday: "long" });
-    const monthDay = dayDate.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    return `${weekday}, ${monthDay}`;
-  };
-
-  const formattedDate = formatDayInfo(day.date);
+  const formattedDate = formatDayHeader(day.date, locale);
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

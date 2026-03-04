@@ -104,11 +104,11 @@ export function DateRangePicker({
   };
 
   const handleDateClick = (date: Date) => {
+    // If we have nothing or we already have a full range, start fresh
     if (!startDate || (startDate && endDate)) {
-      // Start new selection
       onChange(date, undefined);
     } else {
-      // Complete selection
+      // We only have a startDate, complete the selection
       if (date < startDate) {
         onChange(date, startDate); // Swap if clicked before start
         setIsOpen(false);
@@ -178,10 +178,10 @@ export function DateRangePicker({
             "h-10 w-10 text-sm flex items-center justify-center relative z-10",
             "hover:bg-[hsl(var(--primary))]/20 transition-colors rounded-full",
             isSelected &&
-              "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
+            "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
             isRange &&
-              !isSelected &&
-              "bg-[hsl(var(--primary))]/10 rounded-none",
+            !isSelected &&
+            "bg-[hsl(var(--primary))]/10 rounded-none",
             isStart && isRange && "rounded-l-full rounded-r-none",
             isEnd && isRange && "rounded-r-full rounded-l-none"
           )}
@@ -219,8 +219,8 @@ export function DateRangePicker({
   const duration =
     startDate && endDate
       ? Math.ceil(
-          (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-        ) + 1
+        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+      ) + 1
       : 0;
 
   return (

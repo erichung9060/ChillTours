@@ -2,6 +2,7 @@
 
 import { useTranslations, useLocale } from "next-intl";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { formatDateDisplay } from "@/lib/utils/date";
 import type { ItinerarySummary } from "@/lib/supabase/itineraries";
 
 interface ItineraryCardProps {
@@ -26,16 +27,8 @@ export function ItineraryCard({ itinerary, onClick }: ItineraryCardProps) {
   };
 
   // Format dates according to locale
-  const startDate = new Date(itinerary.start_date).toLocaleDateString(locale, {
-    year: "numeric",
-    month: locale === "zh-TW" ? "numeric" : "short",
-    day: "numeric",
-  });
-  const endDate = new Date(itinerary.end_date).toLocaleDateString(locale, {
-    year: "numeric",
-    month: locale === "zh-TW" ? "numeric" : "short",
-    day: "numeric",
-  });
+  const startDate = formatDateDisplay(itinerary.start_date, locale);
+  const endDate = formatDateDisplay(itinerary.end_date, locale);
 
   return (
     <Card

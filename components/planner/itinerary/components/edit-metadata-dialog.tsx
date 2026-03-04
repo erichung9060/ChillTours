@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/landing/date-range-picker";
+import { parseLocalDate, formatLocalDate } from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
 
@@ -37,8 +38,8 @@ export function EditMetadataDialog({
         destination: itinerary.destination,
         requirements: itinerary.requirements || "",
     });
-    const [startDate, setStartDate] = useState<Date>(new Date(itinerary.start_date));
-    const [endDate, setEndDate] = useState<Date>(new Date(itinerary.end_date));
+    const [startDate, setStartDate] = useState<Date | undefined>(parseLocalDate(itinerary.start_date));
+    const [endDate, setEndDate] = useState<Date | undefined>(parseLocalDate(itinerary.end_date));
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
@@ -48,8 +49,8 @@ export function EditMetadataDialog({
                 destination: itinerary.destination,
                 requirements: itinerary.requirements || "",
             });
-            setStartDate(new Date(itinerary.start_date));
-            setEndDate(new Date(itinerary.end_date));
+            setStartDate(parseLocalDate(itinerary.start_date));
+            setEndDate(parseLocalDate(itinerary.end_date));
         }
     }, [itinerary, isOpen]);
 
@@ -71,8 +72,8 @@ export function EditMetadataDialog({
 
         setIsSaving(true);
         try {
-            const formattedStart = startDate.toISOString().split("T")[0];
-            const formattedEnd = endDate.toISOString().split("T")[0];
+            const formattedStart = formatLocalDate(startDate);
+            const formattedEnd = formatLocalDate(endDate);
 
             await updateMetadata({
                 title: formData.title,

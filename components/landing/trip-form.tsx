@@ -12,6 +12,7 @@ import { DateRangePicker } from "./date-range-picker";
 import { LoginDialog } from "@/components/auth/login-dialog";
 import { getCurrentUser } from "@/lib/supabase/client";
 import { createItineraryMetadata } from "@/lib/supabase/itineraries";
+import { formatLocalDate } from "@/lib/utils/date";
 
 export function TripForm() {
   const t = useTranslations("landing.form");
@@ -65,8 +66,8 @@ export function TripForm() {
         return;
       }
 
-      const formattedStart = startDate!.toISOString().split("T")[0];
-      const formattedEnd = endDate!.toISOString().split("T")[0];
+      const formattedStart = formatLocalDate(startDate!);
+      const formattedEnd = formatLocalDate(endDate!);
 
       const title = ti("titleFormat", { destination });
 
