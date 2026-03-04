@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { expect, afterEach, beforeAll } from "vitest";
+import { expect, afterEach, beforeAll, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // Mock environment variables for Supabase
@@ -19,10 +19,10 @@ beforeAll(() => {
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => {}, // deprecated
-      removeListener: () => {}, // deprecated
-      addEventListener: () => {},
-      removeEventListener: () => {},
+      addListener: () => { }, // deprecated
+      removeListener: () => { }, // deprecated
+      addEventListener: () => { },
+      removeEventListener: () => { },
       dispatchEvent: () => true,
     }),
   });
@@ -64,5 +64,40 @@ beforeAll(() => {
   });
 });
 
-// Extend Vitest matchers with jest-dom
-expect.extend({});
+// Custom matchers from jest-dom
+import * as matchers from "@testing-library/jest-dom/matchers";
+expect.extend(matchers);
+
+// Mock next-intl globally
+vi.mock("next-intl", () => ({
+  useTranslations: () => (key: string) => key,
+  useLocale: () => "en",
+  useTimeZone: () => "UTC",
+  useMessages: () => ({}),
+  useNow: () => new Date(),
+  NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock next-intl/navigation if needed
+vi.mock("next-intl/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => "",
+  createSharedPathnamesNavigation: () => ({
+    useRouter: () => ({ push: vi.fn() }),
+    usePathname: () => "",
+  }),
+  createNavigation: () => ({
+    Link: ({ children }: { children: React.ReactNode }) => children,
+    redirect: vi.fn(),
+    usePathname: () => "",
+    useRouter: () => ({ push: vi.fn() }),
+    getPathname: vi.fn(),
+  }),
+}));

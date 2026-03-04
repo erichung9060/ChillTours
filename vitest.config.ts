@@ -14,10 +14,16 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       exclude: ["node_modules/", "test/", "**/*.config.{ts,js}", "**/*.d.ts"],
     },
+    server: {
+      deps: {
+        inline: ["next-intl"],
+      },
+    },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./"),
+      "next/navigation": path.resolve(__dirname, "node_modules/next/dist/client/components/navigation.js"),
     },
   },
 });

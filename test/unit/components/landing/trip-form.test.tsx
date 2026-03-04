@@ -16,7 +16,16 @@ vi.mock("@/lib/auth/auth-context", () => ({
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
   }),
+  usePathname: () => "",
+  useSearchParams: () => new URLSearchParams(),
+  redirect: vi.fn(),
+  permanentRedirect: vi.fn(),
 }));
 
 // Mock DateRangePicker
@@ -41,12 +50,12 @@ describe("TripForm - Form Validation", () => {
     render(<TripForm />);
 
     const submitButton = screen.getByRole("button", {
-      name: /generate free itinerary/i,
+      name: /generateButton/i,
     });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(screen.getByText("Destination is required")).toBeInTheDocument();
+      expect(screen.getByText("destinationRequired")).toBeInTheDocument();
     });
   });
 
@@ -54,18 +63,18 @@ describe("TripForm - Form Validation", () => {
     render(<TripForm />);
 
     const destinationInput = screen.getByPlaceholderText(
-      /e.g. Tokyo, Bali, Paris/i
+      /destinationPlaceholder/i
     );
     fireEvent.change(destinationInput, { target: { value: "Tokyo" } });
 
     const submitButton = screen.getByRole("button", {
-      name: /generate free itinerary/i,
+      name: /generateButton/i,
     });
     fireEvent.click(submitButton);
 
     await waitFor(() => {
       expect(
-        screen.queryByText("Destination is required")
+        screen.queryByText("destinationRequired")
       ).not.toBeInTheDocument();
     });
   });
@@ -74,24 +83,24 @@ describe("TripForm - Form Validation", () => {
     render(<TripForm />);
 
     const destinationInput = screen.getByPlaceholderText(
-      /e.g. Tokyo, Bali, Paris/i
+      /destinationPlaceholder/i
     );
     const vibeTextarea = screen.getByPlaceholderText(
-      /Budget-friendly foodie tour/i
+      /vibePlaceholder/i
     );
 
     // Submit with destination only (no vibe)
     fireEvent.change(destinationInput, { target: { value: "Paris" } });
 
     const submitButton = screen.getByRole("button", {
-      name: /generate free itinerary/i,
+      name: /generateButton/i,
     });
     fireEvent.click(submitButton);
 
     // Should not show any validation errors
     await waitFor(() => {
       expect(
-        screen.queryByText("Destination is required")
+        screen.queryByText("destinationRequired")
       ).not.toBeInTheDocument();
     });
 
@@ -104,7 +113,7 @@ describe("TripForm - Form Validation", () => {
     // Should still not show validation errors
     await waitFor(() => {
       expect(
-        screen.queryByText("Destination is required")
+        screen.queryByText("destinationRequired")
       ).not.toBeInTheDocument();
     });
   });
@@ -113,21 +122,21 @@ describe("TripForm - Form Validation", () => {
     render(<TripForm />);
 
     const destinationInput = screen.getByPlaceholderText(
-      /e.g. Tokyo, Bali, Paris/i
+      /destinationPlaceholder/i
     );
 
     // Test that valid destination but missing dates shows error
     fireEvent.change(destinationInput, { target: { value: "Tokyo" } });
 
     const submitButton = screen.getByRole("button", {
-      name: /generate free itinerary/i,
+      name: /generateButton/i,
     });
     fireEvent.click(submitButton);
 
     // Should show date validation error
     await waitFor(() => {
       expect(
-        screen.getByText("Please select your travel dates")
+        screen.getByText("datesRequired")
       ).toBeInTheDocument();
     });
 
@@ -140,7 +149,7 @@ describe("TripForm - Form Validation", () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByText("Please select your travel dates")
+        screen.queryByText("datesRequired")
       ).not.toBeInTheDocument();
     });
   });
