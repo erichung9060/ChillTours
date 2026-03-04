@@ -152,7 +152,6 @@ Deno.serve(async (req) => {
         // Track days and activities for DB save
         const dayMap = new Map<number, {
           day_number: number;
-          date: string;
           activities: object[];
         }>();
 
@@ -177,13 +176,6 @@ Deno.serve(async (req) => {
           const dayIndex = (stack as any[])[2].key as number;
           const day_number = dayIndex + 1; // Convert 0-based index to 1-based day number
 
-          // Calculate actual date for this day using explicit UTC parsing
-          // Avoid timezone issues by using Date.UTC instead of new Date(string)
-          const [year, month, day] = startDate.split("-").map(Number);
-          const dateObj = new Date(Date.UTC(year, month - 1, day));
-          dateObj.setUTCDate(dateObj.getUTCDate() + dayIndex);
-          const date = dateObj.toISOString().split("T")[0];
-
           // Add UUID and order
           const activityWithId = {
             ...activity,
@@ -199,7 +191,7 @@ Deno.serve(async (req) => {
 
           // Accumulate for DB save
           if (!dayMap.has(day_number)) {
-            dayMap.set(day_number, { day_number, date, activities: [] });
+            dayMap.set(day_number, { day_number, activities: [] });
           }
           dayMap.get(day_number)!.activities.push(activityWithId);
         };

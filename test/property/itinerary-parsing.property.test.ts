@@ -28,7 +28,6 @@ function parseItinerary(aiResponse: string): Itinerary | null {
     const days: Day[] = (parsed.days || []).map(
       (day: any, dayIndex: number) => ({
         day_number: day.day_number || dayIndex + 1,
-        date: day.date || addDays(startDate, dayIndex),
         activities: (day.activities || []).map(
           (activity: any, actIndex: number) => ({
             id: activity.id || crypto.randomUUID(),
@@ -81,7 +80,6 @@ function generateAIResponse(
 ): string {
   const days = Array.from({ length: numDays }, (_, dayIndex) => ({
     day_number: dayIndex + 1,
-    date: addDays(new Date(), dayIndex),
     activities: Array.from({ length: activitiesPerDay }, (_, actIndex) => ({
       id: crypto.randomUUID(),
       time: `${(9 + actIndex * 2).toString().padStart(2, "0")}:00`,

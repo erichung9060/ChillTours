@@ -39,7 +39,6 @@ export function createMockItinerary() {
     days: [
       {
         day_number: 1,
-        date: "2025-01-01",
         activities: [
           {
             id: "activity-1",

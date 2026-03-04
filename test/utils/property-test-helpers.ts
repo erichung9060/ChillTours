@@ -41,12 +41,6 @@ export const activityArbitrary = fc.record({
  */
 export const dayArbitrary = fc.record({
   day_number: fc.integer({ min: 1, max: 30 }),
-  date: fc
-    .integer({
-      min: new Date("2020-01-01").getTime(),
-      max: new Date("2030-12-31").getTime(),
-    })
-    .map((ts) => new Date(ts).toISOString().split("T")[0]),
   activities: fc.array(activityArbitrary, { minLength: 0, maxLength: 10 }),
 });
 

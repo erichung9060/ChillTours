@@ -5,7 +5,6 @@ import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
-import { calculateDayDate } from "./utils/date-helpers";
 
 interface ItineraryState {
   // Data State
@@ -151,9 +150,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           activities: [...days[existingDayIdx].activities, activity],
         };
       } else {
-        // Day doesn't exist, create new day with calculated date
-        const date = calculateDayDate(state.itinerary.start_date, dayNumber);
-        days.push({ day_number: dayNumber, date, activities: [activity] });
+        // Day doesn't exist, create new day
+        days.push({ day_number: dayNumber, activities: [activity] });
         days.sort((a, b) => a.day_number - b.day_number);
       }
 

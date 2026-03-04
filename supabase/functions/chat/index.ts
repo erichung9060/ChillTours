@@ -18,7 +18,6 @@ interface ChatRequest {
     end_date: string;
     days: Array<{
       day_number: number;
-      date: string;
       activities: Array<{
         id: string;
         time: string;
@@ -57,7 +56,12 @@ Days and Activities (Note: Activity indices are 0-based, starting from 0):
 `;
 
     itineraryContext.days.forEach((day) => {
-      prompt += `\nDay ${day.day_number} (${day.date}):\n`;
+      // Parse start_date and add day_number offset (minus 1 as day_number is 1-indexed)
+      const startDate = new Date(itineraryContext.start_date + "T00:00:00");
+      startDate.setDate(startDate.getDate() + (day.day_number - 1));
+      const dateStr = startDate.toISOString().split("T")[0];
+
+      prompt += `\nDay ${day.day_number} (${dateStr}):\n`;
       day.activities.forEach((activity, index) => {
         prompt += `  [${index}] ${activity.time}: ${activity.title} at ${activity.location.name}\n`;
         prompt += `      Description: ${activity.description}\n`;

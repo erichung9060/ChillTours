@@ -19,7 +19,6 @@ const mockItinerary: Itinerary = {
   days: [
     {
       day_number: 1,
-      date: "2026-03-01",
       activities: [
         {
           id: "activity-1",
@@ -51,7 +50,6 @@ const mockItinerary: Itinerary = {
     },
     {
       day_number: 2,
-      date: "2026-03-02",
       activities: [
         {
           id: "activity-3",
@@ -70,7 +68,6 @@ const mockItinerary: Itinerary = {
     },
     {
       day_number: 3,
-      date: "2026-03-03",
       activities: [],
     },
   ],
@@ -458,8 +455,6 @@ describe("Operations System", () => {
       expect(result.days[4].activities[0].title).toBe("Activity on New Day");
 
       // Dates should be correct
-      expect(result.days[3].date).toBe("2026-03-04");
-      expect(result.days[4].date).toBe("2026-03-05");
       expect(result.end_date).toBe("2026-03-05");
     });
 

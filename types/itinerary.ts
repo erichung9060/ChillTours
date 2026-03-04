@@ -41,9 +41,6 @@ export type ActivityWithDay = Activity & { dayNumber: number };
 
 export const DaySchema = z.object({
   day_number: z.number().int().min(1).max(30),
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
   activities: z.array(ActivitySchema),
 });
 

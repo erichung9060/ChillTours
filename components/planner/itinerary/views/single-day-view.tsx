@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { formatDayHeader } from "@/lib/utils/date";
+import { calculateDayDate } from "../utils/date-helpers";
 import type { SingleDayViewProps } from "../types";
 
 export function SingleDayView({
@@ -25,8 +26,10 @@ export function SingleDayView({
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
   if (!day) return null;
-
-  const formattedDate = formatDayHeader(day.date, locale);
+  const formattedDate = formatDayHeader(
+    calculateDayDate(itinerary.start_date, day.day_number),
+    locale
+  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

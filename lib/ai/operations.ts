@@ -237,15 +237,17 @@ function applyRemoveOperation(
     // Remove the day
     itinerary.days.splice(dayIndex, 1);
 
-    // Renumber remaining days and update dates
+    // Renumber remaining days
     itinerary.days.forEach((day, index) => {
       day.day_number = index + 1;
-      day.date = calculateDayDate(itinerary.start_date, day.day_number);
     });
 
     // Update end_date based on new duration
     if (itinerary.days.length > 0) {
-      itinerary.end_date = itinerary.days[itinerary.days.length - 1].date;
+      itinerary.end_date = calculateDayDate(
+        itinerary.start_date,
+        itinerary.days.length
+      );
     } else {
       itinerary.end_date = itinerary.start_date;
     }
@@ -461,19 +463,20 @@ function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
 
   for (let i = 0; i < daysToAdd; i++) {
     const newDayNumber = currentDays + i + 1;
-    const dateStr = calculateDayDate(itinerary.start_date, newDayNumber);
 
     const newDay: Day = {
       day_number: newDayNumber,
-      date: dateStr,
       activities: [],
     };
 
     itinerary.days.push(newDay);
   }
 
-  // Update itinerary end_date to match the new last day
-  itinerary.end_date = itinerary.days[itinerary.days.length - 1].date;
+  // Update itinerary end_date to match the new duration
+  itinerary.end_date = calculateDayDate(
+    itinerary.start_date,
+    itinerary.days.length
+  );
 }
 
 // ============================================================================

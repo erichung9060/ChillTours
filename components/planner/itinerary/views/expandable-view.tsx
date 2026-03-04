@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { formatDayHeader } from "@/lib/utils/date";
+import { calculateDayDate } from "../utils/date-helpers";
 import type { ExpandableViewProps } from "../types";
 
 export function ExpandableView({
@@ -28,7 +29,10 @@ export function ExpandableView({
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {itinerary.days.map((day) => {
         const isExpanded = expandedDays.has(day.day_number);
-        const formattedDate = formatDayHeader(day.date, locale);
+        const formattedDate = formatDayHeader(
+          calculateDayDate(itinerary.start_date, day.day_number),
+          locale
+        );
 
         return (
           <Card key={day.day_number} className="overflow-hidden">

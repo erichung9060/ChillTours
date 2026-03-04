@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { formatDayHeader } from "@/lib/utils/date";
+import { calculateDayDate } from "../utils/date-helpers";
 import type { SideBySideViewProps } from "../types";
 
 export function SideBySideView({
@@ -26,7 +27,10 @@ export function SideBySideView({
     <div className="flex-1 overflow-x-auto overflow-y-auto">
       <div className="flex gap-4 p-4 min-w-max">
         {itinerary.days.map((day) => {
-          const formattedDate = formatDayHeader(day.date, locale);
+          const formattedDate = formatDayHeader(
+            calculateDayDate(itinerary.start_date, day.day_number),
+            locale
+          );
 
           return (
             <div key={day.day_number} className="w-80 flex-shrink-0">

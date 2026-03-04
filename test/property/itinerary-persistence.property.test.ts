@@ -294,7 +294,6 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
         expect(loaded.days.length).toBe(itineraryToSave.days.length);
         loaded.days.forEach((day, i) => {
           expect(day.day_number).toBe(itineraryToSave.days[i].day_number);
-          expect(day.date).toBe(itineraryToSave.days[i].date);
           expect(day.activities.length).toBe(
             itineraryToSave.days[i].activities.length
           );
