@@ -98,6 +98,16 @@
       "labelUrl": "URL",
       "labelDescription": "Description",
       "save": "Save changes"
+    },
+    "editMetadataDialog": {
+      "title": "Edit Trip Details",
+      "description": "Modify your trip metadata here. Click save when you're done.",
+      "labelTitle": "Trip Title",
+      "labelDestination": "Destination",
+      "labelDates": "Travel Dates",
+      "labelRequirements": "Vibe / Requirements",
+      "save": "Save changes",
+      "saving": "Saving..."
     }
   },
   "chat": {

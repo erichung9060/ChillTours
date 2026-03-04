@@ -9,6 +9,9 @@
 import { Button } from "@/components/ui/button";
 import { VIEW_MODES } from "../constants";
 import type { PanelHeaderProps } from "../types";
+import { EditMetadataDialog } from "./edit-metadata-dialog";
+import { useState } from "react";
+import { Pencil, Maximize, Minimize } from "lucide-react";
 
 export function PanelHeader({
   itinerary,
@@ -17,10 +20,23 @@ export function PanelHeader({
   isFullscreen,
   toggleFullscreen,
 }: PanelHeaderProps) {
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   return (
     <div className="p-4 border-b border-border flex items-center justify-between">
       <div className="flex-1">
-        <h1 className="text-xl font-semibold">{itinerary.title}</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-xl font-semibold">{itinerary.title}</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditDialogOpen(true)}
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            title="Edit Trip Details"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+        </div>
         <p className="text-sm text-muted-foreground mt-1">
           {itinerary.destination}
         </p>
@@ -57,36 +73,18 @@ export function PanelHeader({
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
           {isFullscreen ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-            </svg>
+            <Minimize className="h-4 w-4" />
           ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-            </svg>
+            <Maximize className="h-4 w-4" />
           )}
         </Button>
       </div>
+
+      <EditMetadataDialog
+        itinerary={itinerary}
+        isOpen={isEditDialogOpen}
+        onClose={() => setIsEditDialogOpen(false)}
+      />
     </div>
   );
 }

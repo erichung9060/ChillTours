@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { Itinerary, Activity } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
-import { loadItinerary } from "@/lib/supabase/itineraries";
+import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
 import { calculateDayDate } from "./utils/date-helpers";
@@ -37,6 +37,7 @@ interface ItineraryState {
 
   // Lifecycle Actions
   fetchItinerary: (id: string) => Promise<void>;
+  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
@@ -88,6 +89,20 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         error: "Failed to load itinerary. Please try again.",
         isLoading: false,
       });
+    }
+  },
+
+  // Update Metadata
+  updateMetadata: async (updates) => {
+    const currentItinerary = get().itinerary;
+    if (!currentItinerary) return;
+
+    try {
+      const updated = await updateItinerary(currentItinerary.id, updates);
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to update itinerary metadata:", err);
+      throw err;
     }
   },
 

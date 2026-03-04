@@ -98,6 +98,16 @@
       "labelUrl": "網址",
       "labelDescription": "描述",
       "save": "儲存修改"
+    },
+    "editMetadataDialog": {
+      "title": "編輯行程資訊",
+      "description": "在此修改您的行程資訊。完成後請點擊儲存。",
+      "labelTitle": "行程標題",
+      "labelDestination": "目的地",
+      "labelDates": "旅行日期",
+      "labelRequirements": "旅行風格 / 需求",
+      "save": "儲存修改",
+      "saving": "儲存中..."
     }
   },
   "chat": {
