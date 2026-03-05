@@ -16,13 +16,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/landing/date-range-picker";
 import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
-import { useItineraryStore } from "../store";
 import { AlertTriangle } from "lucide-react";
 
 interface EditMetadataDialogProps {
     itinerary: Itinerary;
     isOpen: boolean;
     onClose: () => void;
+    onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => void;
 }
 
 type Step = "edit" | "confirm-shrink";
@@ -31,9 +31,9 @@ export function EditMetadataDialog({
     itinerary,
     isOpen,
     onClose,
+    onSave,
 }: EditMetadataDialogProps) {
     const t = useTranslations("planner.editMetadataDialog");
-    const updateMetadata = useItineraryStore((state) => state.updateMetadata);
     const initialFocusRef = useRef<HTMLInputElement>(null);
 
     const [step, setStep] = useState<Step>("edit");
@@ -100,7 +100,7 @@ export function EditMetadataDialog({
     };
 
     const doSave = (formattedStart: string, formattedEnd: string) => {
-        updateMetadata({
+        onSave({
             title: formData.title,
             destination: formData.destination,
             start_date: formattedStart,

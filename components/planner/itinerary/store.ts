@@ -109,19 +109,48 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const oldDayCount = calcDayCount(currentItinerary.start_date, currentItinerary.end_date);
     const newDayCount = calcDayCount(newStart, newEnd);
 
+    // Track dirty fields
+    const dirtyPayload: Partial<Itinerary> = {};
+
+    if (updates.title !== undefined && updates.title !== currentItinerary.title) {
+      dirtyPayload.title = updates.title;
+    }
+    if (updates.destination !== undefined && updates.destination !== currentItinerary.destination) {
+      dirtyPayload.destination = updates.destination;
+    }
+    if (updates.start_date !== undefined && updates.start_date !== currentItinerary.start_date) {
+      dirtyPayload.start_date = updates.start_date;
+    }
+    if (updates.end_date !== undefined && updates.end_date !== currentItinerary.end_date) {
+      dirtyPayload.end_date = updates.end_date;
+    }
+    if (updates.requirements !== undefined && updates.requirements !== currentItinerary.requirements) {
+      dirtyPayload.requirements = updates.requirements;
+    }
+
     let adjustedDays: Day[] | undefined;
 
     if (newDayCount !== oldDayCount) {
       adjustedDays = adjustDays(currentItinerary.days, newDayCount);
+      dirtyPayload.days = adjustedDays;
+    }
+
+    // If nothing changed, do not send API request
+    if (Object.keys(dirtyPayload).length === 0) {
+      return;
     }
 
     set({ isSavingDays: true });
-    const payload = {
-      ...updates,
-      ...(adjustedDays !== undefined ? { days: adjustedDays } : {}),
-    };
 
-    updateItinerary(currentItinerary.id, payload)
+    // Optimistically update local store
+    set({
+      itinerary: {
+        ...currentItinerary,
+        ...dirtyPayload,
+      } as Itinerary
+    });
+
+    updateItinerary(currentItinerary.id, dirtyPayload)
       .then((updated) => {
         set({ itinerary: updated });
       })

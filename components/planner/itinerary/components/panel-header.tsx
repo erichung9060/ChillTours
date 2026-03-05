@@ -27,6 +27,7 @@ export function PanelHeader({
   const t = useTranslations("common");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSavingDays = useItineraryStore((state) => state.isSavingDays);
+  const updateMetadata = useItineraryStore((state) => state.updateMetadata);
 
   return (
     <div className="p-4 border-b border-border flex items-center justify-between">
@@ -97,6 +98,7 @@ export function PanelHeader({
         itinerary={itinerary}
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
+        onSave={(updates) => updateMetadata(updates)}
       />
     </div>
   );

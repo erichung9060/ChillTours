@@ -99,6 +99,7 @@
       "labelUrl": "URL",
       "labelDescription": "Description",
       "save": "Save changes",
+      "saving": "Saving...",
       "delete": "Delete activity",
       "confirmDeleteTitle": "Delete this activity?",
       "confirmDeleteDescription": "This action cannot be undone. The activity will be permanently removed from your itinerary.",
