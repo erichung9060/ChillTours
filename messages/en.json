@@ -6,7 +6,8 @@
   "common": {
     "loading": "Loading...",
     "error": "Error",
-    "retry": "Try again"
+    "retry": "Try again",
+    "saving": "Saving..."
   },
   "landing": {
     "hero": {

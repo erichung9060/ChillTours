@@ -16,6 +16,7 @@ interface ItineraryState {
 
   // Generation State
   isGenerating: boolean;
+  isSavingDays: boolean;
   generationAbortController: AbortController | null;
   pollingIntervalId: ReturnType<typeof setInterval> | null;
 
@@ -39,7 +40,8 @@ interface ItineraryState {
 
   // Lifecycle Actions
   fetchItinerary: (id: string) => Promise<void>;
-  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
+  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => void;
+  saveItineraryDays: () => Promise<void>;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
@@ -65,6 +67,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   isLoading: false,
   error: null,
   isGenerating: false,
+  isSavingDays: false,
   generationAbortController: null,
   pollingIntervalId: null,
   crossDayDragInfo: null,
@@ -95,8 +98,9 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Update Metadata
-  updateMetadata: async (updates) => {
-    const currentItinerary = get().itinerary;
+  updateMetadata: (updates) => {
+    const state = get();
+    const currentItinerary = state.itinerary;
     if (!currentItinerary) return;
 
     // Determine whether the trip length is changing
@@ -111,17 +115,22 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       adjustedDays = adjustDays(currentItinerary.days, newDayCount);
     }
 
-    try {
-      const payload = {
-        ...updates,
-        ...(adjustedDays !== undefined ? { days: adjustedDays } : {}),
-      };
-      const updated = await updateItinerary(currentItinerary.id, payload);
-      set({ itinerary: updated });
-    } catch (err) {
-      console.error("Failed to update itinerary metadata:", err);
-      throw err;
-    }
+    set({ isSavingDays: true });
+    const payload = {
+      ...updates,
+      ...(adjustedDays !== undefined ? { days: adjustedDays } : {}),
+    };
+
+    updateItinerary(currentItinerary.id, payload)
+      .then((updated) => {
+        set({ itinerary: updated });
+      })
+      .catch((err) => {
+        console.error("Failed to update itinerary metadata:", err);
+      })
+      .finally(() => {
+        set({ isSavingDays: false });
+      });
   },
 
   // AI Operations Action
@@ -131,47 +140,67 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     const updated = await applyOperations(currentItinerary, ops);
     set({ itinerary: updated });
+
+    get().saveItineraryDays();
+  },
+
+  // Save specific days array
+  saveItineraryDays: async () => {
+    const state = get();
+    if (!state.itinerary || state.isGenerating) return;
+    set({ isSavingDays: true });
+    try {
+      await updateItinerary(state.itinerary.id, { days: state.itinerary.days });
+    } catch (err) {
+      console.error("Failed to save itinerary days:", err);
+    } finally {
+      set({ isSavingDays: false });
+    }
   },
 
   // Update Single Activity
-  updateActivity: (updatedActivity) =>
-    set((state) => {
-      if (!state.itinerary) return state;
+  updateActivity: (updatedActivity) => {
+    const state = get();
+    if (!state.itinerary) return;
 
-      const newDays = state.itinerary.days.map((day) => ({
-        ...day,
-        activities: day.activities.map((activity) =>
-          activity.id === updatedActivity.id ? updatedActivity : activity
-        ),
-      }));
+    const newDays = state.itinerary.days.map((day) => ({
+      ...day,
+      activities: day.activities.map((activity) =>
+        activity.id === updatedActivity.id ? updatedActivity : activity
+      ),
+    }));
 
-      return {
-        itinerary: {
-          ...state.itinerary,
-          days: newDays,
-          updated_at: new Date().toISOString(),
-        },
-      };
-    }),
+    set({
+      itinerary: {
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      },
+    });
+
+    get().saveItineraryDays();
+  },
 
   // Delete Single Activity
-  deleteActivity: (activityId) =>
-    set((state) => {
-      if (!state.itinerary) return state;
+  deleteActivity: (activityId) => {
+    const state = get();
+    if (!state.itinerary) return;
 
-      const newDays = state.itinerary.days.map((day) => ({
-        ...day,
-        activities: day.activities.filter((activity) => activity.id !== activityId),
-      }));
+    const newDays = state.itinerary.days.map((day) => ({
+      ...day,
+      activities: day.activities.filter((activity) => activity.id !== activityId),
+    }));
 
-      return {
-        itinerary: {
-          ...state.itinerary,
-          days: newDays,
-          updated_at: new Date().toISOString(),
-        },
-      };
-    }),
+    set({
+      itinerary: {
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      },
+    });
+
+    get().saveItineraryDays();
+  },
 
   // Generation Actions
   addActivity: (dayNumber, activity) =>

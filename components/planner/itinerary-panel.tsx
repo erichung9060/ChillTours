@@ -44,6 +44,9 @@ export function ItineraryPanel({
 }: ItineraryPanelProps) {
   // Store state - Read itinerary directly from store
   const itinerary = useItineraryStore((state) => state.itinerary);
+  const saveItineraryDays = useItineraryStore(
+    (state) => state.saveItineraryDays
+  );
   const draggingActivityId = useItineraryStore(
     (state) => state.draggingActivityId
   );
@@ -134,18 +137,19 @@ export function ItineraryPanel({
   const handleDragEnd = (event: DragEndEvent) => {
     setDraggingActivityId(null);
     setCrossDayDragInfo(null);
+    saveItineraryDays();
   };
 
   // Get the active activity for drag overlay
   const activeActivity = draggingActivityId
     ? itinerary.days
-        .flatMap((day) =>
-          day.activities.map((activity) => ({
-            activity,
-            dayNumber: day.day_number,
-          }))
-        )
-        .find(({ activity }) => activity.id === draggingActivityId)
+      .flatMap((day) =>
+        day.activities.map((activity) => ({
+          activity,
+          dayNumber: day.day_number,
+        }))
+      )
+      .find(({ activity }) => activity.id === draggingActivityId)
     : null;
 
   // View renderers mapping

@@ -44,7 +44,6 @@ export function EditMetadataDialog({
     });
     const [startDate, setStartDate] = useState<Date | undefined>(parseLocalDate(itinerary.start_date));
     const [endDate, setEndDate] = useState<Date | undefined>(parseLocalDate(itinerary.end_date));
-    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
@@ -83,9 +82,8 @@ export function EditMetadataDialog({
         .sort((a, b) => a.day_number - b.day_number);
 
     // ─── Submit handlers ─────────────────────────────────────────────────────
-    const handleSave = async (e: React.FormEvent) => {
+    const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isSaving) return;
 
         if (!startDate || !endDate) return;
 
@@ -98,30 +96,23 @@ export function EditMetadataDialog({
             return;
         }
 
-        await doSave(formattedStart, formattedEnd);
+        doSave(formattedStart, formattedEnd);
     };
 
-    const doSave = async (formattedStart: string, formattedEnd: string) => {
-        setIsSaving(true);
-        try {
-            await updateMetadata({
-                title: formData.title,
-                destination: formData.destination,
-                start_date: formattedStart,
-                end_date: formattedEnd,
-                requirements: formData.requirements || undefined,
-            });
-            onClose();
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setIsSaving(false);
-        }
+    const doSave = (formattedStart: string, formattedEnd: string) => {
+        updateMetadata({
+            title: formData.title,
+            destination: formData.destination,
+            start_date: formattedStart,
+            end_date: formattedEnd,
+            requirements: formData.requirements || undefined,
+        });
+        onClose();
     };
 
-    const handleConfirmShrink = async () => {
+    const handleConfirmShrink = () => {
         if (!startDate || !endDate) return;
-        await doSave(formatLocalDate(startDate), formatLocalDate(endDate));
+        doSave(formatLocalDate(startDate), formatLocalDate(endDate));
     };
 
     const handleBackToEdit = () => {
@@ -201,12 +192,10 @@ export function EditMetadataDialog({
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit" disabled={isSaving} variant={isShrinking ? "destructive" : "default"}>
-                                {isSaving
-                                    ? t("saving")
-                                    : isShrinking
-                                        ? t("saveAndShrink")
-                                        : t("save")}
+                            <Button type="submit" variant={isShrinking ? "destructive" : "default"}>
+                                {isShrinking
+                                    ? t("saveAndShrink")
+                                    : t("save")}
                             </Button>
                         </DialogFooter>
                     </form>
@@ -249,15 +238,14 @@ export function EditMetadataDialog({
                         </p>
 
                         <DialogFooter className="mt-6 gap-2">
-                            <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
+                            <Button variant="outline" onClick={handleBackToEdit}>
                                 {t("cancelShrink")}
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={handleConfirmShrink}
-                                disabled={isSaving}
                             >
-                                {isSaving ? t("saving") : t("confirmShrink")}
+                                {t("confirmShrink")}
                             </Button>
                         </DialogFooter>
                     </div>
