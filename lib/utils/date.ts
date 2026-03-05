@@ -83,3 +83,34 @@ export function formatDayHeader(dateStr: string, locale: string): string {
     });
     return `${weekday}, ${monthDay}`;
 }
+
+/**
+ * Count the number of calendar days between two YYYY-MM-DD strings (inclusive).
+ *
+ * @param startDate - A date string in "YYYY-MM-DD" format
+ * @param endDate   - A date string in "YYYY-MM-DD" format
+ * @returns Number of days (inclusive), e.g. "2026-03-01" → "2026-03-03" = 3
+ */
+export function calcDayCount(startDate: string, endDate: string): number {
+    const msPerDay = 86_400_000;
+    const start = parseLocalDate(startDate).getTime();
+    const end = parseLocalDate(endDate).getTime();
+    return Math.round((end - start) / msPerDay) + 1;
+}
+
+/**
+ * Calculate the date for a specific day number in an itinerary.
+ *
+ * @param startDate - The itinerary start date in YYYY-MM-DD format
+ * @param dayNumber - The day number (1-based)
+ * @returns The date for the specified day in YYYY-MM-DD format
+ *
+ * @example
+ * calculateDayDate("2026-03-15", 1) // "2026-03-15"
+ * calculateDayDate("2026-03-15", 3) // "2026-03-17"
+ */
+export function calculateDayDate(startDate: string, dayNumber: number): string {
+    const date = parseLocalDate(startDate);
+    date.setDate(date.getDate() + (dayNumber - 1));
+    return formatLocalDate(date);
+}

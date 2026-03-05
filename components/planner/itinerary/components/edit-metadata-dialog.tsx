@@ -14,15 +14,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/landing/date-range-picker";
-import { parseLocalDate, formatLocalDate } from "@/lib/utils/date";
+import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
+import { AlertTriangle } from "lucide-react";
 
 interface EditMetadataDialogProps {
     itinerary: Itinerary;
     isOpen: boolean;
     onClose: () => void;
 }
+
+type Step = "edit" | "confirm-shrink";
 
 export function EditMetadataDialog({
     itinerary,
@@ -33,6 +36,7 @@ export function EditMetadataDialog({
     const updateMetadata = useItineraryStore((state) => state.updateMetadata);
     const initialFocusRef = useRef<HTMLInputElement>(null);
 
+    const [step, setStep] = useState<Step>("edit");
     const [formData, setFormData] = useState({
         title: itinerary.title,
         destination: itinerary.destination,
@@ -44,6 +48,7 @@ export function EditMetadataDialog({
 
     useEffect(() => {
         if (isOpen) {
+            setStep("edit");
             setFormData({
                 title: itinerary.title,
                 destination: itinerary.destination,
@@ -55,26 +60,50 @@ export function EditMetadataDialog({
     }, [itinerary, isOpen]);
 
     useEffect(() => {
-        if (isOpen && initialFocusRef.current) {
+        if (isOpen && step === "edit" && initialFocusRef.current) {
             setTimeout(() => {
                 initialFocusRef.current?.focus();
             }, 100);
         }
-    }, [isOpen]);
+    }, [isOpen, step]);
 
+    // ─── Derived: how many days will be affected by shrinking ───────────────
+    const oldDayCount = calcDayCount(itinerary.start_date, itinerary.end_date);
+    const newDayCount =
+        startDate && endDate
+            ? calcDayCount(formatLocalDate(startDate), formatLocalDate(endDate))
+            : oldDayCount;
+
+    const isShrinking = newDayCount < oldDayCount;
+    const removedDayCount = isShrinking ? oldDayCount - newDayCount : 0;
+
+    // All days that will be removed (including empty ones)
+    const affectedDays = itinerary.days
+        .filter((d) => d.day_number > newDayCount)
+        .sort((a, b) => a.day_number - b.day_number);
+
+    // ─── Submit handlers ─────────────────────────────────────────────────────
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isSaving) return;
 
-        if (!startDate || !endDate) {
-            return; // Do not save without basic dates
+        if (!startDate || !endDate) return;
+
+        const formattedStart = formatLocalDate(startDate);
+        const formattedEnd = formatLocalDate(endDate);
+
+        // If the user is about to shorten the trip, show confirmation step first
+        if (isShrinking && step === "edit") {
+            setStep("confirm-shrink");
+            return;
         }
 
+        await doSave(formattedStart, formattedEnd);
+    };
+
+    const doSave = async (formattedStart: string, formattedEnd: string) => {
         setIsSaving(true);
         try {
-            const formattedStart = formatLocalDate(startDate);
-            const formattedEnd = formatLocalDate(endDate);
-
             await updateMetadata({
                 title: formData.title,
                 destination: formData.destination,
@@ -90,75 +119,149 @@ export function EditMetadataDialog({
         }
     };
 
+    const handleConfirmShrink = async () => {
+        if (!startDate || !endDate) return;
+        await doSave(formatLocalDate(startDate), formatLocalDate(endDate));
+    };
+
+    const handleBackToEdit = () => {
+        setStep("edit");
+    };
+
+    // ─── Render ──────────────────────────────────────────────────────────────
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
-                <form onSubmit={handleSave}>
-                    <DialogHeader>
-                        <DialogTitle>{t("title")}</DialogTitle>
-                        <DialogDescription>{t("description")}</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid gap-2">
-                            <label htmlFor="tripTitle" className="text-sm font-medium">
-                                {t("labelTitle")}
-                            </label>
-                            <Input
-                                ref={initialFocusRef}
-                                id="tripTitle"
-                                value={formData.title}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, title: e.target.value })
-                                }
-                                required
-                            />
+                {step === "edit" ? (
+                    <form onSubmit={handleSave}>
+                        <DialogHeader>
+                            <DialogTitle>{t("title")}</DialogTitle>
+                            <DialogDescription>{t("description")}</DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                                <label htmlFor="tripTitle" className="text-sm font-medium">
+                                    {t("labelTitle")}
+                                </label>
+                                <Input
+                                    ref={initialFocusRef}
+                                    id="tripTitle"
+                                    value={formData.title}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, title: e.target.value })
+                                    }
+                                    required
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <label htmlFor="tripDestination" className="text-sm font-medium">
+                                    {t("labelDestination")}
+                                </label>
+                                <Input
+                                    id="tripDestination"
+                                    value={formData.destination}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, destination: e.target.value })
+                                    }
+                                    required
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <label className="text-sm font-medium">
+                                    {t("labelDates")}
+                                </label>
+                                <DateRangePicker
+                                    startDate={startDate}
+                                    endDate={endDate}
+                                    onChange={(start, end) => {
+                                        setStartDate(start);
+                                        setEndDate(end);
+                                    }}
+                                />
+                                {/* Inline shrink warning hint */}
+                                {isShrinking && (
+                                    <p className="flex items-center gap-1.5 text-sm text-amber-600 dark:text-amber-400">
+                                        <AlertTriangle className="h-4 w-4 shrink-0" />
+                                        {t("shrinkHint", { count: removedDayCount })}
+                                    </p>
+                                )}
+                            </div>
+                            <div className="grid gap-2">
+                                <label htmlFor="tripRequirements" className="text-sm font-medium">
+                                    {t("labelRequirements")}
+                                </label>
+                                <Textarea
+                                    id="tripRequirements"
+                                    value={formData.requirements}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, requirements: e.target.value })
+                                    }
+                                    className="min-h-[100px]"
+                                />
+                            </div>
                         </div>
-                        <div className="grid gap-2">
-                            <label htmlFor="tripDestination" className="text-sm font-medium">
-                                {t("labelDestination")}
-                            </label>
-                            <Input
-                                id="tripDestination"
-                                value={formData.destination}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, destination: e.target.value })
-                                }
-                                required
-                            />
+                        <DialogFooter>
+                            <Button type="submit" disabled={isSaving} variant={isShrinking ? "destructive" : "default"}>
+                                {isSaving
+                                    ? t("saving")
+                                    : isShrinking
+                                        ? t("saveAndShrink")
+                                        : t("save")}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                ) : (
+                    /* ── Confirmation step ── */
+                    <div>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-destructive">
+                                <AlertTriangle className="h-5 w-5" />
+                                {t("confirmShrinkTitle")}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t("confirmShrinkDescription", { count: removedDayCount })}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="my-4 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                            <p className="mb-2 text-sm font-medium text-destructive">
+                                {t("affectedDaysLabel")}
+                            </p>
+                            <ul className="space-y-1">
+                                {affectedDays.map((day) => (
+                                    <li
+                                        key={day.day_number}
+                                        className="flex items-center justify-between text-sm"
+                                    >
+                                        <span className="font-medium">
+                                            {t("dayLabel", { day: day.day_number })}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {t("activityCount", { count: day.activities.length })}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                        <div className="grid gap-2">
-                            <label className="text-sm font-medium">
-                                {t("labelDates")}
-                            </label>
-                            <DateRangePicker
-                                startDate={startDate}
-                                endDate={endDate}
-                                onChange={(start, end) => {
-                                    setStartDate(start);
-                                    setEndDate(end);
-                                }}
-                            />
-                        </div>
-                        <div className="grid gap-2">
-                            <label htmlFor="tripRequirements" className="text-sm font-medium">
-                                {t("labelRequirements")}
-                            </label>
-                            <Textarea
-                                id="tripRequirements"
-                                value={formData.requirements}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, requirements: e.target.value })
-                                }
-                                className="min-h-[100px]"
-                            />
-                        </div>
+
+                        <p className="text-sm text-muted-foreground">
+                            {t("confirmShrinkNote")}
+                        </p>
+
+                        <DialogFooter className="mt-6 gap-2">
+                            <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
+                                {t("cancelShrink")}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleConfirmShrink}
+                                disabled={isSaving}
+                            >
+                                {isSaving ? t("saving") : t("confirmShrink")}
+                            </Button>
+                        </DialogFooter>
                     </div>
-                    <DialogFooter>
-                        <Button type="submit" disabled={isSaving}>
-                            {isSaving ? t("saving") : t("save")}
-                        </Button>
-                    </DialogFooter>
-                </form>
+                )}
             </DialogContent>
         </Dialog>
     );

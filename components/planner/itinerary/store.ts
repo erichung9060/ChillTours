@@ -1,10 +1,12 @@
 import { create } from "zustand";
-import type { Itinerary, Activity } from "@/types/itinerary";
+import type { Itinerary, Activity, Day } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
+import { calcDayCount } from "@/lib/utils/date";
+import { adjustDays } from "@/lib/utils/itinerary";
 
 interface ItineraryState {
   // Data State
@@ -96,8 +98,24 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const currentItinerary = get().itinerary;
     if (!currentItinerary) return;
 
+    // Determine whether the trip length is changing
+    const newStart = updates.start_date ?? currentItinerary.start_date;
+    const newEnd = updates.end_date ?? currentItinerary.end_date;
+    const oldDayCount = calcDayCount(currentItinerary.start_date, currentItinerary.end_date);
+    const newDayCount = calcDayCount(newStart, newEnd);
+
+    let adjustedDays: Day[] | undefined;
+
+    if (newDayCount !== oldDayCount) {
+      adjustedDays = adjustDays(currentItinerary.days, newDayCount);
+    }
+
     try {
-      const updated = await updateItinerary(currentItinerary.id, updates);
+      const payload = {
+        ...updates,
+        ...(adjustedDays !== undefined ? { days: adjustedDays } : {}),
+      };
+      const updated = await updateItinerary(currentItinerary.id, payload);
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to update itinerary metadata:", err);

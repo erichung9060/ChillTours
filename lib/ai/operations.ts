@@ -15,7 +15,8 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Itinerary, Day, Activity } from "@/types";
 import { ensureLocationData } from "@/lib/maps/geocoding";
-import { calculateDayDate } from "@/components/planner/itinerary/utils/date-helpers";
+import { calculateDayDate } from "@/lib/utils/date";
+import { ensureDayExists } from "@/lib/utils/itinerary";
 
 // ============================================================================
 // Operation Types
@@ -445,39 +446,8 @@ function applyReorderOperation(
   return itinerary;
 }
 
-/**
- * Ensure that the itinerary has enough days to cover the target day number.
- * If not, append new empty days.
- */
-function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
-  // Current number of days
-  const currentDays = itinerary.days.length;
 
-  // If day already exists, do nothing
-  if (dayNumber <= currentDays) {
-    return;
-  }
 
-  // Calculate how many days to add
-  const daysToAdd = dayNumber - currentDays;
-
-  for (let i = 0; i < daysToAdd; i++) {
-    const newDayNumber = currentDays + i + 1;
-
-    const newDay: Day = {
-      day_number: newDayNumber,
-      activities: [],
-    };
-
-    itinerary.days.push(newDay);
-  }
-
-  // Update itinerary end_date to match the new duration
-  itinerary.end_date = calculateDayDate(
-    itinerary.start_date,
-    itinerary.days.length
-  );
-}
 
 // ============================================================================
 // Parse Operations from LLM Response

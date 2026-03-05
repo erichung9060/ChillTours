@@ -11,7 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { formatDayHeader } from "@/lib/utils/date";
-import { calculateDayDate } from "../utils/date-helpers";
+import { calculateDayDate } from "@/lib/utils/date";
 import type { SideBySideViewProps } from "../types";
 
 export function SideBySideView({

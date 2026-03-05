@@ -107,7 +107,17 @@
       "labelDates": "Travel Dates",
       "labelRequirements": "Vibe / Requirements",
       "save": "Save changes",
-      "saving": "Saving..."
+      "saving": "Saving...",
+      "saveAndShrink": "Save & Shorten Trip",
+      "shrinkHint": "Shortening will remove the last {count} day(s)",
+      "confirmShrinkTitle": "Shorten your itinerary?",
+      "confirmShrinkDescription": "You are about to remove {count} day(s). All activities on those days will be permanently deleted and cannot be recovered.",
+      "affectedDaysLabel": "Days that will be deleted:",
+      "dayLabel": "Day {day}",
+      "activityCount": "{count} activity(s)",
+      "confirmShrinkNote": "Please confirm you understand this action will permanently delete all activities for the days listed above.",
+      "cancelShrink": "Go back",
+      "confirmShrink": "Yes, delete & save"
     }
   },
   "chat": {

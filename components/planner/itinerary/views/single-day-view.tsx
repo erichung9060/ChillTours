@@ -11,7 +11,7 @@ import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { formatDayHeader } from "@/lib/utils/date";
-import { calculateDayDate } from "../utils/date-helpers";
+import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
 
 export function SingleDayView({
