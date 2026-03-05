@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import type { Activity } from "@/types/itinerary";
 
 interface EditActivityDialogProps {
@@ -20,17 +21,22 @@ interface EditActivityDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (updatedActivity: Activity) => void;
+  onDelete: (activityId: string) => void;
 }
+
+type Step = "edit" | "confirm-delete";
 
 export function EditActivityDialog({
   activity,
   isOpen,
   onClose,
   onSave,
+  onDelete,
 }: EditActivityDialogProps) {
   const t = useTranslations("planner.editDialog");
   const initialFocusRef = useRef<HTMLInputElement>(null);
 
+  const [step, setStep] = useState<Step>("edit");
   const [formData, setFormData] = useState({
     title: activity.title,
     locationName: activity.location.name,
@@ -42,6 +48,7 @@ export function EditActivityDialog({
 
   useEffect(() => {
     if (isOpen) {
+      setStep("edit");
       setFormData({
         title: activity.title,
         locationName: activity.location.name,
@@ -54,12 +61,12 @@ export function EditActivityDialog({
   }, [activity, isOpen]);
 
   useEffect(() => {
-    if (isOpen && initialFocusRef.current) {
+    if (isOpen && step === "edit" && initialFocusRef.current) {
       setTimeout(() => {
         initialFocusRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, step]);
 
   const handleSave = () => {
     const updatedActivity: Activity = {
@@ -78,103 +85,161 @@ export function EditActivityDialog({
     onClose();
   };
 
+  const handleDeleteClick = () => {
+    setStep("confirm-delete");
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(activity.id);
+    onClose();
+  };
+
+  const handleBackToEdit = () => {
+    setStep("edit");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
-        <form onSubmit={handleSave}>
-          <DialogHeader>
-            <DialogTitle>{t("title")}</DialogTitle>
-            <DialogDescription>
-              {t("description")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="title" className="text-sm font-medium">
-                {t("labelTitle")}
-              </label>
-              <Input
-                ref={initialFocusRef}
-                id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="location" className="text-sm font-medium">
-                {t("labelLocation")}
-              </label>
-              <Input
-                id="location"
-                value={formData.locationName}
-                onChange={(e) =>
-                  setFormData({ ...formData, locationName: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        {step === "edit" ? (
+          /* ── Edit Step ── */
+          <form onSubmit={handleSave}>
+            <DialogHeader>
+              <DialogTitle>{t("title")}</DialogTitle>
+              <DialogDescription>
+                {t("description")}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <label htmlFor="time" className="text-sm font-medium">
-                  {t("labelTime")}
+                <label htmlFor="title" className="text-sm font-medium">
+                  {t("labelTitle")}
                 </label>
                 <Input
-                  id="time"
-                  type="time"
-                  value={formData.time}
+                  ref={initialFocusRef}
+                  id="title"
+                  value={formData.title}
                   onChange={(e) =>
-                    setFormData({ ...formData, time: e.target.value })
+                    setFormData({ ...formData, title: e.target.value })
                   }
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="duration" className="text-sm font-medium">
-                  {t("labelDuration")}
+                <label htmlFor="location" className="text-sm font-medium">
+                  {t("labelLocation")}
                 </label>
                 <Input
-                  id="duration"
-                  type="number"
-                  value={formData.duration}
+                  id="location"
+                  value={formData.locationName}
                   onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      duration: Number(e.target.value),
-                    })
+                    setFormData({ ...formData, locationName: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <label htmlFor="time" className="text-sm font-medium">
+                    {t("labelTime")}
+                  </label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={formData.time}
+                    onChange={(e) =>
+                      setFormData({ ...formData, time: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="duration" className="text-sm font-medium">
+                    {t("labelDuration")}
+                  </label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    value={formData.duration}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        duration: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="url" className="text-sm font-medium">
+                  {t("labelUrl")}
+                </label>
+                <Input
+                  id="url"
+                  value={formData.url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, url: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="grid gap-2">
+                <label htmlFor="description" className="text-sm font-medium">
+                  {t("labelDescription")}
+                </label>
+                <Textarea
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
                   }
                 />
               </div>
             </div>
-            <div className="grid gap-2">
-              <label htmlFor="url" className="text-sm font-medium">
-                {t("labelUrl")}
-              </label>
-              <Input
-                id="url"
-                value={formData.url}
-                onChange={(e) =>
-                  setFormData({ ...formData, url: e.target.value })
-                }
-                placeholder="https://..."
-              />
+            <DialogFooter className="flex-row items-center justify-between sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={handleDeleteClick}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {t("delete")}
+              </Button>
+              <Button type="submit">{t("save")}</Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          /* ── Confirm Delete Step ── */
+          <div>
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                {t("confirmDeleteTitle")}
+              </DialogTitle>
+              <DialogDescription>
+                {t("confirmDeleteDescription")}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="my-4 rounded-md border border-destructive/30 bg-destructive/5 p-4">
+              <p className="text-sm font-semibold">{activity.title}</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {activity.location.name} · {activity.time}
+              </p>
             </div>
-            <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                {t("labelDescription")}
-              </label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-              />
-            </div>
+
+            <p className="text-sm text-muted-foreground">
+              {t("confirmDeleteNote")}
+            </p>
+
+            <DialogFooter className="mt-6 gap-2">
+              <Button variant="outline" onClick={handleBackToEdit}>
+                {t("cancelDelete")}
+              </Button>
+              <Button variant="destructive" onClick={handleConfirmDelete}>
+                {t("confirmDelete")}
+              </Button>
+            </DialogFooter>
           </div>
-          <DialogFooter>
-            <Button type="submit">{t("save")}</Button>
-          </DialogFooter>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );

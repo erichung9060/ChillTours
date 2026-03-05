@@ -28,6 +28,7 @@ interface ItineraryState {
   // Actions
   setItinerary: (itinerary: Itinerary) => void;
   updateActivity: (updatedActivity: Activity) => void;
+  deleteActivity: (activityId: string) => void;
 
   // Generation Actions
   startStreaming: (itineraryId: string, locale: string) => Promise<void>;
@@ -142,6 +143,25 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         activities: day.activities.map((activity) =>
           activity.id === updatedActivity.id ? updatedActivity : activity
         ),
+      }));
+
+      return {
+        itinerary: {
+          ...state.itinerary,
+          days: newDays,
+          updated_at: new Date().toISOString(),
+        },
+      };
+    }),
+
+  // Delete Single Activity
+  deleteActivity: (activityId) =>
+    set((state) => {
+      if (!state.itinerary) return state;
+
+      const newDays = state.itinerary.days.map((day) => ({
+        ...day,
+        activities: day.activities.filter((activity) => activity.id !== activityId),
       }));
 
       return {

@@ -97,7 +97,13 @@
       "labelDuration": "Duration (min)",
       "labelUrl": "URL",
       "labelDescription": "Description",
-      "save": "Save changes"
+      "save": "Save changes",
+      "delete": "Delete activity",
+      "confirmDeleteTitle": "Delete this activity?",
+      "confirmDeleteDescription": "This action cannot be undone. The activity will be permanently removed from your itinerary.",
+      "confirmDeleteNote": "Please confirm you want to permanently delete this activity.",
+      "cancelDelete": "Go back",
+      "confirmDelete": "Yes, delete"
     },
     "editMetadataDialog": {
       "title": "Edit Trip Details",

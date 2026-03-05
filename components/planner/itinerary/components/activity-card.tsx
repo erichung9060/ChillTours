@@ -23,6 +23,7 @@ export function ActivityCard({
 }: ActivityCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const updateActivity = useItineraryStore((state) => state.updateActivity);
+  const deleteActivity = useItineraryStore((state) => state.deleteActivity);
 
   const handleNavigationConfig = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -129,6 +130,7 @@ export function ActivityCard({
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={(updatedActivity) => updateActivity(updatedActivity)}
+        onDelete={(id) => deleteActivity(id)}
       />
     </Card>
   );
