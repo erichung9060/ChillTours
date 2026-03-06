@@ -83,13 +83,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await loadItinerary(id);
-      set({ itinerary: data, isLoading: false });
+      set({ itinerary: data });
     } catch (err) {
       console.error("Failed to load itinerary:", err);
-      set({
-        error: "Failed to load itinerary. Please try again.",
-        isLoading: false,
-      });
+      set({ error: "Failed to load itinerary. Please try again." });
+    } finally {
+      set({ isLoading: false });
     }
   },
 
