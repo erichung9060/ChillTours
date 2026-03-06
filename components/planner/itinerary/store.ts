@@ -265,37 +265,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  appendStreamedActivity: (dayNumber, activity) =>
-    set((state) => {
-      if (!state.itinerary) return state;
-
-      const days = [...state.itinerary.days];
-      const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
-
-      if (existingDayIdx !== -1) {
-        // Day already exists, add activity to it
-        days[existingDayIdx] = {
-          ...days[existingDayIdx],
-          activities: [...days[existingDayIdx].activities, activity],
-        };
-      } else {
-        // Day doesn't exist, create new day
-        days.push({ day_number: dayNumber, activities: [activity] });
-        days.sort((a, b) => a.day_number - b.day_number);
-      }
-
-      return {
-        itinerary: {
-          ...state.itinerary,
-          days,
-          updated_at: new Date().toISOString(),
-        },
-      };
-    }),
-
-  completeGeneration: () =>
-    set({ isGenerating: false, generationAbortController: null }),
-
   startStreaming: async (itineraryId, locale) => {
     const state = get();
 
@@ -342,6 +311,37 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     }
   },
+
+  appendStreamedActivity: (dayNumber, activity) =>
+    set((state) => {
+      if (!state.itinerary) return state;
+
+      const days = [...state.itinerary.days];
+      const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
+
+      if (existingDayIdx !== -1) {
+        // Day already exists, add activity to it
+        days[existingDayIdx] = {
+          ...days[existingDayIdx],
+          activities: [...days[existingDayIdx].activities, activity],
+        };
+      } else {
+        // Day doesn't exist, create new day
+        days.push({ day_number: dayNumber, activities: [activity] });
+        days.sort((a, b) => a.day_number - b.day_number);
+      }
+
+      return {
+        itinerary: {
+          ...state.itinerary,
+          days,
+          updated_at: new Date().toISOString(),
+        },
+      };
+    }),
+    
+  completeGeneration: () =>
+    set({ isGenerating: false, generationAbortController: null }),
 
   startPolling: (itineraryId) => {
     const existing = get().pollingIntervalId;
