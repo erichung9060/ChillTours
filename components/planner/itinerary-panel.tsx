@@ -33,6 +33,12 @@ import type { ItineraryPanelProps, ViewMode } from "./itinerary";
 import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "./itinerary/store";
 
+const pointerSensorOptions = {
+  activationConstraint: {
+    distance: 8, // 8px movement required to start drag
+  },
+};
+
 export function ItineraryPanel({
   onFullscreenChange,
   onToggleChat,
@@ -44,8 +50,8 @@ export function ItineraryPanel({
 }: ItineraryPanelProps) {
   // Store state - Read itinerary directly from store
   const itinerary = useItineraryStore((state) => state.itinerary);
-  const saveItineraryDays = useItineraryStore(
-    (state) => state.saveItineraryDays
+  const updateDays = useItineraryStore(
+    (state) => state.updateDays
   );
   const draggingActivityId = useItineraryStore(
     (state) => state.draggingActivityId
@@ -84,11 +90,7 @@ export function ItineraryPanel({
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // 8px movement required to start drag
-      },
-    })
+    useSensor(PointerSensor, pointerSensorOptions)
   );
 
   // UI handlers
@@ -137,7 +139,10 @@ export function ItineraryPanel({
   const handleDragEnd = (event: DragEndEvent) => {
     setDraggingActivityId(null);
     setCrossDayDragInfo(null);
-    saveItineraryDays();
+    const currentItinerary = useItineraryStore.getState().itinerary;
+    if (currentItinerary) {
+      updateDays(currentItinerary.days);
+    }
   };
 
   // Get the active activity for drag overlay

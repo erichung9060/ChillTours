@@ -9,7 +9,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Pencil } from "lucide-react";
+import { ExternalLink, Pencil, MapPin } from "lucide-react";
 import type { ActivityCardProps } from "../types";
 import { getMapProvider } from "@/lib/maps/provider-factory";
 import { EditActivityDialog } from "./edit-activity-dialog";
@@ -88,11 +88,7 @@ export function ActivityCard({
               onClick={handleNavigationConfig}
               title="Navigate with Google Maps"
             >
-              <img
-                src="https://www.google.com/images/branding/product/ico/maps15_bnuw3a_32dp.ico"
-                alt="Google Maps"
-                className="h-4 w-4 object-contain flex-shrink-0"
-              />
+              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
               <span className="truncate">{activity.location.name}</span>
             </Button>
 

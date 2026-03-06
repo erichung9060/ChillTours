@@ -31,7 +31,7 @@ interface ItineraryState {
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
   updateActivity: (updatedActivity: Activity) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
-  saveItineraryDays: () => Promise<void>;
+  updateDays: (newDays: Day[]) => Promise<void>;
 
   // Generation Actions
   startStreaming: (itineraryId: string, locale: string) => Promise<void>;
@@ -150,25 +150,44 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
   // AI Operations Action
   applyOperations: async (ops: OperationsUpdate) => {
-    const currentItinerary = get().itinerary;
+    const state = get();
+    const currentItinerary = state.itinerary;
     if (!currentItinerary) return;
 
-    const updated = await applyOperations(currentItinerary, ops);
-    set({ itinerary: updated });
+    // 1. 本地透過 AI operations 計算出預期的 itinerary 狀態
+    const optimisticItinerary = await applyOperations(currentItinerary, ops);
 
-    get().saveItineraryDays();
+    // 2. 樂觀更新 (Optimistic Update)：先更新 UI 讓使用者立刻看到 AI 改動結果
+    set({ itinerary: optimisticItinerary, isSaving: true });
+
+    try {
+      // 3. 明確宣告 payload 傳給後端，獨立儲存 days
+      const updated = await updateItinerary(currentItinerary.id, {
+        days: optimisticItinerary.days,
+      });
+
+      // 4. Server Source of Truth: 用後端回傳的最終結果確保一致性
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to apply AI operations:", err);
+      // 5. 錯誤處理：如果儲存失敗，退回操作前的狀態 (Rollback)
+      set({ itinerary: currentItinerary });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
   },
 
-  // Save specific days array
-  saveItineraryDays: async () => {
+  // Save specific days array (e.g. from Drag & Drop)
+  updateDays: async (newDays: Day[]) => {
     const state = get();
     if (!state.itinerary || state.isGenerating) return;
     set({ isSaving: true });
     try {
-      const updated = await updateItinerary(state.itinerary.id, { days: state.itinerary.days });
+      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
       set({ itinerary: updated });
     } catch (err) {
-      console.error("Failed to save itinerary days:", err);
+      console.error("Failed to update itinerary days:", err);
       throw err;
     } finally {
       set({ isSaving: false });
