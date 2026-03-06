@@ -7,7 +7,8 @@
     "loading": "Loading...",
     "error": "Error",
     "retry": "Try again",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "savedToCloud": "Saved to cloud"
   },
   "landing": {
     "hero": {
