@@ -16,7 +16,7 @@ interface ItineraryState {
 
   // Generation State
   isGenerating: boolean;
-  isSavingDays: boolean;
+  isSaving: boolean;
   generationAbortController: AbortController | null;
   pollingIntervalId: ReturnType<typeof setInterval> | null;
 
@@ -26,10 +26,12 @@ interface ItineraryState {
   hoveredDayNumber: number | null;
   hoveredActivityId: string | null;
 
-  // Actions
-  setItinerary: (itinerary: Itinerary) => void;
-  updateActivity: (updatedActivity: Activity) => void;
-  deleteActivity: (activityId: string) => void;
+  // Data Actions
+  fetchItinerary: (id: string) => Promise<void>;
+  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
+  updateActivity: (updatedActivity: Activity) => Promise<void>;
+  deleteActivity: (activityId: string) => Promise<void>;
+  saveItineraryDays: () => Promise<void>;
 
   // Generation Actions
   startStreaming: (itineraryId: string, locale: string) => Promise<void>;
@@ -37,11 +39,6 @@ interface ItineraryState {
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
   stopPolling: () => void;
-
-  // Lifecycle Actions
-  fetchItinerary: (id: string) => Promise<void>;
-  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => void;
-  saveItineraryDays: () => Promise<void>;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
@@ -67,7 +64,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   isLoading: false,
   error: null,
   isGenerating: false,
-  isSavingDays: false,
+  isSaving: false,
   generationAbortController: null,
   pollingIntervalId: null,
   crossDayDragInfo: null,
@@ -76,7 +73,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   hoveredActivityId: null,
 
   // Basic Setters
-  setItinerary: (itinerary) => set({ itinerary }),
   setCrossDayDragInfo: (info) => set({ crossDayDragInfo: info }),
   setDraggingActivityId: (id) => set({ draggingActivityId: id }),
   setHoveredDay: (dayNumber) => set({ hoveredDayNumber: dayNumber }),
@@ -98,7 +94,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Update Metadata
-  updateMetadata: (updates) => {
+  updateMetadata: async (updates) => {
     const state = get();
     const currentItinerary = state.itinerary;
     if (!currentItinerary) return;
@@ -140,26 +136,17 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       return;
     }
 
-    set({ isSavingDays: true });
+    set({ isSaving: true });
 
-    // Optimistically update local store
-    set({
-      itinerary: {
-        ...currentItinerary,
-        ...dirtyPayload,
-      } as Itinerary
-    });
-
-    updateItinerary(currentItinerary.id, dirtyPayload)
-      .then((updated) => {
-        set({ itinerary: updated });
-      })
-      .catch((err) => {
-        console.error("Failed to update itinerary metadata:", err);
-      })
-      .finally(() => {
-        set({ isSavingDays: false });
-      });
+    try {
+      const updated = await updateItinerary(currentItinerary.id, dirtyPayload);
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to update itinerary metadata:", err);
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
   },
 
   // AI Operations Action
@@ -177,18 +164,20 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   saveItineraryDays: async () => {
     const state = get();
     if (!state.itinerary || state.isGenerating) return;
-    set({ isSavingDays: true });
+    set({ isSaving: true });
     try {
-      await updateItinerary(state.itinerary.id, { days: state.itinerary.days });
+      const updated = await updateItinerary(state.itinerary.id, { days: state.itinerary.days });
+      set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to save itinerary days:", err);
+      throw err;
     } finally {
-      set({ isSavingDays: false });
+      set({ isSaving: false });
     }
   },
 
   // Update Single Activity
-  updateActivity: (updatedActivity) => {
+  updateActivity: async (updatedActivity) => {
     const state = get();
     if (!state.itinerary) return;
 
@@ -199,19 +188,20 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       ),
     }));
 
-    set({
-      itinerary: {
-        ...state.itinerary,
-        days: newDays,
-        updated_at: new Date().toISOString(),
-      },
-    });
-
-    get().saveItineraryDays();
+    set({ isSaving: true });
+    try {
+      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to update activity:", err);
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
   },
 
   // Delete Single Activity
-  deleteActivity: (activityId) => {
+  deleteActivity: async (activityId) => {
     const state = get();
     if (!state.itinerary) return;
 
@@ -220,15 +210,16 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       activities: day.activities.filter((activity) => activity.id !== activityId),
     }));
 
-    set({
-      itinerary: {
-        ...state.itinerary,
-        days: newDays,
-        updated_at: new Date().toISOString(),
-      },
-    });
-
-    get().saveItineraryDays();
+    set({ isSaving: true });
+    try {
+      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to delete activity:", err);
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
   },
 
   // Generation Actions

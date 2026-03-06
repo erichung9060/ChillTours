@@ -11,12 +11,14 @@ interface DateRangePickerProps {
   startDate?: Date;
   endDate?: Date;
   onChange: (start?: Date, end?: Date) => void;
+  disabled?: boolean;
 }
 
 export function DateRangePicker({
   startDate,
   endDate,
   onChange,
+  disabled,
 }: DateRangePickerProps) {
   const t = useTranslations("landing.datePicker");
   const locale = useLocale();
@@ -229,7 +231,8 @@ export function DateRangePicker({
         ref={buttonRef}
         type="button"
         variant="outline"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
         className={cn(
           "w-[300px] justify-start text-left font-normal",
           !startDate && "text-[hsl(var(--muted-foreground))]"

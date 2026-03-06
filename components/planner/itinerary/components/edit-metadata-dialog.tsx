@@ -17,12 +17,13 @@ import { DateRangePicker } from "@/components/landing/date-range-picker";
 import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
 import { AlertTriangle } from "lucide-react";
+import { useItineraryStore } from "../store";
 
 interface EditMetadataDialogProps {
     itinerary: Itinerary;
     isOpen: boolean;
     onClose: () => void;
-    onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => void;
+    onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
 }
 
 type Step = "edit" | "confirm-shrink";
@@ -35,6 +36,7 @@ export function EditMetadataDialog({
 }: EditMetadataDialogProps) {
     const t = useTranslations("planner.editMetadataDialog");
     const initialFocusRef = useRef<HTMLInputElement>(null);
+    const isSaving = useItineraryStore((state) => state.isSaving);
 
     const [step, setStep] = useState<Step>("edit");
     const [formData, setFormData] = useState({
@@ -99,15 +101,19 @@ export function EditMetadataDialog({
         doSave(formattedStart, formattedEnd);
     };
 
-    const doSave = (formattedStart: string, formattedEnd: string) => {
-        onSave({
-            title: formData.title,
-            destination: formData.destination,
-            start_date: formattedStart,
-            end_date: formattedEnd,
-            requirements: formData.requirements || undefined,
-        });
-        onClose();
+    const doSave = async (formattedStart: string, formattedEnd: string) => {
+        try {
+            await onSave({
+                title: formData.title,
+                destination: formData.destination,
+                start_date: formattedStart,
+                end_date: formattedEnd,
+                requirements: formData.requirements || undefined,
+            });
+            onClose();
+        } catch (err) {
+            console.error("Save metadata failed:", err);
+        }
     };
 
     const handleConfirmShrink = () => {
@@ -141,6 +147,7 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, title: e.target.value })
                                     }
+                                    disabled={isSaving}
                                     required
                                 />
                             </div>
@@ -154,6 +161,7 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, destination: e.target.value })
                                     }
+                                    disabled={isSaving}
                                     required
                                 />
                             </div>
@@ -168,6 +176,7 @@ export function EditMetadataDialog({
                                         setStartDate(start);
                                         setEndDate(end);
                                     }}
+                                    disabled={isSaving}
                                 />
                                 {/* Inline shrink warning hint */}
                                 {isShrinking && (
@@ -187,13 +196,14 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, requirements: e.target.value })
                                     }
+                                    disabled={isSaving}
                                     className="min-h-[100px]"
                                 />
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit" variant={isShrinking ? "destructive" : "default"}>
-                                {isShrinking
+                            <Button type="submit" variant={isShrinking ? "destructive" : "default"} disabled={isSaving}>
+                                {isSaving ? t("saving") : isShrinking
                                     ? t("saveAndShrink")
                                     : t("save")}
                             </Button>
@@ -238,14 +248,15 @@ export function EditMetadataDialog({
                         </p>
 
                         <DialogFooter className="mt-6 gap-2">
-                            <Button variant="outline" onClick={handleBackToEdit}>
+                            <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
                                 {t("cancelShrink")}
                             </Button>
                             <Button
                                 variant="destructive"
                                 onClick={handleConfirmShrink}
+                                disabled={isSaving}
                             >
-                                {t("confirmShrink")}
+                                {isSaving ? t("saving") : t("confirmShrink")}
                             </Button>
                         </DialogFooter>
                     </div>

@@ -12,7 +12,7 @@ import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Pencil, Maximize, Minimize, Loader2 } from "lucide-react";
+import { Pencil, Maximize, Minimize } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
 
@@ -26,7 +26,6 @@ export function PanelHeader({
   const locale = useLocale();
   const t = useTranslations("common");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const isSavingDays = useItineraryStore((state) => state.isSavingDays);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
 
   return (
@@ -43,13 +42,6 @@ export function PanelHeader({
           >
             <Pencil className="h-3.5 w-3.5" />
           </Button>
-
-          {isSavingDays && (
-            <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              <span>{t("saving")}</span>
-            </div>
-          )}
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           {itinerary.destination}

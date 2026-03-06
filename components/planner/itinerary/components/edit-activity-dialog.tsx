@@ -15,13 +15,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import type { Activity } from "@/types/itinerary";
+import { useItineraryStore } from "../store";
 
 interface EditActivityDialogProps {
   activity: Activity;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedActivity: Activity) => void;
-  onDelete: (activityId: string) => void;
+  onSave: (updatedActivity: Activity) => Promise<void>;
+  onDelete: (activityId: string) => Promise<void>;
 }
 
 type Step = "edit" | "confirm-delete";
@@ -35,6 +36,7 @@ export function EditActivityDialog({
 }: EditActivityDialogProps) {
   const t = useTranslations("planner.editDialog");
   const initialFocusRef = useRef<HTMLInputElement>(null);
+  const isSaving = useItineraryStore((state) => state.isSaving);
 
   const [step, setStep] = useState<Step>("edit");
   const [formData, setFormData] = useState({
@@ -68,7 +70,8 @@ export function EditActivityDialog({
     }
   }, [isOpen, step]);
 
-  const handleSave = () => {
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     const updatedActivity: Activity = {
       ...activity,
       title: formData.title,
@@ -81,17 +84,25 @@ export function EditActivityDialog({
       duration_minutes: Number(formData.duration),
       url: formData.url || undefined,
     };
-    onSave(updatedActivity);
-    onClose();
+    try {
+      await onSave(updatedActivity);
+      onClose();
+    } catch (err) {
+      console.error("Save activity failed:", err);
+    }
   };
 
   const handleDeleteClick = () => {
     setStep("confirm-delete");
   };
 
-  const handleConfirmDelete = () => {
-    onDelete(activity.id);
-    onClose();
+  const handleConfirmDelete = async () => {
+    try {
+      await onDelete(activity.id);
+      onClose();
+    } catch (err) {
+      console.error("Delete activity failed:", err);
+    }
   };
 
   const handleBackToEdit = () => {
@@ -122,6 +133,7 @@ export function EditActivityDialog({
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
+                  disabled={isSaving}
                 />
               </div>
               <div className="grid gap-2">
@@ -134,6 +146,7 @@ export function EditActivityDialog({
                   onChange={(e) =>
                     setFormData({ ...formData, locationName: e.target.value })
                   }
+                  disabled={isSaving}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -148,6 +161,7 @@ export function EditActivityDialog({
                     onChange={(e) =>
                       setFormData({ ...formData, time: e.target.value })
                     }
+                    disabled={isSaving}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -164,6 +178,7 @@ export function EditActivityDialog({
                         duration: Number(e.target.value),
                       })
                     }
+                    disabled={isSaving}
                   />
                 </div>
               </div>
@@ -177,6 +192,7 @@ export function EditActivityDialog({
                   onChange={(e) =>
                     setFormData({ ...formData, url: e.target.value })
                   }
+                  disabled={isSaving}
                   placeholder="https://..."
                 />
               </div>
@@ -190,6 +206,7 @@ export function EditActivityDialog({
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
+                  disabled={isSaving}
                 />
               </div>
             </div>
@@ -199,11 +216,14 @@ export function EditActivityDialog({
                 variant="ghost"
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={handleDeleteClick}
+                disabled={isSaving}
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 {t("delete")}
               </Button>
-              <Button type="submit">{t("save")}</Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? t("saving") : t("save")}
+              </Button>
             </DialogFooter>
           </form>
         ) : (
@@ -231,11 +251,11 @@ export function EditActivityDialog({
             </p>
 
             <DialogFooter className="mt-6 gap-2">
-              <Button variant="outline" onClick={handleBackToEdit}>
+              <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
                 {t("cancelDelete")}
               </Button>
-              <Button variant="destructive" onClick={handleConfirmDelete}>
-                {t("confirmDelete")}
+              <Button variant="destructive" onClick={handleConfirmDelete} disabled={isSaving}>
+                {isSaving ? t("saving") : t("confirmDelete")}
               </Button>
             </DialogFooter>
           </div>
