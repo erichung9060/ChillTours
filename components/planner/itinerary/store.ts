@@ -29,13 +29,14 @@ interface ItineraryState {
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
+  addActivity: (dayNumber: number, activity: Activity) => Promise<void>;
   updateActivity: (updatedActivity: Activity) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
   updateDays: (newDays: Day[]) => Promise<void>;
 
   // Generation Actions
   startStreaming: (itineraryId: string, locale: string) => Promise<void>;
-  addActivity: (dayNumber: number, activity: Activity) => void;
+  appendStreamedActivity: (dayNumber: number, activity: Activity) => void;
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
   stopPolling: () => void;
@@ -194,6 +195,29 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }
   },
 
+  // Add Single Activity
+  addActivity: async (dayNumber, activity) => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const days = state.itinerary.days.map((day) =>
+      day.day_number === dayNumber
+        ? { ...day, activities: [...day.activities, activity] }
+        : day
+    );
+
+    set({ isSaving: true });
+    try {
+      const updated = await updateItinerary(state.itinerary.id, { days });
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to add activity:", err);
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
   // Update Single Activity
   updateActivity: async (updatedActivity) => {
     const state = get();
@@ -241,7 +265,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  addActivity: (dayNumber, activity) =>
+  appendStreamedActivity: (dayNumber, activity) =>
     set((state) => {
       if (!state.itinerary) return state;
 
@@ -289,7 +313,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         locale,
         // onActivity
         (data) => {
-          get().addActivity(data.day_number, data.activity);
+          get().appendStreamedActivity(data.day_number, data.activity);
         },
         // onComplete
         () => {
