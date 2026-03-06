@@ -134,6 +134,7 @@ export function EditActivityDialog({
                     setFormData({ ...formData, title: e.target.value })
                   }
                   disabled={isSaving}
+                  required
                 />
               </div>
               <div className="grid gap-2">
@@ -147,6 +148,7 @@ export function EditActivityDialog({
                     setFormData({ ...formData, locationName: e.target.value })
                   }
                   disabled={isSaving}
+                  required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -162,6 +164,7 @@ export function EditActivityDialog({
                       setFormData({ ...formData, time: e.target.value })
                     }
                     disabled={isSaving}
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
@@ -179,6 +182,8 @@ export function EditActivityDialog({
                       })
                     }
                     disabled={isSaving}
+                    required
+                    min="1"
                   />
                 </div>
               </div>

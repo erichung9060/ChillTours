@@ -25,7 +25,7 @@ export const ActivitySchema = z.object({
   title: z.string().min(1, "Activity title is required").max(100),
   description: z.string().max(500),
   location: LocationSchema,
-  duration_minutes: z.number().int().min(15).max(480),
+  duration_minutes: z.number().int().min(1).max(480),
   order: z.number().int().min(0),
   url: z.string().optional(),
 });
