@@ -68,7 +68,6 @@ export interface MapProvider {
   createMarkerIcon(config: {
     color: string;
     size: { width: number; height: number };
-    activityId: string;
   }): MarkerIcon;
 
   /**

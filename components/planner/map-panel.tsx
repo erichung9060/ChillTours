@@ -127,7 +127,6 @@ export function MapPanel({
       return mapProvider.createMarkerIcon({
         color: config.color,
         size: { width: config.width, height: config.height },
-        activityId: activity.id,
       });
     },
     [isActivityHighlighted, mapProvider]

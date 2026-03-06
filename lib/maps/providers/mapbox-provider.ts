@@ -30,16 +30,14 @@ export class MapboxProvider implements MapProvider {
   createMarkerIcon(config: {
     color: string;
     size: { width: number; height: number };
-    activityId: string;
   }): MarkerIcon {
-    const { color, size, activityId } = config;
+    const { color, size } = config;
 
     // Use the unified pin icon generator
     return generatePinIcon({
       color,
       width: size.width,
       height: size.height,
-      activityId,
     });
   }
 

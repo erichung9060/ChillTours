@@ -13,7 +13,6 @@ export interface PinIconOptions {
   color: string;
   width: number;
   height: number;
-  activityId: string;
 }
 
 export interface PinIconResult {
@@ -29,7 +28,7 @@ export interface PinIconResult {
  * Results are cached to improve performance
  */
 export function generatePinIcon(options: PinIconOptions): PinIconResult {
-  const { color, width, height, activityId } = options;
+  const { color, width, height } = options;
   const cacheKey = `${color}-${width}-${height}`;
 
   // Check cache first
@@ -37,7 +36,7 @@ export function generatePinIcon(options: PinIconOptions): PinIconResult {
 
   if (!svgDataUrl) {
     // Generate SVG only if not cached
-    const svg = createPinSVG(color, activityId);
+    const svg = createPinSVG(color);
     svgDataUrl = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
     iconCache.set(cacheKey, svgDataUrl);
   }
@@ -54,15 +53,15 @@ export function generatePinIcon(options: PinIconOptions): PinIconResult {
 /**
  * Create the SVG markup for a pin icon
  */
-function createPinSVG(color: string, activityId: string): string {
+function createPinSVG(color: string): string {
   return `
     <svg width="32" height="40" viewBox="0 0 32 40" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="grad${activityId}" x1="16" y1="0" x2="16" y2="32">
+        <linearGradient id="pin-grad" x1="16" y1="0" x2="16" y2="32">
           <stop offset="0%" stop-color="${color}" stop-opacity="1"/>
           <stop offset="100%" stop-color="${color}" stop-opacity="0.8"/>
         </linearGradient>
-        <filter id="shadow${activityId}" x="-50%" y="-50%" width="200%" height="200%">
+        <filter id="pin-shadow" x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="2"/>
           <feOffset dx="0" dy="2" result="offsetblur"/>
           <feComponentTransfer>
@@ -80,10 +79,10 @@ function createPinSVG(color: string, activityId: string): string {
       
       <!-- Main pin shape with gradient -->
       <path d="M16 2C10.477 2 6 6.477 6 12c0 7.5 10 20 10 20s10-12.5 10-20c0-5.523-4.477-10-10-10z" 
-            fill="url(#grad${activityId})" 
+            fill="url(#pin-grad)" 
             stroke="white" 
             stroke-width="2.5"
-            filter="url(#shadow${activityId})"/>
+            filter="url(#pin-shadow)"/>
       
       <!-- Inner circle -->
       <circle cx="16" cy="12" r="4.5" fill="white" opacity="0.95"/>
