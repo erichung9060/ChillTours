@@ -29,7 +29,7 @@ interface ItineraryState {
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
-  addActivity: (dayNumber: number, activity: Activity) => Promise<void>;
+  addActivity: (dayNumber: number, activity: Activity, insertionIndex?: number) => Promise<void>;
   updateActivity: (updatedActivity: Activity) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
   updateDays: (newDays: Day[]) => Promise<void>;
@@ -196,13 +196,25 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Add Single Activity
-  addActivity: async (dayNumber, activity) => {
+  addActivity: async (dayNumber, activity, insertionIndex?: number) => {
     const state = get();
     if (!state.itinerary) return;
 
     const days = state.itinerary.days.map((day) =>
       day.day_number === dayNumber
-        ? { ...day, activities: [...day.activities, activity] }
+        ? {
+            ...day,
+            activities:
+              insertionIndex !== undefined &&
+              insertionIndex >= 0 &&
+              insertionIndex <= day.activities.length
+                ? [
+                    ...day.activities.slice(0, insertionIndex),
+                    activity,
+                    ...day.activities.slice(insertionIndex),
+                  ]
+                : [...day.activities, activity],
+          }
         : day
     );
 
