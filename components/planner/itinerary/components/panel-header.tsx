@@ -12,7 +12,7 @@ import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Pencil, Maximize, Minimize, Loader2, Cloud } from "lucide-react";
+import { Pencil, Maximize, Minimize, Loader2, Cloud, Plus } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
 
@@ -28,6 +28,8 @@ export function PanelHeader({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSaving = useItineraryStore((state) => state.isSaving);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
+  const isAddingActivity = useItineraryStore((state) => state.isAddingActivity);
+  const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
 
   return (
     <div className="p-4 border-b border-border flex items-center justify-between">
@@ -67,6 +69,20 @@ export function PanelHeader({
 
       {/* View Mode Controls */}
       <div className="flex items-center gap-2">
+        {/* Add Activity Button */}
+        <Button
+          variant={isAddingActivity ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setIsAddingActivity(!isAddingActivity)}
+          className={`h-8 w-8 p-0 ${isAddingActivity
+            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+            : "text-muted-foreground hover:text-foreground"
+          }`}
+          title="Add Activity"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+
         {/* View Mode Selector */}
         <div className="flex gap-1 bg-muted rounded-lg p-1">
           {VIEW_MODES.map((mode) => (

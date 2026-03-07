@@ -26,6 +26,11 @@ interface ItineraryState {
   hoveredDayNumber: number | null;
   hoveredActivityId: string | null;
 
+  // Add Activity Mode State
+  isAddingActivity: boolean;
+  addingActivityTarget: { dayNumber: number; insertionIndex: number } | null;
+  addModePlaceholder: { dayNumber: number; insertionIndex: number } | null;
+
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
@@ -57,6 +62,11 @@ interface ItineraryState {
   // Hover State Actions
   setHoveredDay: (dayNumber: number | null) => void;
   setHoveredActivity: (activityId: string | null) => void;
+
+  // Add Activity Mode Actions
+  setIsAddingActivity: (flag: boolean) => void;
+  setAddingActivityTarget: (target: { dayNumber: number; insertionIndex: number } | null) => void;
+  setAddModePlaceholder: (placeholder: { dayNumber: number; insertionIndex: number } | null) => void;
 }
 
 export const useItineraryStore = create<ItineraryState>((set, get) => ({
@@ -72,12 +82,22 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   draggingActivityId: null,
   hoveredDayNumber: null,
   hoveredActivityId: null,
+  isAddingActivity: false,
+  addingActivityTarget: null,
+  addModePlaceholder: null,
 
   // Basic Setters
   setCrossDayDragInfo: (info) => set({ crossDayDragInfo: info }),
   setDraggingActivityId: (id) => set({ draggingActivityId: id }),
   setHoveredDay: (dayNumber) => set({ hoveredDayNumber: dayNumber }),
   setHoveredActivity: (activityId) => set({ hoveredActivityId: activityId }),
+  setIsAddingActivity: (flag) =>
+    set({
+      isAddingActivity: flag,
+      ...(flag ? {} : { addModePlaceholder: null }),
+    }),
+  setAddingActivityTarget: (target) => set({ addingActivityTarget: target }),
+  setAddModePlaceholder: (placeholder) => set({ addModePlaceholder: placeholder }),
 
   // Fetch Action
   fetchItinerary: async (id: string) => {
@@ -203,18 +223,18 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const days = state.itinerary.days.map((day) =>
       day.day_number === dayNumber
         ? {
-            ...day,
-            activities:
-              insertionIndex !== undefined &&
+          ...day,
+          activities:
+            insertionIndex !== undefined &&
               insertionIndex >= 0 &&
               insertionIndex <= day.activities.length
-                ? [
-                    ...day.activities.slice(0, insertionIndex),
-                    activity,
-                    ...day.activities.slice(insertionIndex),
-                  ]
-                : [...day.activities, activity],
-          }
+              ? [
+                ...day.activities.slice(0, insertionIndex),
+                activity,
+                ...day.activities.slice(insertionIndex),
+              ]
+              : [...day.activities, activity],
+        }
         : day
     );
 
@@ -351,7 +371,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         },
       };
     }),
-    
+
   completeGeneration: () =>
     set({ isGenerating: false, generationAbortController: null }),
 

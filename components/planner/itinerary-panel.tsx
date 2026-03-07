@@ -28,10 +28,11 @@ import {
   ExpandableView,
   SingleDayView,
   SideBySideView,
+  AddActivityDialog,
 } from "./itinerary";
 import type { ItineraryPanelProps, ViewMode } from "./itinerary";
-import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "./itinerary/store";
+import { useGlobalAddModeTracking } from "./itinerary/hooks/use-global-add-mode-tracking";
 
 const pointerSensorOptions = {
   activationConstraint: {
@@ -70,6 +71,21 @@ export function ItineraryPanel({
   const setHoveredActivity = useItineraryStore(
     (state) => state.setHoveredActivity
   );
+  const isAddingActivity = useItineraryStore(
+    (state) => state.isAddingActivity
+  );
+  const setIsAddingActivity = useItineraryStore(
+    (state) => state.setIsAddingActivity
+  );
+  const addingActivityTarget = useItineraryStore(
+    (state) => state.addingActivityTarget
+  );
+  const setAddingActivityTarget = useItineraryStore(
+    (state) => state.setAddingActivityTarget
+  );
+
+  // Global mouse tracking for add activity mode
+  useGlobalAddModeTracking();
 
   // Early return if no itinerary loaded
   if (!itinerary) {
@@ -90,8 +106,23 @@ export function ItineraryPanel({
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
-    useSensor(PointerSensor, pointerSensorOptions)
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: isAddingActivity ? Infinity : 8,
+      },
+    })
   );
+
+  // Listen for Escape key to exit add mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isAddingActivity && !addingActivityTarget) {
+        setIsAddingActivity(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAddingActivity, addingActivityTarget, setIsAddingActivity]);
 
   // UI handlers
   const toggleDay = (dayNumber: number) => {
@@ -216,6 +247,16 @@ export function ItineraryPanel({
         {/* Chat Toggle Button */}
         <ChatToggleButton onToggleChat={onToggleChat} isChatOpen={isChatOpen} />
       </div>
+
+      {/* Add Activity Dialog */}
+      {addingActivityTarget && (
+        <AddActivityDialog
+          isOpen={true}
+          dayNumber={addingActivityTarget.dayNumber}
+          insertionIndex={addingActivityTarget.insertionIndex}
+          onClose={() => setAddingActivityTarget(null)}
+        />
+      )}
 
       {/* Drag Overlay - Shows the dragged item following the cursor */}
       <DragOverlay>
