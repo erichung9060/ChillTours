@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/landing/date-range-picker";
 import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { useItineraryStore } from "../store";
 
 interface EditMetadataDialogProps {
@@ -24,21 +24,24 @@ interface EditMetadataDialogProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
+    onDelete?: () => Promise<void>;
 }
 
-type Step = "edit" | "confirm-shrink";
+type Step = "edit" | "confirm-shrink" | "confirm-delete";
 
 export function EditMetadataDialog({
     itinerary,
     isOpen,
     onClose,
     onSave,
+    onDelete,
 }: EditMetadataDialogProps) {
     const t = useTranslations("planner.editMetadataDialog");
     const initialFocusRef = useRef<HTMLInputElement>(null);
     const isSaving = useItineraryStore((state) => state.isSaving);
 
     const [step, setStep] = useState<Step>("edit");
+    const [isDeleting, setIsDeleting] = useState(false);
     const [formData, setFormData] = useState({
         title: itinerary.title,
         destination: itinerary.destination,
@@ -121,6 +124,18 @@ export function EditMetadataDialog({
         doSave(formatLocalDate(startDate), formatLocalDate(endDate));
     };
 
+    const handleDelete = async () => {
+        if (!onDelete) return;
+        setIsDeleting(true);
+        try {
+            await onDelete();
+            // Let the parent component handle navigation after deletion
+        } catch (err) {
+            console.error("Delete itinerary failed:", err);
+            setIsDeleting(false);
+        }
+    };
+
     const handleBackToEdit = () => {
         setStep("edit");
     };
@@ -147,7 +162,7 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, title: e.target.value })
                                     }
-                                    disabled={isSaving}
+                                    disabled={isSaving || isDeleting}
                                     required
                                 />
                             </div>
@@ -161,7 +176,7 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, destination: e.target.value })
                                     }
-                                    disabled={isSaving}
+                                    disabled={isSaving || isDeleting}
                                     required
                                 />
                             </div>
@@ -176,7 +191,7 @@ export function EditMetadataDialog({
                                         setStartDate(start);
                                         setEndDate(end);
                                     }}
-                                    disabled={isSaving}
+                                    disabled={isSaving || isDeleting}
                                 />
                                 {/* Inline shrink warning hint */}
                                 {isShrinking && (
@@ -196,21 +211,65 @@ export function EditMetadataDialog({
                                     onChange={(e) =>
                                         setFormData({ ...formData, requirements: e.target.value })
                                     }
-                                    disabled={isSaving}
+                                    disabled={isSaving || isDeleting}
                                     className="min-h-[100px]"
                                 />
                             </div>
                         </div>
-                        <DialogFooter>
-                            <Button type="submit" variant={isShrinking ? "destructive" : "default"} disabled={isSaving}>
+                        <DialogFooter className="flex-row items-center justify-between sm:justify-between w-full mt-4">
+                            {onDelete ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => setStep("confirm-delete")}
+                                    disabled={isSaving || isDeleting}
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    {t("deleteItinerary")}
+                                </Button>
+                            ) : (
+                                <div />
+                            )}
+                            <Button type="submit" variant={isShrinking ? "destructive" : "default"} disabled={isSaving || isDeleting}>
                                 {isSaving ? t("saving") : isShrinking
                                     ? t("saveAndShrink")
                                     : t("save")}
                             </Button>
                         </DialogFooter>
                     </form>
+                ) : step === "confirm-delete" ? (
+                    /* ── Confirm Delete step ── */
+                    <div>
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-destructive">
+                                <AlertTriangle className="h-5 w-5" />
+                                {t("confirmDeleteItineraryTitle")}
+                            </DialogTitle>
+                            <DialogDescription>
+                                {t("confirmDeleteItineraryDescription")}
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <p className="text-sm text-muted-foreground my-4">
+                            {t("confirmDeleteItineraryNote")}
+                        </p>
+
+                        <DialogFooter className="mt-6 gap-2">
+                            <Button variant="outline" onClick={handleBackToEdit} disabled={isDeleting}>
+                                {t("cancelDeleteItinerary")}
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                            >
+                                {isDeleting ? t("saving") : t("confirmDeleteItinerary")}
+                            </Button>
+                        </DialogFooter>
+                    </div>
                 ) : (
-                    /* ── Confirmation step ── */
+                    /* ── Confirmation Shrink step ── */
                     <div>
                         <DialogHeader>
                             <DialogTitle className="flex items-center gap-2 text-destructive">

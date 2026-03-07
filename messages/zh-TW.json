@@ -144,7 +144,13 @@
       "activityCount": "{count} 個活動",
       "confirmShrinkNote": "請確認您已了解此操作將永久刪除上述天數的所有活動。",
       "cancelShrink": "返回修改",
-      "confirmShrink": "確認刪除並儲存"
+      "confirmShrink": "確認刪除並儲存",
+      "deleteItinerary": "刪除行程",
+      "confirmDeleteItineraryTitle": "確定刪除此行程？",
+      "confirmDeleteItineraryDescription": "此操作無法復原。所有的活動與行程資訊將永久移除。",
+      "confirmDeleteItineraryNote": "請確認您要永久刪除此行程。",
+      "cancelDeleteItinerary": "返回修改",
+      "confirmDeleteItinerary": "確認刪除"
     }
   },
   "chat": {

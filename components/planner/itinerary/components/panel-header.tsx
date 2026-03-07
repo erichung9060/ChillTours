@@ -15,6 +15,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Pencil, Maximize, Minimize, Loader2, Cloud, Plus } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
+import { useRouter } from "@/lib/i18n/navigation";
+import { deleteItinerary } from "@/lib/supabase/itineraries";
 
 export function PanelHeader({
   itinerary,
@@ -30,6 +32,18 @@ export function PanelHeader({
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
   const isAddingActivity = useItineraryStore((state) => state.isAddingActivity);
   const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    try {
+      await deleteItinerary(itinerary.id);
+      setIsEditDialogOpen(false);
+      router.push("/itineraries");
+    } catch (error) {
+      console.error("Failed to delete itinerary:", error);
+      throw error;
+    }
+  };
 
   return (
     <div className="p-4 border-b border-border flex items-center justify-between">
@@ -120,6 +134,7 @@ export function PanelHeader({
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         onSave={(updates) => updateMetadata(updates)}
+        onDelete={handleDelete}
       />
     </div>
   );

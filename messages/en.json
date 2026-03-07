@@ -144,7 +144,13 @@
       "activityCount": "{count} activity(s)",
       "confirmShrinkNote": "Please confirm you understand this action will permanently delete all activities for the days listed above.",
       "cancelShrink": "Go back",
-      "confirmShrink": "Yes, delete & save"
+      "confirmShrink": "Yes, delete & save",
+      "deleteItinerary": "Delete itinerary",
+      "confirmDeleteItineraryTitle": "Delete this itinerary?",
+      "confirmDeleteItineraryDescription": "This action cannot be undone. All activities and metadata will be permanently removed.",
+      "confirmDeleteItineraryNote": "Please confirm you want to permanently delete this itinerary.",
+      "cancelDeleteItinerary": "Go back",
+      "confirmDeleteItinerary": "Yes, delete"
     }
   },
   "chat": {
