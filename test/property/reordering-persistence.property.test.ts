@@ -664,7 +664,7 @@ describe("Reordering Persistence Property Tests", () => {
               {
                 time: a.time,
                 title: a.title,
-                description: a.description,
+                note: a.note,
                 location: a.location,
                 duration_minutes: a.duration_minutes,
               },
@@ -697,7 +697,7 @@ describe("Reordering Persistence Property Tests", () => {
               if (originalProps) {
                 expect(activity.time).toBe(originalProps.time);
                 expect(activity.title).toBe(originalProps.title);
-                expect(activity.description).toBe(originalProps.description);
+                expect(activity.note).toBe(originalProps.note);
                 expect(activity.location).toEqual(originalProps.location);
                 expect(activity.duration_minutes).toBe(
                   originalProps.duration_minutes

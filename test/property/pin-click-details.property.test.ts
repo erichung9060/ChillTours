@@ -35,7 +35,7 @@ const arbitraryActivity = (): fc.Arbitrary<Activity> =>
       "20:00"
     ),
     title: fc.string({ minLength: 1, maxLength: 100 }),
-    description: fc.string({ minLength: 0, maxLength: 500 }),
+    note: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
     duration_minutes: fc.integer({ min: 15, max: 480 }),
     order: fc.integer({ min: 0, max: 100 }),
@@ -50,14 +50,14 @@ function generateInfoWindowContent(activity: Activity): {
   time: string;
   duration: number;
   locationName: string;
-  description?: string;
+  note?: string;
 } {
   return {
     title: activity.title,
     time: activity.time,
     duration: activity.duration_minutes,
     locationName: activity.location.name,
-    description: activity.description || undefined,
+    note: activity.note || undefined,
   };
 }
 
@@ -119,30 +119,30 @@ describe("Pin Click Details Display Property Tests", () => {
     );
   });
 
-  it("should include description when present", () => {
+  it("should include note when present", () => {
     fc.assert(
       fc.property(
-        arbitraryActivity().filter((a) => a.description.length > 0),
+        arbitraryActivity().filter((a) => a.note.length > 0),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);
 
-          // Property: If activity has description, info window should include it
-          return infoContent.description === activity.description;
+          // Property: If activity has note, info window should include it
+          return infoContent.note === activity.note;
         }
       ),
       { numRuns: 100 }
     );
   });
 
-  it("should handle activities without description", () => {
+  it("should handle activities without note", () => {
     fc.assert(
       fc.property(
-        arbitraryActivity().map((a) => ({ ...a, description: "" })),
+        arbitraryActivity().map((a) => ({ ...a, note: "" })),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);
 
-          // Property: Empty description should result in undefined in info window
-          return infoContent.description === undefined;
+          // Property: Empty note should result in undefined in info window
+          return infoContent.note === undefined;
         }
       ),
       { numRuns: 100 }
@@ -177,9 +177,9 @@ describe("Pin Click Details Display Property Tests", () => {
         const locationMatch =
           infoContent.locationName === activity.location.name;
         const descriptionMatch =
-          activity.description.length === 0
-            ? infoContent.description === undefined
-            : infoContent.description === activity.description;
+          activity.note.length === 0
+            ? infoContent.note === undefined
+            : infoContent.note === activity.note;
 
         return (
           titleMatch &&
@@ -200,7 +200,7 @@ describe("Pin Click Details Display Property Tests", () => {
           id: fc.uuid(),
           time: fc.constantFrom("09:00", "12:00", "18:00"),
           title: fc.string({ minLength: 1, maxLength: 100 }),
-          description: fc.string({ minLength: 0, maxLength: 500 }),
+          note: fc.string({ minLength: 0, maxLength: 500 }),
           location: fc.record({
             name: fc.string({ minLength: 1, maxLength: 100 }),
             lat: fc.double({ min: -90, max: 90, noNaN: true }),
@@ -229,7 +229,7 @@ describe("Pin Click Details Display Property Tests", () => {
       fc.property(
         arbitraryActivity().map((a) => ({
           ...a,
-          description: fc.sample(
+          note: fc.sample(
             fc.string({ minLength: 400, maxLength: 500 }),
             1
           )[0],
@@ -238,7 +238,7 @@ describe("Pin Click Details Display Property Tests", () => {
           const infoContent = generateInfoWindowContent(activity);
 
           // Property: Long descriptions should be preserved completely
-          return infoContent.description === activity.description;
+          return infoContent.note === activity.note;
         }
       ),
       { numRuns: 100 }

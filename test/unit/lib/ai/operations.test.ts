@@ -24,7 +24,7 @@ const mockItinerary: Itinerary = {
           id: "activity-1",
           time: "09:00",
           title: "Activity 1",
-          description: "First activity",
+          note: "First activity",
           location: {
             name: "Location 1",
             lat: 35.6762,
@@ -37,7 +37,7 @@ const mockItinerary: Itinerary = {
           id: "activity-2",
           time: "11:00",
           title: "Activity 2",
-          description: "Second activity",
+          note: "Second activity",
           location: {
             name: "Location 2",
             lat: 35.6812,
@@ -55,7 +55,7 @@ const mockItinerary: Itinerary = {
           id: "activity-3",
           time: "10:00",
           title: "Activity 3",
-          description: "Third activity",
+          note: "Third activity",
           location: {
             name: "Location 3",
             lat: 35.6595,
@@ -86,7 +86,7 @@ describe("Operations System", () => {
             activity: {
               time: "14:00",
               title: "New Activity",
-              description: "Added activity",
+              note: "Added activity",
               location: {
                 name: "New Location",
                 lat: 35.6586,
@@ -200,7 +200,7 @@ describe("Operations System", () => {
             changes: {
               time: "10:00",
               title: "Updated Title",
-              description: "Updated description",
+              note: "Updated note",
             },
           },
         ],
@@ -209,7 +209,7 @@ describe("Operations System", () => {
       const updated = result.days[0].activities[0];
       expect(updated.time).toBe("10:00");
       expect(updated.title).toBe("Updated Title");
-      expect(updated.description).toBe("Updated description");
+      expect(updated.note).toBe("Updated note");
       // Other fields should remain unchanged
       expect(updated.location.name).toBe("Location 1");
     });

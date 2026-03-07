@@ -5,7 +5,7 @@
  * Validates: Requirements 5.5
  *
  * Property: For any activity rendered in the UI, the display should include
- * time, location name, and description fields.
+ * time, location name, and note fields.
  */
 
 import { describe, it, expect } from "vitest";
@@ -28,8 +28,8 @@ describe("Activity Display Completeness Property Tests", () => {
     // Location name field
     parts.push(`Location: ${activity.location.name}`);
 
-    // Description field (may be empty but should be present)
-    parts.push(`Description: ${activity.description}`);
+    // Note field (may be empty but should be present)
+    parts.push(`Note: ${activity.note}`);
 
     return parts.join(" | ");
   };
@@ -47,13 +47,13 @@ describe("Activity Display Completeness Property Tests", () => {
     // Check for location name
     const hasLocationName = rendered.includes(activity.location.name);
 
-    // Check for description (field should be present even if empty)
-    const hasDescriptionField = rendered.includes("Description:");
+    // Check for note (field should be present even if empty)
+    const hasDescriptionField = rendered.includes("Note:");
 
     return hasTime && hasLocationName && hasDescriptionField;
   };
 
-  it("Property 12: Activity Display Completeness - for any activity, display should include time, location name, and description fields", async () => {
+  it("Property 12: Activity Display Completeness - for any activity, display should include time, location name, and note fields", async () => {
     await fc.assert(
       fc.asyncProperty(activityArbitrary, async (activity) => {
         // Render the activity
@@ -65,7 +65,7 @@ describe("Activity Display Completeness Property Tests", () => {
         // Verify specific fields
         expect(rendered).toContain(activity.time);
         expect(rendered).toContain(activity.location.name);
-        expect(rendered).toContain("Description:");
+        expect(rendered).toContain("Note:");
       }),
       { numRuns: 100 }
     );
@@ -79,7 +79,7 @@ describe("Activity Display Completeness Property Tests", () => {
         // Count the presence of required field markers
         const hasTimeField = rendered.includes("Time:");
         const hasLocationField = rendered.includes("Location:");
-        const hasDescriptionField = rendered.includes("Description:");
+        const hasDescriptionField = rendered.includes("Note:");
 
         // All three fields must be present
         expect(hasTimeField).toBe(true);
@@ -99,27 +99,27 @@ describe("Activity Display Completeness Property Tests", () => {
         expect(rendered).toContain(activity.time);
         expect(rendered).toContain(activity.location.name);
 
-        // Description should be present (even if empty string)
-        if (activity.description.length > 0) {
-          expect(rendered).toContain(activity.description);
+        // Note should be present (even if empty string)
+        if (activity.note.length > 0) {
+          expect(rendered).toContain(activity.note);
         }
       }),
       { numRuns: 100 }
     );
   });
 
-  it("Property 12 (Empty Description): Display should handle empty descriptions gracefully", async () => {
+  it("Property 12 (Empty Note): Display should handle empty descriptions gracefully", async () => {
     await fc.assert(
       fc.asyncProperty(
         activityArbitrary.map((activity) => ({
           ...activity,
-          description: "", // Force empty description
+          note: "", // Force empty note
         })),
         async (activity) => {
           const rendered = renderActivityToString(activity);
 
-          // Even with empty description, the field should be present
-          expect(rendered).toContain("Description:");
+          // Even with empty note, the field should be present
+          expect(rendered).toContain("Note:");
 
           // Time and location should still be present
           expect(rendered).toContain(activity.time);
@@ -146,7 +146,7 @@ describe("Activity Display Completeness Property Tests", () => {
                 )
             ),
           title: fc.string({ minLength: 1, maxLength: 100 }),
-          description: fc.string({ minLength: 0, maxLength: 500 }),
+          note: fc.string({ minLength: 0, maxLength: 500 }),
           location: fc.record({
             name: fc.string({ minLength: 1, maxLength: 100 }),
             lat: fc.double({ min: -90, max: 90 }),
@@ -175,11 +175,11 @@ describe("Activity Display Completeness Property Tests", () => {
         // Split by field separator and count fields
         const fieldCount = (rendered.match(/:/g) || []).length;
 
-        // Should have at least 3 fields (Time, Location, Description)
+        // Should have at least 3 fields (Time, Location, Note)
         expect(fieldCount).toBeGreaterThanOrEqual(3);
 
         // Verify each required field is present
-        const requiredFields = ["Time:", "Location:", "Description:"];
+        const requiredFields = ["Time:", "Location:", "Note:"];
         for (const field of requiredFields) {
           expect(rendered).toContain(field);
         }
@@ -213,15 +213,15 @@ describe("Activity Display Completeness Property Tests", () => {
     await fc.assert(
       fc.asyncProperty(activityArbitrary, async (activity) => {
         // Render in different orders
-        const order1 = `Time: ${activity.time} | Location: ${activity.location.name} | Description: ${activity.description}`;
-        const order2 = `Location: ${activity.location.name} | Time: ${activity.time} | Description: ${activity.description}`;
-        const order3 = `Description: ${activity.description} | Time: ${activity.time} | Location: ${activity.location.name}`;
+        const order1 = `Time: ${activity.time} | Location: ${activity.location.name} | Note: ${activity.note}`;
+        const order2 = `Location: ${activity.location.name} | Time: ${activity.time} | Note: ${activity.note}`;
+        const order3 = `Note: ${activity.note} | Time: ${activity.time} | Location: ${activity.location.name}`;
 
         // All orders should contain all required fields
         for (const rendered of [order1, order2, order3]) {
           expect(rendered).toContain(activity.time);
           expect(rendered).toContain(activity.location.name);
-          expect(rendered).toContain("Description:");
+          expect(rendered).toContain("Note:");
         }
       }),
       { numRuns: 100 }
@@ -235,7 +235,7 @@ describe("Activity Display Completeness Property Tests", () => {
         id: "00000000-0000-0000-0000-000000000000",
         time: "00:00",
         title: "Midnight Activity",
-        description: "",
+        note: "",
         location: {
           name: "A",
           lat: 0,
@@ -248,7 +248,7 @@ describe("Activity Display Completeness Property Tests", () => {
         id: "ffffffff-ffff-ffff-ffff-ffffffffffff",
         time: "23:59",
         title: "Late Night Activity",
-        description: "x".repeat(500), // Max length description
+        note: "x".repeat(500), // Max length note
         location: {
           name: "X".repeat(100), // Max length name
           lat: 90,
@@ -280,7 +280,7 @@ describe("Activity Display Completeness Property Tests", () => {
         // Verify all required fields are present and not null
         expect(rendered.includes(activity.time)).toBe(true);
         expect(rendered.includes(activity.location.name)).toBe(true);
-        expect(rendered.includes("Description:")).toBe(true);
+        expect(rendered.includes("Note:")).toBe(true);
       }),
       { numRuns: 100 }
     );

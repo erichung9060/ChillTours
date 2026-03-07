@@ -349,8 +349,8 @@ describe("Cross-Day Activity Movement Property Tests", () => {
               expect(movedActivity.id).toBe(sourceActivity.id);
               expect(movedActivity.time).toBe(sourceActivity.time);
               expect(movedActivity.title).toBe(sourceActivity.title);
-              expect(movedActivity.description).toBe(
-                sourceActivity.description
+              expect(movedActivity.note).toBe(
+                sourceActivity.note
               );
               expect(movedActivity.location).toEqual(sourceActivity.location);
               expect(movedActivity.duration_minutes).toBe(

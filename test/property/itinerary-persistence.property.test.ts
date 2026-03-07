@@ -303,7 +303,7 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
             expect(activity.id).toBe(originalActivity.id);
             expect(activity.time).toBe(originalActivity.time);
             expect(activity.title).toBe(originalActivity.title);
-            expect(activity.description).toBe(originalActivity.description);
+            expect(activity.note).toBe(originalActivity.note);
             expect(activity.location).toEqual(originalActivity.location);
             expect(activity.duration_minutes).toBe(
               originalActivity.duration_minutes

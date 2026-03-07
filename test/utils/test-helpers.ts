@@ -44,7 +44,7 @@ export function createMockItinerary() {
             id: "activity-1",
             time: "09:00",
             title: "Test Activity",
-            description: "Test Description",
+            note: "Test Note",
             location: {
               name: "Test Location",
               lat: 0,

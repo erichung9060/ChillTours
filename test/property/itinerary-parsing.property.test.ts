@@ -33,7 +33,7 @@ function parseItinerary(aiResponse: string): Itinerary | null {
             id: activity.id || crypto.randomUUID(),
             time: activity.time || "09:00",
             title: activity.title || "Untitled Activity",
-            description: activity.description || "",
+            note: activity.note || "",
             location: {
               name: activity.location?.name || "Unknown Location",
               lat: activity.location?.lat || 0,
@@ -84,7 +84,7 @@ function generateAIResponse(
       id: crypto.randomUUID(),
       time: `${(9 + actIndex * 2).toString().padStart(2, "0")}:00`,
       title: `Activity ${actIndex + 1}`,
-      description: `Description for activity ${actIndex + 1}`,
+      note: `Note for activity ${actIndex + 1}`,
       location: {
         name: `Location ${actIndex + 1}`,
         lat: 40.7128 + actIndex * 0.01,
@@ -160,7 +160,7 @@ describe("Itinerary Parsing Completeness Properties", () => {
                 expect(activity.id).toBeDefined();
                 expect(activity.time).toBeDefined();
                 expect(activity.title).toBeDefined();
-                expect(activity.description).toBeDefined();
+                expect(activity.note).toBeDefined();
                 expect(activity.location).toBeDefined();
                 expect(activity.location.name).toBeDefined();
                 expect(activity.location.lat).toBeDefined();

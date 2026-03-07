@@ -35,7 +35,7 @@ const arbitraryActivity = (): fc.Arbitrary<Activity> =>
       "20:00"
     ),
     title: fc.string({ minLength: 1, maxLength: 100 }),
-    description: fc.string({ minLength: 0, maxLength: 500 }),
+    note: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
     duration_minutes: fc.integer({ min: 15, max: 480 }),
     order: fc.integer({ min: 0, max: 100 }),

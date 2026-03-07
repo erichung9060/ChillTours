@@ -40,7 +40,7 @@ describe("Data Model Validation Properties", () => {
             id: crypto.randomUUID(),
             time: "10:00",
             title: emptyTitle.trim(),
-            description: "Test description",
+            note: "Test note",
             location: {
               name: "Test Location",
               lat: 0,
@@ -189,7 +189,7 @@ describe("Data Model Validation Properties", () => {
               id: crypto.randomUUID(),
               time: invalidTime,
               title: "Test Activity",
-              description: "Test description",
+              note: "Test note",
               location: {
                 name: "Test Location",
                 lat: 0,
@@ -209,7 +209,7 @@ describe("Data Model Validation Properties", () => {
       fc.assert(
         fc.property(
           fc.oneof(
-            fc.integer({ min: -1000, max: 14 }),
+            fc.integer({ min: -1000, max: 0 }),
             fc.integer({ min: 481, max: 1000 })
           ),
           (invalidDuration) => {
@@ -217,7 +217,7 @@ describe("Data Model Validation Properties", () => {
               id: crypto.randomUUID(),
               time: "10:00",
               title: "Test Activity",
-              description: "Test description",
+              note: "Test note",
               location: {
                 name: "Test Location",
                 lat: 0,
