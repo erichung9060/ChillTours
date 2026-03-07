@@ -108,6 +108,22 @@
       "cancelDelete": "返回修改",
       "confirmDelete": "確認刪除"
     },
+    "addDialog": {
+      "title": "新增活動",
+      "description": "在此新增行程活動。完成後請點擊儲存。",
+      "labelTitle": "標題",
+      "labelLocation": "地點",
+      "labelTime": "時間",
+      "labelDuration": "持續時間 (分鐘)",
+      "labelUrl": "網址",
+      "labelDescription": "描述",
+      "save": "新增活動",
+      "saving": "新增中...",
+      "cancel": "取消"
+    },
+    "activityPlaceholderCard": {
+      "clickToAdd": "點擊新增"
+    },
     "editMetadataDialog": {
       "title": "編輯行程資訊",
       "description": "在此修改您的行程資訊。完成後請點擊儲存。",

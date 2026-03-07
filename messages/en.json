@@ -108,6 +108,22 @@
       "cancelDelete": "Go back",
       "confirmDelete": "Yes, delete"
     },
+    "addDialog": {
+      "title": "Add Activity",
+      "description": "Add a new activity to your itinerary. Click save when you're done.",
+      "labelTitle": "Title",
+      "labelLocation": "Location",
+      "labelTime": "Time",
+      "labelDuration": "Duration (min)",
+      "labelUrl": "URL",
+      "labelDescription": "Description",
+      "save": "Add activity",
+      "saving": "Adding...",
+      "cancel": "Cancel"
+    },
+    "activityPlaceholderCard": {
+      "clickToAdd": "Click to Add"
+    },
     "editMetadataDialog": {
       "title": "Edit Trip Details",
       "description": "Modify your trip metadata here. Click save when you're done.",
