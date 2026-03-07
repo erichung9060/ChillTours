@@ -44,16 +44,6 @@ export class GoogleMapsProvider implements MapProvider {
     return calculateMapBounds(locations);
   }
 
-  createNavigationLink(location: Location): string {
-    const { lat, lng, name, place_id } = location;
-
-    if (place_id) {
-      return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
-    } else {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
-    }
-  }
-
   async geocodeAddress(locationName: string): Promise<Location | null> {
     if (!window.google || !window.google.maps) {
       console.error("Google Maps API not loaded");

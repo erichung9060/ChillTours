@@ -79,11 +79,6 @@ export interface MapProvider {
   };
 
   /**
-   * Create navigation link
-   */
-  createNavigationLink(location: Location): string;
-
-  /**
    * Geocode a location name
    */
   geocodeAddress(locationName: string): Promise<Location | null>;

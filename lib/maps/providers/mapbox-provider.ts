@@ -48,16 +48,6 @@ export class MapboxProvider implements MapProvider {
     return calculateMapBounds(locations);
   }
 
-  createNavigationLink(location: Location): string {
-    const { name, place_id } = location;
-
-    if (place_id) {
-      return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
-    } else {
-      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
-    }
-  }
-
   async geocodeAddress(locationName: string): Promise<Location | null> {
     // Mapbox Geocoding API implementation
     // Requires: NEXT_PUBLIC_MAPBOX_API_KEY environment variable

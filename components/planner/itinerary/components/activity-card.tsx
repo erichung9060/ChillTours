@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Pencil, MapPin } from "lucide-react";
 import type { ActivityCardProps } from "../types";
-import { getMapProvider } from "@/lib/maps/provider-factory";
+import { createNavigationLink } from "@/lib/maps/utils";
 import { EditActivityDialog } from "./edit-activity-dialog";
 import { useItineraryStore } from "../store";
 
@@ -27,8 +27,7 @@ export function ActivityCard({
 
   const handleNavigationConfig = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const mapProvider = getMapProvider();
-    const url = mapProvider.createNavigationLink(activity.location);
+    const url = createNavigationLink(activity.location);
     window.open(url, "_blank");
   };
 
