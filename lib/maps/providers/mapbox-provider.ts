@@ -49,14 +49,13 @@ export class MapboxProvider implements MapProvider {
   }
 
   createNavigationLink(location: Location): string {
-    const { lat, lng } = location;
+    const { name, place_id } = location;
 
-    // Mapbox doesn't have a direct navigation URL like Google Maps
-    // We can either:
-    // 1. Open in Google Maps (most practical for users)
-    // 2. Use Mapbox Directions API (requires more setup)
-    // For now, fallback to Google Maps for navigation
-    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    if (place_id) {
+      return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
+    } else {
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
+    }
   }
 
   async geocodeAddress(locationName: string): Promise<Location | null> {
