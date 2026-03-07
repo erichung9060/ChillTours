@@ -79,8 +79,8 @@ export function ActivityCard({
             {activity.time}
           </div>
 
-          <div className="flex-1 min-w-0 pr-8">
-            <h4 className="font-semibold text-sm mb-2">{activity.title}</h4>
+          <div className="flex-1 min-w-0 pr-6">
+            <h4 className="font-semibold text-sm mb-2 break-words">{activity.title}</h4>
 
             <Button
               variant="ghost"
