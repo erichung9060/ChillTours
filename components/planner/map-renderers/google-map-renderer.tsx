@@ -177,9 +177,9 @@ function MapContent({
             <p className="text-xs text-gray-700 mb-2">
               📍 {selectedActivity.location.name}
             </p>
-            {selectedActivity.description && (
+            {selectedActivity.note && (
               <p className="text-xs text-gray-600 line-clamp-3">
-                {selectedActivity.description}
+                {selectedActivity.note}
               </p>
             )}
           </div>

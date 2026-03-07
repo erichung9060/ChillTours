@@ -91,9 +91,9 @@ export function ActivityCard({
               <span className="truncate">{activity.location.name}</span>
             </Button>
 
-            {activity.description && (
+            {activity.note && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                {activity.description}
+                📝 {activity.note}
               </p>
             )}
 

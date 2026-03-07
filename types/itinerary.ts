@@ -23,7 +23,7 @@ export const ActivitySchema = z.object({
     .string()
     .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
   title: z.string().min(1, "Activity title is required").max(100),
-  description: z.string().max(500),
+  note: z.string().max(500),
   location: LocationSchema,
   duration_minutes: z.number().int().min(1).max(480),
   order: z.number().int().min(0),

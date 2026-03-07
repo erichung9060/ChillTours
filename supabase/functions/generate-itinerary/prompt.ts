@@ -1,19 +1,19 @@
 export function buildItineraryPrompt(
-    destination: string,
-    startDate: string,
-    endDate: string,
-    customRequirements?: string,
-    locale?: string
+  destination: string,
+  startDate: string,
+  endDate: string,
+  customRequirements?: string,
+  locale?: string
 ): string {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const duration =
-        Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const duration =
+    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
-    const isZH = locale === "zh-TW";
+  const isZH = locale === "zh-TW";
 
-    let prompt = isZH
-        ? `你是一個旅遊規劃助手。請為 ${destination} 產生一份詳細的 ${duration} 天旅遊行程，時間從 ${startDate} 到 ${endDate}。
+  let prompt = isZH
+    ? `你是一個旅遊規劃助手。請為 ${destination} 產生一份詳細的 ${duration} 天旅遊行程，時間從 ${startDate} 到 ${endDate}。
 
 請「只能」回覆符合以下結構的合法 JSON 格式，不要包含 Markdown 語法，也不要有任何其他文字：
 
@@ -25,7 +25,7 @@ export function buildItineraryPrompt(
         {
           "time": "HH:MM",
           "title": "活動名稱",
-          "description": "詳細描述",
+          "note": "貼心的實用提醒 (e.g., 必吃美食、避開人潮時間)",
           "location": {
             "name": "地點名稱",
             "lat": 0.0,
@@ -45,8 +45,9 @@ export function buildItineraryPrompt(
 - 為每個地點提供準確的 GPS 座標 (lat, lng)
 - duration_minutes 必須介於 60 到 240 分鐘之間
 - 每天內的活動必須依照時間先後順序排列
-- 所有輸出的內容（如 title, description, location name）請使用繁體中文`
-        : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
+- note 欄位為選填，如果沒有特別要注意的事項可以不必填寫
+- 所有輸出的內容（如 title, note, location name）請使用繁體中文`
+    : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
 Respond ONLY with a valid JSON object in this exact structure, no markdown, no extra text:
 
@@ -58,7 +59,7 @@ Respond ONLY with a valid JSON object in this exact structure, no markdown, no e
         {
           "time": "HH:MM",
           "title": "Activity name",
-          "description": "Detailed description",
+          "note": "Helpful tips (e.g., must-try foods, best time to visit)",
           "location": {
             "name": "Location name",
             "lat": 0.0,
@@ -77,13 +78,14 @@ Requirements:
 - Use 24-hour HH:MM time format
 - Provide accurate GPS coordinates for each location
 - duration_minutes should be between 60 and 240
-- Activities must be in chronological order within each day`;
+- Activities must be in chronological order within each day
+- 'note' is optional, leave it empty if there are no special tips or reminders`;
 
-    if (customRequirements) {
-        prompt += isZH
-            ? `\n- 使用者客製化需求：${customRequirements}`
-            : `\n- Custom requirements: ${customRequirements}`;
-    }
+  if (customRequirements) {
+    prompt += isZH
+      ? `\n- 使用者客製化需求：${customRequirements}`
+      : `\n- Custom requirements: ${customRequirements}`;
+  }
 
-    return prompt;
+  return prompt;
 }

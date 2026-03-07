@@ -30,7 +30,7 @@ export const activityArbitrary = fc.record({
         )
     ),
   title: fc.string({ minLength: 1, maxLength: 100 }),
-  description: fc.string({ minLength: 1, maxLength: 500 }),
+  note: fc.string({ minLength: 1, maxLength: 500 }),
   location: locationArbitrary,
   duration_minutes: fc.integer({ min: 15, max: 480 }),
   order: fc.nat(),

@@ -38,7 +38,7 @@ export function AddActivityDialog({
     const [formData, setFormData] = useState({
         title: "",
         locationName: "",
-        description: "",
+        note: "",
         time: "09:00",
         duration: 60,
         url: "",
@@ -49,7 +49,7 @@ export function AddActivityDialog({
             setFormData({
                 title: "",
                 locationName: "",
-                description: "",
+                note: "",
                 time: "09:00",
                 duration: 60,
                 url: "",
@@ -90,7 +90,7 @@ export function AddActivityDialog({
                 lat: 0,
                 lng: 0,
             },
-            description: formData.description,
+            note: formData.note,
             time: formData.time,
             duration_minutes: Number(formData.duration),
             url: formData.url || undefined,
@@ -191,16 +191,17 @@ export function AddActivityDialog({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <label htmlFor="description" className="text-sm font-medium">
-                                {t("labelDescription")}
+                            <label htmlFor="note" className="text-sm font-medium">
+                                {t("labelNote")}
                             </label>
                             <Textarea
-                                id="description"
-                                value={formData.description}
+                                id="note"
+                                value={formData.note}
                                 onChange={(e) =>
-                                    setFormData({ ...formData, description: e.target.value })
+                                    setFormData({ ...formData, note: e.target.value })
                                 }
                                 disabled={isSaving}
+                                placeholder={t("placeholderNote")}
                             />
                         </div>
                     </div>

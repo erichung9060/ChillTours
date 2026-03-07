@@ -22,7 +22,7 @@ interface ChatRequest {
         id: string;
         time: string;
         title: string;
-        description: string;
+        note: string;
         location: {
           name: string;
           lat: number;
@@ -64,7 +64,7 @@ Days and Activities (Note: Activity indices are 0-based, starting from 0):
       prompt += `\nDay ${day.day_number} (${dateStr}):\n`;
       day.activities.forEach((activity, index) => {
         prompt += `  [${index}] ${activity.time}: ${activity.title} at ${activity.location.name}\n`;
-        prompt += `      Description: ${activity.description}\n`;
+        prompt += `      Note: ${activity.note}\n`;
         prompt += `      Duration: ${activity.duration_minutes} minutes\n`;
       });
     });
@@ -99,7 +99,7 @@ ITINERARY_OPERATIONS:
       "activity": {
         "time": "14:00",
         "title": "Tokyo Tower",
-        "description": "Visit the iconic tower",
+        "note": "Best visited at sunset for great city views",
         "location": {
           "name": "Tokyo Tower",
           "lat": 35.6586,
@@ -145,7 +145,7 @@ AVAILABLE OPERATION TYPES
 1. ADD
 - Use when creating a completely new activity.
 - Required: type, day_number, activity (time, title, location with name/lat/lng)
-- Optional: description, duration_minutes (default: 60), insert_at (0-based, default: append)
+- Optional: note (leave empty if no special tips), duration_minutes (default: 60), insert_at (0-based, default: append)
 
 2. REMOVE
 - Use when deleting an activity without adding it elsewhere.
@@ -155,7 +155,7 @@ AVAILABLE OPERATION TYPES
 3. UPDATE
 - Use when modifying an existing activity.
 - Required: type, day_number, activity_index (0-based), changes
-- Changes may include: time, title, description, location (partial), duration_minutes
+- Changes may include: time, title, note (leave empty if no special tips), location (partial), duration_minutes
 
 4. MOVE
 - Use when relocating an existing activity to a different day.

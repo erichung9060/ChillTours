@@ -33,7 +33,7 @@ export interface AddOperation {
   activity: {
     time: string;
     title: string;
-    description?: string;
+    note?: string;
     location: {
       name: string;
       lat: number;
@@ -63,7 +63,7 @@ export interface UpdateOperation {
   changes: {
     time?: string;
     title?: string;
-    description?: string;
+    note?: string;
     location?: {
       name: string; // Required: location name
       lat?: number; // Optional: LLM can provide coordinates
@@ -194,7 +194,7 @@ async function applyAddOperation(
     id: uuidv4(),
     time: op.activity.time,
     title: op.activity.title,
-    description: op.activity.description || "",
+    note: op.activity.note || "",
     location,
     duration_minutes: op.activity.duration_minutes || 60,
     order: 0, // Will be recalculated
@@ -313,8 +313,8 @@ async function applyUpdateOperation(
   // Apply simple field changes
   if (op.changes.time !== undefined) activity.time = op.changes.time;
   if (op.changes.title !== undefined) activity.title = op.changes.title;
-  if (op.changes.description !== undefined)
-    activity.description = op.changes.description;
+  if (op.changes.note !== undefined)
+    activity.note = op.changes.note;
   if (op.changes.duration_minutes !== undefined)
     activity.duration_minutes = op.changes.duration_minutes;
 
