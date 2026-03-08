@@ -1,10 +1,12 @@
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, timedelta
 from math import atan2, cos, radians, sin, sqrt
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+import numpy as np
 import requests
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -63,6 +65,7 @@ class ActivityInput(BaseModel):
 
 class OptimizeRequest(BaseModel):
     activities: List[ActivityInput]
+    mode: str = "driving"  # walking | driving | transit | bicycling
 
 
 class OptimizeResponse(BaseModel):
@@ -82,6 +85,7 @@ class EnrichedActivity(BaseModel):
 class FullOptimizeRequest(BaseModel):
     activities: List[ActivityInput]
     date: str  # "YYYY-MM-DD" of this day
+    mode: str = "driving"  # walking | driving | transit | bicycling
 
 
 class FullOptimizeResponse(BaseModel):
@@ -116,13 +120,24 @@ def haversine_minutes(lat1: float, lon1: float, lat2: float, lon2: float,
 # Distance Matrix  (Google Maps Distance Matrix API → Haversine)
 # ============================================================
 
-def build_haversine_matrix(activities: List[ActivityInput]) -> List[List[int]]:
+# Fallback speeds when Google Maps API is unavailable
+_MODE_SPEED_KMH: Dict[str, float] = {
+    "walking":   4.0,
+    "bicycling": 15.0,
+    "driving":   40.0,   # city average incl. traffic
+    "transit":   20.0,   # incl. waiting / transfers
+}
+
+
+def build_haversine_matrix(activities: List[ActivityInput], mode: str = "walking") -> List[List[int]]:
+    speed = _MODE_SPEED_KMH.get(mode, 4.0)
     n = len(activities)
     return [
         [
             0 if i == j else haversine_minutes(
                 activities[i].lat, activities[i].lng,
                 activities[j].lat, activities[j].lng,
+                speed_kmh=speed,
             )
             for j in range(n)
         ]
@@ -130,8 +145,8 @@ def build_haversine_matrix(activities: List[ActivityInput]) -> List[List[int]]:
     ]
 
 
-def build_google_distance_matrix(activities: List[ActivityInput]) -> Optional[List[List[int]]]:
-    """Single API call: N×N matrix (walking mode). Returns None on failure."""
+def build_google_distance_matrix(activities: List[ActivityInput], mode: str = "walking") -> Optional[List[List[int]]]:
+    """Single API call: N×N matrix. mode: walking | driving | transit | bicycling."""
     if not GOOGLE_MAPS_API_KEY:
         return None
     locations = "|".join(f"{a.lat},{a.lng}" for a in activities)
@@ -139,7 +154,7 @@ def build_google_distance_matrix(activities: List[ActivityInput]) -> Optional[Li
         resp = requests.get(
             "https://maps.googleapis.com/maps/api/distancematrix/json",
             params={"origins": locations, "destinations": locations,
-                    "mode": "walking", "key": GOOGLE_MAPS_API_KEY},
+                    "mode": mode, "key": GOOGLE_MAPS_API_KEY},
             timeout=10,
         )
         resp.raise_for_status()
@@ -165,15 +180,16 @@ def build_google_distance_matrix(activities: List[ActivityInput]) -> Optional[Li
         return None
 
 
-def build_distance_matrix(activities: List[ActivityInput]) -> Tuple[List[List[int]], str]:
+def build_distance_matrix(activities: List[ActivityInput], mode: str = "walking") -> Tuple[List[List[int]], str]:
     if GOOGLE_MAPS_API_KEY:
-        matrix = build_google_distance_matrix(activities)
+        matrix = build_google_distance_matrix(activities, mode)
         if matrix is not None:
-            return matrix, "Google Maps Distance Matrix API (walking)"
+            return matrix, f"Google Maps Distance Matrix API ({mode})"
         logger.warning("Google Maps failed — falling back to Haversine")
     else:
         logger.info("GOOGLE_MAPS_API_KEY not set — using Haversine")
-    return build_haversine_matrix(activities), "Haversine formula (4 km/h walking)"
+    speed = _MODE_SPEED_KMH.get(mode, 4.0)
+    return build_haversine_matrix(activities, mode), f"Haversine fallback ({mode}, {speed} km/h)"
 
 
 # ============================================================
@@ -203,26 +219,114 @@ def _apply_time_windows(
             time_dim.CumulVar(node_index).SetRange(0, total_available)
 
 
-def _search_params(n: int) -> Tuple[pywrapcp.DefaultRoutingSearchParameters, str]:
-    params = pywrapcp.DefaultRoutingSearchParameters()
-    if n <= 5:
-        params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-        params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GREEDY_DESCENT
-        params.time_limit.seconds = 5
-        name = "PATH_CHEAPEST_ARC + GREEDY_DESCENT (n≤5, 5s)"
-    else:
-        params.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION
-        params.local_search_metaheuristic = routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
-        params.time_limit.seconds = 10
-        name = "PARALLEL_CHEAPEST_INSERTION + GUIDED_LOCAL_SEARCH (n>5, 10s)"
-    params.solution_limit = 20
-    params.log_search = False
-    return params, name
+def _build_params(fss, lsm, seconds: int, sol_limit: int = 100) -> pywrapcp.DefaultRoutingSearchParameters:
+    p = pywrapcp.DefaultRoutingSearchParameters()
+    p.first_solution_strategy = fss
+    p.local_search_metaheuristic = lsm
+    p.time_limit.seconds = seconds
+    p.solution_limit = sol_limit
+    p.log_search = False
+    return p
+
+
+# ============================================================
+# Time limit configuration (seconds per strategy, parallel)
+# ============================================================
+# Each strategy runs in parallel; wall time ≈ this value.
+# Increase for better solution quality at cost of latency.
+SOLVER_TIME_LIMIT_SMALL = int(os.getenv("SOLVER_TIME_LIMIT_SMALL", "1"))  # n ≤ 8
+SOLVER_TIME_LIMIT_LARGE = int(os.getenv("SOLVER_TIME_LIMIT_LARGE", "3"))  # n > 8
+
+# Strategy matrix: (name, first_solution, metaheuristic)
+# time_sec is injected at runtime from SOLVER_TIME_LIMIT_* above.
+_STRATEGY_DEFS_SMALL = [
+    ("PATH_CHEAPEST_ARC + GUIDED_LOCAL_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC,
+     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH),
+    ("SAVINGS + TABU_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.SAVINGS,
+     routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH),
+    ("CHRISTOFIDES + GUIDED_LOCAL_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.CHRISTOFIDES,
+     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH),
+    ("PARALLEL_CHEAPEST_INSERTION + SIMULATED_ANNEALING",
+     routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION,
+     routing_enums_pb2.LocalSearchMetaheuristic.SIMULATED_ANNEALING),
+    ("LOCAL_CHEAPEST_INSERTION + GENERIC_TABU_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.LOCAL_CHEAPEST_INSERTION,
+     routing_enums_pb2.LocalSearchMetaheuristic.GENERIC_TABU_SEARCH),
+]
+
+_STRATEGY_DEFS_LARGE = [
+    ("PARALLEL_CHEAPEST_INSERTION + GUIDED_LOCAL_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.PARALLEL_CHEAPEST_INSERTION,
+     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH),
+    ("SAVINGS + GUIDED_LOCAL_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.SAVINGS,
+     routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH),
+    ("LOCAL_CHEAPEST_INSERTION + TABU_SEARCH",
+     routing_enums_pb2.FirstSolutionStrategy.LOCAL_CHEAPEST_INSERTION,
+     routing_enums_pb2.LocalSearchMetaheuristic.TABU_SEARCH),
+    ("CHRISTOFIDES + SIMULATED_ANNEALING",
+     routing_enums_pb2.FirstSolutionStrategy.CHRISTOFIDES,
+     routing_enums_pb2.LocalSearchMetaheuristic.SIMULATED_ANNEALING),
+]
+
+
+def _strategies(n: int):
+    """Returns list of (name, fss, lsm, time_sec) with current time limits."""
+    if n <= 8:
+        return [(name, fss, lsm, SOLVER_TIME_LIMIT_SMALL)
+                for name, fss, lsm in _STRATEGY_DEFS_SMALL]
+    return [(name, fss, lsm, SOLVER_TIME_LIMIT_LARGE)
+            for name, fss, lsm in _STRATEGY_DEFS_LARGE]
 
 
 # ============================================================
 # Layer 1: OR-Tools with virtual depot (free start choice)
 # ============================================================
+
+def _run_layer1_strategy(
+    name: str, fss, lsm, sec: int,
+    n: int, transit, matrix: List[List[int]],
+    activities: List[ActivityInput], start_time_minutes: int, total_available: int,
+) -> Optional[Tuple[int, List[str], List[int]]]:
+    """
+    Uses RegisterTransitMatrix (pure C++ lookup) → GIL released during SolveWithParameters.
+    transit[i][j] = travel(i→j) + service_time(i), nodes 0..n (0 = virtual depot).
+    """
+    mgr = pywrapcp.RoutingIndexManager(n + 1, 1, 0)
+    rt = pywrapcp.RoutingModel(mgr)
+
+    cb = rt.RegisterTransitMatrix(transit)
+    rt.SetArcCostEvaluatorOfAllVehicles(cb)
+
+    has_windows = any(a.opening_hours for a in activities)
+    if has_windows:
+        rt.AddDimension(cb, 180, total_available + 60, False, "Time")
+        time_dim = rt.GetDimensionOrDie("Time")
+        time_dim.CumulVar(mgr.NodeToIndex(0)).SetRange(0, total_available)
+        _apply_time_windows(time_dim, mgr, activities, start_time_minutes, total_available, node_offset=1)
+
+    solution = rt.SolveWithParameters(_build_params(fss, lsm, sec))
+    if not solution:
+        logger.info("[Layer 1] %s → no solution", name)
+        return None
+
+    cost = solution.ObjectiveValue()
+    idx = rt.Start(0)
+    route_nodes: List[int] = []
+    while not rt.IsEnd(idx):
+        route_nodes.append(mgr.IndexToNode(idx))
+        idx = solution.Value(rt.NextVar(idx))
+
+    real_nodes = [i for i in route_nodes if i > 0]
+    ordered_ids = [activities[i - 1].id for i in real_nodes]
+    travel_times = [matrix[real_nodes[k] - 1][real_nodes[k + 1] - 1]
+                    for k in range(len(real_nodes) - 1)]
+    logger.info("[Layer 1] %s → cost=%d", name, cost)
+    return cost, ordered_ids, travel_times
+
 
 def _layer1_virtual_depot(
     activities: List[ActivityInput],
@@ -232,45 +336,42 @@ def _layer1_virtual_depot(
     n = len(activities)
     total_available = 1080 - start_time_minutes
 
-    ext = [[0] * (n + 1) for _ in range(n + 1)]
-    for i in range(n):
-        for j in range(n):
-            ext[i + 1][j + 1] = matrix[i][j]
+    # Build (n+1)×(n+1) numpy transit matrix (int64, C-contiguous).
+    # Node 0 = virtual depot (service=0), nodes 1..n = activities.
+    # transit[i][j] = travel(i→j) + service_at(i)
+    service = np.array([0] + [a.duration_minutes for a in activities], dtype=np.int64)
+    mat = np.array(matrix, dtype=np.int64)
+    arr = np.zeros((n + 1, n + 1), dtype=np.int64)
+    arr[1:, 1:] = mat + service[1:, np.newaxis]
+    arr[1:, 0] = service[1:]
+    np.fill_diagonal(arr, 0)
+    transit = [tuple(row.tolist()) for row in arr]  # OR-Tools requires list of tuples
 
-    manager = pywrapcp.RoutingIndexManager(n + 1, 1, 0)
-    routing = pywrapcp.RoutingModel(manager)
+    strategies = _strategies(n)
+    logger.info("[Layer 1] running %d strategies in parallel (RegisterTransitMatrix)", len(strategies))
 
-    def time_cb(fi, ti):
-        fn, tn = manager.IndexToNode(fi), manager.IndexToNode(ti)
-        service = activities[fn - 1].duration_minutes if fn > 0 else 0
-        return ext[fn][tn] + service
+    best_cost: Optional[int] = None
+    best_result: Optional[Tuple[List[str], List[int]]] = None
 
-    cb = routing.RegisterTransitCallback(time_cb)
-    routing.SetArcCostEvaluatorOfAllVehicles(cb)
-    routing.AddDimension(cb, 180, total_available + 60, False, "Time")
-    time_dim = routing.GetDimensionOrDie("Time")
-    time_dim.CumulVar(manager.NodeToIndex(0)).SetRange(0, total_available)
-    _apply_time_windows(time_dim, manager, activities, start_time_minutes, total_available,
-                        node_offset=1)
+    with ThreadPoolExecutor(max_workers=len(strategies)) as pool:
+        futures = {
+            pool.submit(_run_layer1_strategy,
+                        name, fss, lsm, sec,
+                        n, transit, matrix, activities,
+                        start_time_minutes, total_available): name
+            for name, fss, lsm, sec in strategies
+        }
+        for future in as_completed(futures):
+            result = future.result()
+            if result is None:
+                continue
+            cost, ordered_ids, travel_times = result
+            if best_cost is None or cost < best_cost:
+                best_cost = cost
+                best_result = (ordered_ids, travel_times)
+                logger.info("[Layer 1] ★ new best cost=%d via %s", cost, futures[future])
 
-    params, strategy = _search_params(n)
-    logger.info("[Layer 1] strategy: %s", strategy)
-    solution = routing.SolveWithParameters(params)
-    if not solution:
-        return None
-
-    logger.info("[Layer 1] OR-Tools found a solution.")
-    idx = routing.Start(0)
-    route_nodes: List[int] = []
-    while not routing.IsEnd(idx):
-        route_nodes.append(manager.IndexToNode(idx))
-        idx = solution.Value(routing.NextVar(idx))
-
-    real_nodes = [i for i in route_nodes if i > 0]
-    ordered_ids = [activities[i - 1].id for i in real_nodes]
-    travel_times = [matrix[real_nodes[k] - 1][real_nodes[k + 1] - 1]
-                    for k in range(len(real_nodes) - 1)]
-    return ordered_ids, travel_times
+    return best_result
 
 
 # ============================================================
@@ -286,6 +387,46 @@ def _pick_smart_start(activities: List[ActivityInput]) -> int:
     return min(candidates)[1] if candidates else 0
 
 
+def _run_layer2_strategy(
+    name: str, fss, lsm, sec: int,
+    n: int, smart_start: int, transit, matrix: List[List[int]],
+    activities: List[ActivityInput], start_time_minutes: int, total_available: int,
+) -> Optional[Tuple[int, List[str], List[int]]]:
+    """
+    Uses RegisterTransitMatrix (pure C++) → GIL released during SolveWithParameters.
+    transit[i][j] = travel(i→j) + service_at(i).
+    """
+    mgr = pywrapcp.RoutingIndexManager(n, 1, smart_start)
+    rt = pywrapcp.RoutingModel(mgr)
+
+    cb = rt.RegisterTransitMatrix(transit)
+    rt.SetArcCostEvaluatorOfAllVehicles(cb)
+
+    has_windows = any(a.opening_hours for a in activities)
+    if has_windows:
+        rt.AddDimension(cb, 180, total_available + 60, False, "Time")
+        time_dim = rt.GetDimensionOrDie("Time")
+        _apply_time_windows(time_dim, mgr, activities, start_time_minutes, total_available, node_offset=0)
+
+    solution = rt.SolveWithParameters(_build_params(fss, lsm, sec))
+    if not solution:
+        logger.info("[Layer 2] %s → no solution", name)
+        return None
+
+    cost = solution.ObjectiveValue()
+    idx = rt.Start(0)
+    route_nodes: List[int] = []
+    while not rt.IsEnd(idx):
+        route_nodes.append(mgr.IndexToNode(idx))
+        idx = solution.Value(rt.NextVar(idx))
+
+    ordered_ids = [activities[i].id for i in route_nodes]
+    travel_times = [matrix[route_nodes[k]][route_nodes[k + 1]]
+                    for k in range(len(route_nodes) - 1)]
+    logger.info("[Layer 2] %s → cost=%d", name, cost)
+    return cost, ordered_ids, travel_times
+
+
 def _layer2_smart_start(
     activities: List[ActivityInput],
     matrix: List[List[int]],
@@ -298,37 +439,39 @@ def _layer2_smart_start(
     logger.info("[Layer 2] fixed start = '%s' (index %d)",
                 activities[smart_start].title, smart_start)
 
-    manager = pywrapcp.RoutingIndexManager(n, 1, smart_start)
-    routing = pywrapcp.RoutingModel(manager)
+    # Build n×n numpy transit matrix (int64, C-contiguous).
+    # transit[i][j] = travel(i→j) + service_at(i)
+    service = np.array([a.duration_minutes for a in activities], dtype=np.int64)
+    mat = np.array(matrix, dtype=np.int64)
+    arr = mat + service[:, np.newaxis]
+    np.fill_diagonal(arr, 0)
+    transit = [tuple(row.tolist()) for row in arr]  # OR-Tools requires list of tuples
 
-    def time_cb(fi, ti):
-        fn, tn = manager.IndexToNode(fi), manager.IndexToNode(ti)
-        return matrix[fn][tn] + activities[fn].duration_minutes
+    strategies = _strategies(n)
+    logger.info("[Layer 2] running %d strategies in parallel (RegisterTransitMatrix)", len(strategies))
 
-    cb = routing.RegisterTransitCallback(time_cb)
-    routing.SetArcCostEvaluatorOfAllVehicles(cb)
-    routing.AddDimension(cb, 180, total_available + 60, False, "Time")
-    time_dim = routing.GetDimensionOrDie("Time")
-    _apply_time_windows(time_dim, manager, activities, start_time_minutes, total_available,
-                        node_offset=0)
+    best_cost: Optional[int] = None
+    best_result: Optional[Tuple[List[str], List[int]]] = None
 
-    params, strategy = _search_params(n)
-    logger.info("[Layer 2] strategy: %s", strategy)
-    solution = routing.SolveWithParameters(params)
-    if not solution:
-        return None
+    with ThreadPoolExecutor(max_workers=len(strategies)) as pool:
+        futures = {
+            pool.submit(_run_layer2_strategy,
+                        name, fss, lsm, sec,
+                        n, smart_start, transit, matrix, activities,
+                        start_time_minutes, total_available): name
+            for name, fss, lsm, sec in strategies
+        }
+        for future in as_completed(futures):
+            result = future.result()
+            if result is None:
+                continue
+            cost, ordered_ids, travel_times = result
+            if best_cost is None or cost < best_cost:
+                best_cost = cost
+                best_result = (ordered_ids, travel_times)
+                logger.info("[Layer 2] ★ new best cost=%d via %s", cost, futures[future])
 
-    logger.info("[Layer 2] OR-Tools found a solution.")
-    idx = routing.Start(0)
-    route_nodes: List[int] = []
-    while not routing.IsEnd(idx):
-        route_nodes.append(manager.IndexToNode(idx))
-        idx = solution.Value(routing.NextVar(idx))
-
-    ordered_ids = [activities[i].id for i in route_nodes]
-    travel_times = [matrix[route_nodes[k]][route_nodes[k + 1]]
-                    for k in range(len(route_nodes) - 1)]
-    return ordered_ids, travel_times
+    return best_result
 
 
 # ============================================================
@@ -338,17 +481,61 @@ def _layer2_smart_start(
 def _layer3_greedy(
     activities: List[ActivityInput],
     matrix: List[List[int]],
+    start_time_minutes: int = 540,
 ) -> Tuple[List[str], List[int]]:
+    """
+    Time-window-aware greedy:
+    - If activities have opening_hours, start from earliest-opening one.
+    - At each step, prefer activities reachable within their time window;
+      fall back to nearest if none are reachable.
+    """
     n = len(activities)
+    has_windows = any(a.opening_hours for a in activities)
+
+    # Pick starting point: earliest-opening if time windows exist
+    if has_windows:
+        start = min(
+            range(n),
+            key=lambda i: parse_time_to_minutes(activities[i].opening_hours.open)
+            if activities[i].opening_hours else 9999
+        )
+    else:
+        start = 0
+
     unvisited = set(range(n))
-    current = 0
-    unvisited.remove(0)
-    route = [0]
+    current = start
+    unvisited.remove(start)
+    route = [start]
+    current_time = start_time_minutes  # cumulative time tracker
+
     while unvisited:
-        nearest = min(unvisited, key=lambda j: matrix[current][j])
-        route.append(nearest)
-        unvisited.remove(nearest)
-        current = nearest
+        if has_windows:
+            # Prefer activities whose window we can still reach
+            def score(j):
+                travel = matrix[current][j]
+                arrive = current_time + activities[current].duration_minutes + travel
+                if activities[j].opening_hours:
+                    open_min = parse_time_to_minutes(activities[j].opening_hours.open)
+                    close_min = parse_time_to_minutes(activities[j].opening_hours.close)
+                    if arrive > close_min:
+                        return (2, travel)   # missed window
+                    wait = max(0, open_min - arrive)
+                    return (0, wait + travel)  # prefer less wait + travel
+                return (1, travel)  # no window, secondary priority
+
+            next_node = min(unvisited, key=score)
+            travel = matrix[current][next_node]
+            current_time += activities[current].duration_minutes + travel
+            if activities[next_node].opening_hours:
+                open_min = parse_time_to_minutes(activities[next_node].opening_hours.open)
+                current_time = max(current_time, open_min)
+        else:
+            next_node = min(unvisited, key=lambda j: matrix[current][j])
+
+        route.append(next_node)
+        unvisited.remove(next_node)
+        current = next_node
+
     ordered_ids = [activities[i].id for i in route]
     travel_times = [matrix[route[k]][route[k + 1]] for k in range(len(route) - 1)]
     return ordered_ids, travel_times
@@ -358,14 +545,48 @@ def _layer3_greedy(
 # Main optimization orchestrator
 # ============================================================
 
-def optimize_route(activities: List[ActivityInput]) -> Tuple[List[str], List[int]]:
+def _is_likely_infeasible(
+    activities: List[ActivityInput],
+    matrix: List[List[int]],
+    start_time_minutes: int,
+) -> bool:
+    """
+    Quick pre-check: if total service time + minimum spanning travel time
+    exceeds total available time, OR-Tools will almost certainly fail.
+    Skips the expensive Layer 1/2 attempts and goes straight to Layer 3.
+    """
+    total_service = sum(a.duration_minutes for a in activities)
+    total_available = 1080 - start_time_minutes  # minutes until 18:00
+
+    # Minimum travel: sum of cheapest outgoing edge per node (lower bound)
+    n = len(activities)
+    min_travel = sum(
+        min(matrix[i][j] for j in range(n) if j != i)
+        for i in range(n)
+    )
+    if total_service + min_travel > total_available + 60:  # +60 = same slack as AddDimension
+        logger.warning(
+            "Pre-check: likely infeasible — service=%dmin + min_travel=%dmin > available=%dmin → skip to Layer 3",
+            total_service, min_travel, total_available
+        )
+        return True
+    return False
+
+
+def optimize_route(activities: List[ActivityInput], mode: str = "walking") -> Tuple[List[str], List[int]]:
     n = len(activities)
     if n <= 1:
         return [a.id for a in activities], []
 
     start_time_minutes = parse_time_to_minutes(activities[0].time)
-    matrix, matrix_method = build_distance_matrix(activities)
+    matrix, matrix_method = build_distance_matrix(activities, mode)
     logger.info("Distance matrix: %s", matrix_method)
+
+    # Skip Layer 1/2 if schedule is physically impossible
+    has_windows = any(a.opening_hours for a in activities)
+    if has_windows and _is_likely_infeasible(activities, matrix, start_time_minutes):
+        logger.warning("Skipping OR-Tools layers → Layer 3 directly")
+        return _layer3_greedy(activities, matrix, start_time_minutes)
 
     logger.info("--- Layer 1: OR-Tools + virtual depot ---")
     result = _layer1_virtual_depot(activities, matrix, start_time_minutes)
@@ -378,7 +599,7 @@ def optimize_route(activities: List[ActivityInput]) -> Tuple[List[str], List[int
         return result
 
     logger.warning("Layer 2 failed → Layer 3: greedy nearest neighbor (guaranteed)")
-    return _layer3_greedy(activities, matrix)
+    return _layer3_greedy(activities, matrix, start_time_minutes)
 
 
 # ============================================================
@@ -603,7 +824,7 @@ def optimize_endpoint(body: OptimizeRequest) -> OptimizeResponse:
         logger.info("Only 1 activity — returning as-is.")
         return OptimizeResponse(order=[a.id for a in activities], travel_times_minutes=[])
 
-    ordered_ids, travel_times = optimize_route(activities)
+    ordered_ids, travel_times = optimize_route(activities, body.mode)
 
     id_to_title = {a.id: a.title for a in activities}
     logger.info("Output order (%d activities):", len(ordered_ids))
@@ -660,8 +881,8 @@ def optimize_full_endpoint(body: FullOptimizeRequest) -> FullOptimizeResponse:
         ))
 
     # Step 3: Run OR-Tools with enriched data
-    logger.info("--- Running OR-Tools with time windows ---")
-    ordered_ids, travel_times = optimize_route(enriched_inputs)
+    logger.info("--- Running OR-Tools with time windows (mode=%s) ---", body.mode)
+    ordered_ids, travel_times = optimize_route(enriched_inputs, body.mode)
 
     id_to_title = {a.id: a.title for a in activities}
     logger.info("Output order (%d activities):", len(ordered_ids))
