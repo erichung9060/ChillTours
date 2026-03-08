@@ -7,6 +7,7 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 - 🤖 AI-powered itinerary generation using Gemini 2.0 Flash
 - 🗺️ Interactive Google Maps integration
 - 💬 Conversational chat interface for itinerary refinement
+- 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering
 - 🤝 Real-time collaborative editing with Yjs
 - 📱 Mobile-responsive design
 - 🌓 Dark/Light theme support
@@ -74,6 +75,7 @@ Edit `.env.local` and add your API keys:
 - `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Your Google Maps API key (domain-restricted)
+- `PYTHON_API_URL` - Base URL of the Python route-optimization service (default: `http://localhost:8000`)
 
 4. Run the development server:
 
@@ -117,6 +119,8 @@ npm start
 │   ├── (auth)/              # Authentication routes
 │   ├── (main)/              # Main application routes
 │   ├── api/                 # API routes
+│   │   ├── optimize-route/       # POST /api/optimize-route — fast TSP ordering (proxy → Python /optimize)
+│   │   └── optimize-route-full/  # POST /api/optimize-route-full — full optimization with Place enrichment (proxy → Python /optimize/full)
 │   ├── layout.tsx           # Root layout
 │   ├── page.tsx             # Landing page
 │   └── globals.css          # Global styles

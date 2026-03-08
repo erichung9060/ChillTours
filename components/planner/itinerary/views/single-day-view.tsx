@@ -22,6 +22,10 @@ export function SingleDayView({
   goToPreviousDay,
   goToNextDay,
   onActivityHover,
+  optimizeDay,
+  isOptimizingDay,
+  optimizeDayFull,
+  isOptimizingDayFull,
 }: SingleDayViewProps) {
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
@@ -60,6 +64,52 @@ export function SingleDayView({
         <div className="text-center">
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
+          {day.activities.length >= 2 && (
+            <div className="flex gap-1 mt-1 justify-center">
+              {optimizeDay && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs px-2"
+                  disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                  onClick={() => optimizeDay(day.day_number)}
+                >
+                  {isOptimizingDay === day.day_number ? (
+                    <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                  )}
+                  {isOptimizingDay === day.day_number ? "優化中…" : "快速優化"}
+                </Button>
+              )}
+              {optimizeDayFull && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs px-2"
+                  disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                  onClick={() => optimizeDayFull(day.day_number)}
+                >
+                  {isOptimizingDayFull === day.day_number ? (
+                    <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  )}
+                  {isOptimizingDayFull === day.day_number ? "優化中…" : "完整優化"}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         <Button

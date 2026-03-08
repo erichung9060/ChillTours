@@ -63,6 +63,10 @@ export interface ExpandableViewProps {
   toggleDay: (dayNumber: number) => void;
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
 }
 
 export interface SingleDayViewProps {
@@ -73,6 +77,10 @@ export interface SingleDayViewProps {
   goToPreviousDay: () => void;
   goToNextDay: () => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
 }
 
 export interface SideBySideViewProps {
@@ -81,4 +89,8 @@ export interface SideBySideViewProps {
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
 }
