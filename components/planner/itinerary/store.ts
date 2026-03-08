@@ -423,8 +423,16 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    if (!over || active.id === over.id) {
+    if (!over) {
       set({ crossDayDragInfo: null });
+      return;
+    }
+
+    if (active.id === over.id) {
+      // Item hovering over itself (common after cross-day insertion).
+      // Preserve crossDayDragInfo so disableAnimation stays active on the
+      // target day. Clearing it here would re-enable transitions and cause
+      // dnd-kit's sortable strategy transforms to animate as a visible "swap".
       return;
     }
 
