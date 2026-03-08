@@ -1,14 +1,23 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
+
+const ChatRequestSchema = z.object({
+  message: z.string().min(1, "Message is required"),
+  locale: z.string().optional(),
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  
-  const { message, locale } = body;
-  if (!message) {
+  const parsed = ChatRequestSchema.safeParse(body);
+
+  if (!parsed.success) {
     return new Response(
-      JSON.stringify({ error: "Missing required field: message" }),
+      JSON.stringify({
+        error: "Invalid request data",
+        details: parsed.error.issues,
+      }),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },

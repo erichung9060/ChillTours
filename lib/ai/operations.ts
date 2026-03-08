@@ -12,6 +12,7 @@
  * Multiple operations can be applied in a single update.
  */
 
+import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import type { Itinerary, Day, Activity } from "@/types";
 import { ensureLocationData } from "@/lib/maps/geocoding";
@@ -22,90 +23,99 @@ import { ensureDayExists } from "@/lib/utils/itinerary";
 // Operation Types
 // ============================================================================
 
-export type OperationType = "ADD" | "REMOVE" | "UPDATE" | "MOVE" | "REORDER";
+export const OperationTypeSchema = z.enum(["ADD", "REMOVE", "UPDATE", "MOVE", "REORDER"]);
+export type OperationType = z.infer<typeof OperationTypeSchema>;
 
 /**
  * Add new activity to a specific day
  */
-export interface AddOperation {
-  type: "ADD";
-  day_number: number;
-  activity: {
-    time: string;
-    title: string;
-    note?: string;
-    location: {
-      name: string;
-      lat: number;
-      lng: number;
-    };
-    duration_minutes?: number;
-    insert_at?: number; // Optional: insert at specific position (default: append)
-  };
-}
+export const AddOperationSchema = z.object({
+  type: z.literal("ADD"),
+  day_number: z.number().int().min(1),
+  activity: z.object({
+    time: z.string(),
+    title: z.string(),
+    note: z.string().optional(),
+    location: z.object({
+      name: z.string(),
+      lat: z.number(),
+      lng: z.number(),
+    }),
+    duration_minutes: z.number().int().positive().optional(),
+    insert_at: z.number().int().min(0).optional(), // 0-based position
+  }),
+});
+export type AddOperation = z.infer<typeof AddOperationSchema>;
 
 /**
  * Remove activity from a day
  */
-export interface RemoveOperation {
-  type: "REMOVE";
-  day_number: number;
-  activity_index?: number; // Optional. If omitted, removes the entire day
-}
+export const RemoveOperationSchema = z.object({
+  type: z.literal("REMOVE"),
+  day_number: z.number().int().min(1),
+  activity_index: z.number().int().min(0).optional(), // Omitted = remove entire day
+});
+export type RemoveOperation = z.infer<typeof RemoveOperationSchema>;
 
 /**
  * Update existing activity
  */
-export interface UpdateOperation {
-  type: "UPDATE";
-  day_number: number;
-  activity_index: number; // 0-based index (0 = first activity, 1 = second, etc.)
-  changes: {
-    time?: string;
-    title?: string;
-    note?: string;
-    location?: {
-      name: string; // Required: location name
-      lat?: number; // Optional: LLM can provide coordinates
-      lng?: number; // Optional: LLM can provide coordinates
-    };
-    duration_minutes?: number;
-  };
-}
+export const UpdateOperationSchema = z.object({
+  type: z.literal("UPDATE"),
+  day_number: z.number().int().min(1),
+  activity_index: z.number().int().min(0),
+  changes: z.object({
+    time: z.string().optional(),
+    title: z.string().optional(),
+    note: z.string().optional(),
+    location: z.object({
+      name: z.string(),
+      lat: z.number().optional(),
+      lng: z.number().optional(),
+    }).optional(),
+    duration_minutes: z.number().int().positive().optional(),
+  }),
+});
+export type UpdateOperation = z.infer<typeof UpdateOperationSchema>;
 
 /**
  * Move activity from one day to another
  */
-export interface MoveOperation {
-  type: "MOVE";
-  from_day_number: number;
-  from_activity_index: number; // 0-based index in source day
-  to_day_number: number;
-  insert_at?: number; // Optional: 0-based position in target day (default: append)
-}
+export const MoveOperationSchema = z.object({
+  type: z.literal("MOVE"),
+  from_day_number: z.number().int().min(1),
+  from_activity_index: z.number().int().min(0),
+  to_day_number: z.number().int().min(1),
+  insert_at: z.number().int().min(0).optional(),
+});
+export type MoveOperation = z.infer<typeof MoveOperationSchema>;
 
 /**
  * Reorder activities within a day
  */
-export interface ReorderOperation {
-  type: "REORDER";
-  day_number: number;
-  activity_order: number[]; // Array of 0-based indices in desired order
-}
+export const ReorderOperationSchema = z.object({
+  type: z.literal("REORDER"),
+  day_number: z.number().int().min(1),
+  activity_order: z.array(z.number().int().min(0)),
+});
+export type ReorderOperation = z.infer<typeof ReorderOperationSchema>;
 
-export type Operation =
-  | AddOperation
-  | RemoveOperation
-  | UpdateOperation
-  | MoveOperation
-  | ReorderOperation;
+export const OperationSchema = z.discriminatedUnion("type", [
+  AddOperationSchema,
+  RemoveOperationSchema,
+  UpdateOperationSchema,
+  MoveOperationSchema,
+  ReorderOperationSchema,
+]);
+export type Operation = z.infer<typeof OperationSchema>;
 
 /**
  * Operations response from LLM
  */
-export interface OperationsUpdate {
-  operations: Operation[];
-}
+export const OperationsUpdateSchema = z.object({
+  operations: z.array(OperationSchema),
+});
+export type OperationsUpdate = z.infer<typeof OperationsUpdateSchema>;
 
 // ============================================================================
 // Apply Operations
@@ -460,21 +470,21 @@ function applyReorderOperation(
  * @returns Parsed operations update
  */
 export function parseOperations(
-  response: string | Record<string, any>
+  response: string | Record<string, unknown>
 ): OperationsUpdate | null {
   try {
     const data = typeof response === "string" ? JSON.parse(response) : response;
 
-    if (!data.operations || !Array.isArray(data.operations)) {
-      console.warn("No operations array found in response");
+    const result = OperationsUpdateSchema.safeParse(data);
+
+    if (!result.success) {
+      console.warn("Zod validation failed for OperationsUpdate:", result.error);
       return null;
     }
 
-    return {
-      operations: data.operations,
-    };
+    return result.data;
   } catch (error) {
-    console.error("Failed to parse operations:", error);
+    console.error("Failed to parse operations JSON:", error);
     return null;
   }
 }
