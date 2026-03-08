@@ -4,10 +4,14 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 
-interface GenerateItineraryRequest {
-  itinerary_id: string;
-  locale?: string;
-}
+import { z } from "npm:zod";
+
+const GenerateRequestSchema = z.object({
+  itinerary_id: z.string().min(1, "Itinerary ID is required"),
+  locale: z.string().optional(),
+});
+
+type GenerateItineraryRequest = z.infer<typeof GenerateRequestSchema>;
 
 function createSupabaseAdminClient() {
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -41,14 +45,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { itinerary_id, locale }: GenerateItineraryRequest = await req.json();
+    const body = await req.json();
+    const parsed = GenerateRequestSchema.safeParse(body);
 
-    if (!itinerary_id) {
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required field: itinerary_id" }),
+        JSON.stringify({
+          error: "Invalid request data",
+          details: parsed.error.issues,
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;
 
     const modelName = Deno.env.get("GEMINI_MODEL");
     if (!modelName) {
