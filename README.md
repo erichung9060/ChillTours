@@ -7,7 +7,7 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 - 🤖 AI-powered itinerary generation using Gemini 2.0 Flash
 - 🗺️ Interactive Google Maps integration
 - 💬 Conversational chat interface for itinerary refinement
-- 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering
+- 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering, with configurable per-day start/end time
 - 🤝 Real-time collaborative editing with Yjs
 - 📱 Mobile-responsive design
 - 🌓 Dark/Light theme support
@@ -57,6 +57,14 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 ```bat
 setup.bat   # 建立 Python venv、安裝所有依賴
 run.bat     # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
+```
+
+#### macOS / Linux（一鍵安裝）
+
+```bash
+chmod +x setup.sh run.sh
+./setup.sh  # 建立 Python venv、安裝所有依賴
+./run.sh    # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
 ```
 
 Worker 數量依 CPU 核心數自動設定（`cpu_count // 2`，上限 4）。
@@ -184,7 +192,9 @@ npm start
 │   ├── migrations/          # Database migrations
 │   └── functions/           # Edge Functions
 ├── setup.bat                # Windows: set up Python venv & install dependencies
-└── run.bat                  # Windows: start Python service + Next.js
+├── run.bat                  # Windows: start Python service + Next.js
+├── setup.sh                 # macOS/Linux: set up Python venv & install dependencies
+└── run.sh                   # macOS/Linux: start Python service + Next.js
 ```
 
 ## Architecture

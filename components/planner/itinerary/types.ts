@@ -55,7 +55,12 @@ export interface ChatToggleButtonProps {
   isChatOpen?: boolean;
 }
 
-export interface ExpandableViewProps {
+export interface DayTimeWindowProps {
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
+}
+
+export interface ExpandableViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
@@ -69,7 +74,7 @@ export interface ExpandableViewProps {
   isOptimizingDayFull?: number | null;
 }
 
-export interface SingleDayViewProps {
+export interface SingleDayViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   currentDayIndex: number;
   draggingActivityId: string | null;
@@ -83,7 +88,7 @@ export interface SingleDayViewProps {
   isOptimizingDayFull?: number | null;
 }
 
-export interface SideBySideViewProps {
+export interface SideBySideViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;

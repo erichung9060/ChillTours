@@ -90,6 +90,8 @@ export function ItineraryPanel({
   const isOptimizingDay = useItineraryStore((state) => state.isOptimizingDay);
   const optimizeDayFull = useItineraryStore((state) => state.optimizeDayFull);
   const isOptimizingDayFull = useItineraryStore((state) => state.isOptimizingDayFull);
+  const setDayTimeWindow = useItineraryStore((state) => state.setDayTimeWindow);
+  const setAllDaysTimeWindow = useItineraryStore((state) => state.setAllDaysTimeWindow);
 
   // Early return if no itinerary loaded
   if (!itinerary) {
@@ -207,6 +209,8 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
     "single-day": () => (
@@ -222,6 +226,8 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
     "side-by-side": () => (
@@ -235,6 +241,8 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
   };

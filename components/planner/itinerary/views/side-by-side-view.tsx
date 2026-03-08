@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { DayTimeEditor } from "../components/day-time-editor";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SideBySideViewProps } from "../types";
@@ -25,6 +26,8 @@ export function SideBySideView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTimeWindow,
+  setAllDaysTimeWindow,
 }: SideBySideViewProps) {
   const locale = useLocale();
 
@@ -55,6 +58,15 @@ export function SideBySideView({
                       <p className="text-sm text-muted-foreground mt-1">
                         {formattedDate}
                       </p>
+                      {setDayTimeWindow && setAllDaysTimeWindow && (
+                        <DayTimeEditor
+                          dayNumber={day.day_number}
+                          startTime={day.start_time ?? "09:00"}
+                          endTime={day.end_time ?? "20:00"}
+                          onSave={setDayTimeWindow}
+                          onApplyAll={setAllDaysTimeWindow}
+                        />
+                      )}
                     </div>
                     {day.activities.length >= 2 && (
                       <div className="flex gap-1 shrink-0">

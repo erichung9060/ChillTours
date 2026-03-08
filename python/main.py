@@ -30,8 +30,11 @@ _supabase_client = None
 def get_supabase():
     global _supabase_client
     if _supabase_client is None and SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY:
-        from supabase import create_client
-        _supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        try:
+            from supabase import create_client
+            _supabase_client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+        except Exception as exc:
+            logger.warning("Supabase init failed (cache disabled): %s", exc)
     return _supabase_client
 
 app = FastAPI()
@@ -66,6 +69,8 @@ class ActivityInput(BaseModel):
 class OptimizeRequest(BaseModel):
     activities: List[ActivityInput]
     mode: str = "driving"  # walking | driving | transit | bicycling
+    start_time: str = "09:00"  # "HH:MM" day start (overrides activities[0].time)
+    end_time: str = "20:00"    # "HH:MM" day end
 
 
 class OptimizeResponse(BaseModel):
@@ -86,6 +91,8 @@ class FullOptimizeRequest(BaseModel):
     activities: List[ActivityInput]
     date: str  # "YYYY-MM-DD" of this day
     mode: str = "driving"  # walking | driving | transit | bicycling
+    start_time: str = "09:00"  # "HH:MM" day start (overrides activities[0].time)
+    end_time: str = "20:00"    # "HH:MM" day end
 
 
 class FullOptimizeResponse(BaseModel):
@@ -332,9 +339,10 @@ def _layer1_virtual_depot(
     activities: List[ActivityInput],
     matrix: List[List[int]],
     start_time_minutes: int,
+    end_time_minutes: int = 1200,
 ) -> Optional[Tuple[List[str], List[int]]]:
     n = len(activities)
-    total_available = 1080 - start_time_minutes
+    total_available = end_time_minutes - start_time_minutes
 
     # Build (n+1)×(n+1) numpy transit matrix (int64, C-contiguous).
     # Node 0 = virtual depot (service=0), nodes 1..n = activities.
@@ -358,7 +366,7 @@ def _layer1_virtual_depot(
             pool.submit(_run_layer1_strategy,
                         name, fss, lsm, sec,
                         n, transit, matrix, activities,
-                        start_time_minutes, total_available): name
+                        start_time_minutes, total_available): name  # type: ignore[arg-type]
             for name, fss, lsm, sec in strategies
         }
         for future in as_completed(futures):
@@ -431,9 +439,10 @@ def _layer2_smart_start(
     activities: List[ActivityInput],
     matrix: List[List[int]],
     start_time_minutes: int,
+    end_time_minutes: int = 1200,
 ) -> Optional[Tuple[List[str], List[int]]]:
     n = len(activities)
-    total_available = 1080 - start_time_minutes
+    total_available = end_time_minutes - start_time_minutes
     smart_start = _pick_smart_start(activities)
 
     logger.info("[Layer 2] fixed start = '%s' (index %d)",
@@ -458,7 +467,7 @@ def _layer2_smart_start(
             pool.submit(_run_layer2_strategy,
                         name, fss, lsm, sec,
                         n, smart_start, transit, matrix, activities,
-                        start_time_minutes, total_available): name
+                        start_time_minutes, total_available): name  # type: ignore[arg-type]
             for name, fss, lsm, sec in strategies
         }
         for future in as_completed(futures):
@@ -549,6 +558,7 @@ def _is_likely_infeasible(
     activities: List[ActivityInput],
     matrix: List[List[int]],
     start_time_minutes: int,
+    end_time_minutes: int = 1200,
 ) -> bool:
     """
     Quick pre-check: if total service time + minimum spanning travel time
@@ -556,7 +566,7 @@ def _is_likely_infeasible(
     Skips the expensive Layer 1/2 attempts and goes straight to Layer 3.
     """
     total_service = sum(a.duration_minutes for a in activities)
-    total_available = 1080 - start_time_minutes  # minutes until 18:00
+    total_available = end_time_minutes - start_time_minutes
 
     # Minimum travel: sum of cheapest outgoing edge per node (lower bound)
     n = len(activities)
@@ -573,28 +583,43 @@ def _is_likely_infeasible(
     return False
 
 
-def optimize_route(activities: List[ActivityInput], mode: str = "walking") -> Tuple[List[str], List[int]]:
+def optimize_route(activities: List[ActivityInput], mode: str = "walking", start_time: str = "09:00", end_time: str = "20:00") -> Tuple[List[str], List[int]]:
     n = len(activities)
     if n <= 1:
         return [a.id for a in activities], []
 
-    start_time_minutes = parse_time_to_minutes(activities[0].time)
+    start_time_minutes = parse_time_to_minutes(start_time)
+    end_time_minutes = parse_time_to_minutes(end_time)
     matrix, matrix_method = build_distance_matrix(activities, mode)
     logger.info("Distance matrix: %s", matrix_method)
 
+    # === OR-Tools 完整輸入 ===
+    logger.info("=== OR-Tools Input ===")
+    logger.info("  n=%d, mode=%s, start=%s (%dmin), end=%s (%dmin), available=%dmin",
+                n, mode, start_time, start_time_minutes, end_time, end_time_minutes,
+                end_time_minutes - start_time_minutes)
+    for i, a in enumerate(activities):
+        tw = a.opening_hours
+        tw_str = f"  time_window=[{tw.open},{tw.close}]" if tw else "  no_time_window"
+        logger.info("  [%d] %s | duration=%dmin%s", i, a.title, a.duration_minutes, tw_str)
+    logger.info("  Distance matrix (minutes):")
+    for row in matrix:
+        logger.info("    %s", [round(v) for v in row])
+    logger.info("=== OR-Tools Input END ===")
+
     # Skip Layer 1/2 if schedule is physically impossible
     has_windows = any(a.opening_hours for a in activities)
-    if has_windows and _is_likely_infeasible(activities, matrix, start_time_minutes):
+    if has_windows and _is_likely_infeasible(activities, matrix, start_time_minutes, end_time_minutes):
         logger.warning("Skipping OR-Tools layers → Layer 3 directly")
         return _layer3_greedy(activities, matrix, start_time_minutes)
 
     logger.info("--- Layer 1: OR-Tools + virtual depot ---")
-    result = _layer1_virtual_depot(activities, matrix, start_time_minutes)
+    result = _layer1_virtual_depot(activities, matrix, start_time_minutes, end_time_minutes)
     if result:
         return result
 
     logger.warning("Layer 1 failed → Layer 2: OR-Tools + smart fixed start")
-    result = _layer2_smart_start(activities, matrix, start_time_minutes)
+    result = _layer2_smart_start(activities, matrix, start_time_minutes, end_time_minutes)
     if result:
         return result
 
@@ -824,7 +849,7 @@ def optimize_endpoint(body: OptimizeRequest) -> OptimizeResponse:
         logger.info("Only 1 activity — returning as-is.")
         return OptimizeResponse(order=[a.id for a in activities], travel_times_minutes=[])
 
-    ordered_ids, travel_times = optimize_route(activities, body.mode)
+    ordered_ids, travel_times = optimize_route(activities, body.mode, body.start_time, body.end_time)
 
     id_to_title = {a.id: a.title for a in activities}
     logger.info("Output order (%d activities):", len(ordered_ids))
@@ -882,7 +907,7 @@ def optimize_full_endpoint(body: FullOptimizeRequest) -> FullOptimizeResponse:
 
     # Step 3: Run OR-Tools with enriched data
     logger.info("--- Running OR-Tools with time windows (mode=%s) ---", body.mode)
-    ordered_ids, travel_times = optimize_route(enriched_inputs, body.mode)
+    ordered_ids, travel_times = optimize_route(enriched_inputs, body.mode, body.start_time, body.end_time)
 
     id_to_title = {a.id: a.title for a in activities}
     logger.info("Output order (%d activities):", len(ordered_ids))

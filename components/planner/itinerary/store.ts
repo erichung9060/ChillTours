@@ -73,6 +73,10 @@ interface ItineraryState {
   optimizeDay: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull: number | null;
   optimizeDayFull: (dayNumber: number) => Promise<void>;
+
+  // Day Time Window
+  setDayTimeWindow: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow: (startTime: string, endTime: string) => Promise<void>;
 }
 
 export const useItineraryStore = create<ItineraryState>((set, get) => ({
@@ -449,6 +453,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             duration_minutes: a.duration_minutes,
             time: a.time,
           })),
+          start_time: day.start_time ?? day.activities[0].time,
+          end_time: day.end_time ?? "20:00",
         }),
       });
 
@@ -475,7 +481,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         return `${h}:${m}`;
       };
 
-      let currentMinutes = parseTime(day.activities[0].time);
+      let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
 
       const reorderedActivities = order.map((id, i) => {
         const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
@@ -521,6 +527,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             time: a.time,
           })),
           date: dayDate,
+          start_time: day.start_time ?? day.activities[0].time,
+          end_time: day.end_time ?? "20:00",
         }),
       });
 
@@ -555,7 +563,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         return `${h}:${m}`;
       };
 
-      let currentMinutes = parseTime(day.activities[0].time);
+      let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
 
       const reorderedActivities = order.map((id, i) => {
         const base = activityById[id];
@@ -585,6 +593,23 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } finally {
       set({ isOptimizingDayFull: null });
     }
+  },
+
+  // Day Time Window
+  setDayTimeWindow: async (dayNumber, startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) =>
+      d.day_number === dayNumber ? { ...d, start_time: startTime, end_time: endTime } : d
+    );
+    await get().updateDays(newDays);
+  },
+
+  setAllDaysTimeWindow: async (startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) => ({ ...d, start_time: startTime, end_time: endTime }));
+    await get().updateDays(newDays);
   },
 
   // Drag & Drop Logic

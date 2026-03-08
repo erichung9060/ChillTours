@@ -10,6 +10,7 @@ import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { DayTimeEditor } from "../components/day-time-editor";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
@@ -26,6 +27,8 @@ export function SingleDayView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTimeWindow,
+  setAllDaysTimeWindow,
 }: SingleDayViewProps) {
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
@@ -64,6 +67,17 @@ export function SingleDayView({
         <div className="text-center">
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
+          {setDayTimeWindow && setAllDaysTimeWindow && (
+            <div className="flex justify-center mt-1">
+              <DayTimeEditor
+                dayNumber={day.day_number}
+                startTime={day.start_time ?? "09:00"}
+                endTime={day.end_time ?? "20:00"}
+                onSave={setDayTimeWindow}
+                onApplyAll={setAllDaysTimeWindow}
+              />
+            </div>
+          )}
           {day.activities.length >= 2 && (
             <div className="flex gap-1 mt-1 justify-center">
               {optimizeDay && (

@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { DayTimeEditor } from "../components/day-time-editor";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -27,6 +28,8 @@ export function ExpandableView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTimeWindow,
+  setAllDaysTimeWindow,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -55,10 +58,21 @@ export function ExpandableView({
                   <p className="text-sm text-muted-foreground mt-1">
                     {formattedDate}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {day.activities.length}{" "}
-                    {day.activities.length === 1 ? "activity" : "activities"}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {day.activities.length}{" "}
+                      {day.activities.length === 1 ? "activity" : "activities"}
+                    </p>
+                    {setDayTimeWindow && setAllDaysTimeWindow && (
+                      <DayTimeEditor
+                        dayNumber={day.day_number}
+                        startTime={day.start_time ?? "09:00"}
+                        endTime={day.end_time ?? "20:00"}
+                        onSave={setDayTimeWindow}
+                        onApplyAll={setAllDaysTimeWindow}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {optimizeDay && day.activities.length >= 2 && (

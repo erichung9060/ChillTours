@@ -18,7 +18,9 @@ if not exist "%VENV_PATH%\Scripts\activate.bat" (
 )
 
 :: 依 CPU 核心數自動決定 worker 數 (cpu_count // 2，最少 1，最多 4)
-for /f %%i in ('"%VENV_PATH%\Scripts\python.exe" -c "import os; print(min(max(os.cpu_count()//2,1),4))"') do set WORKERS=%%i
+"%VENV_PATH%\Scripts\python.exe" -c "import os; open('_w.tmp','w').write(str(min(max(os.cpu_count()//2,1),4)))"
+set WORKERS=1
+if exist "_w.tmp" (for /f %%i in (_w.tmp) do set WORKERS=%%i) & del _w.tmp 2>nul
 
 echo 正在啟動 Python API 伺服器（port 8000，%WORKERS% workers / %NUMBER_OF_PROCESSORS% 核）...
 start "ChillTours - Python API" cmd /k "cd /d "%ROOT%python" && call "%VENV_PATH%\Scripts\activate.bat" && uvicorn main:app --workers %WORKERS% --host 0.0.0.0 --port 8000"
