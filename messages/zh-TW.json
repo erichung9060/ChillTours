@@ -10,6 +10,25 @@
     "saving": "儲存中...",
     "savedToCloud": "已儲存到雲端"
   },
+  "validation": {
+    "destinationRequired": "請輸入目的地",
+    "destinationMaxLength": "目的地最多 100 個字元",
+    "startDateRequired": "請選擇開始日期",
+    "endDateRequired": "請選擇結束日期",
+    "datesRequired": "請選擇日期",
+    "bothDatesRequired": "請選擇開始日期和結束日期",
+    "endDateAfterStart": "結束日期必須在開始日期之後或相同",
+    "titleRequired": "請輸入標題",
+    "titleMaxLength": "標題最多 100 個字元",
+    "activityTitleRequired": "請輸入活動標題",
+    "activityTitleMaxLength": "活動標題最多 100 個字元",
+    "locationRequired": "請輸入地點",
+    "timeInvalidFormat": "時間格式必須為 HH:MM",
+    "durationMin": "持續時間至少 1 分鐘",
+    "durationMax": "持續時間最多 480 分鐘",
+    "invalidUrl": "必須是有效的網址",
+    "noteMaxLength": "筆記最多 500 個字元"
+  },
   "landing": {
     "hero": {
       "whereToNext": "下一站去",
@@ -24,8 +43,6 @@
       "vibePlaceholder": "經濟實惠的美食之旅、登山景點、復古購物...",
       "generateButton": "產生行程",
       "generating": "產生中...",
-      "destinationRequired": "請輸入目的地",
-      "datesRequired": "請選擇您的旅行日期",
       "createError": "建立行程失敗。請重試。"
     },
     "trending": {

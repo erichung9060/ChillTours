@@ -10,6 +10,25 @@
     "saving": "Saving...",
     "savedToCloud": "Saved to cloud"
   },
+  "validation": {
+    "destinationRequired": "Destination is required",
+    "destinationMaxLength": "Destination must be at most 100 characters",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "datesRequired": "Dates are required",
+    "bothDatesRequired": "Both start and end dates are required",
+    "endDateAfterStart": "End date must be on or after start date",
+    "titleRequired": "Title is required",
+    "titleMaxLength": "Title must be at most 100 characters",
+    "activityTitleRequired": "Activity title is required",
+    "activityTitleMaxLength": "Activity title must be at most 100 characters",
+    "locationRequired": "Location is required",
+    "timeInvalidFormat": "Time must be in HH:MM format",
+    "durationMin": "Duration must be at least 1 minute",
+    "durationMax": "Duration must be at most 480 minutes",
+    "invalidUrl": "Must be a valid URL",
+    "noteMaxLength": "Note must be at most 500 characters"
+  },
   "landing": {
     "hero": {
       "whereToNext": "Where to ",
@@ -24,8 +43,6 @@
       "vibePlaceholder": "Budget-friendly foodie tour, hiking spots, vintage shopping...",
       "generateButton": "Generate Free Itinerary",
       "generating": "Generating...",
-      "destinationRequired": "Destination is required",
-      "datesRequired": "Please select your travel dates",
       "createError": "Failed to create itinerary. Please try again."
     },
     "trending": {
