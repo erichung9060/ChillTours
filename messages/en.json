@@ -28,7 +28,8 @@
     "invalidUrl": "Must be a valid URL",
     "noteMaxLength": "Note must be at most 500 characters",
     "vibeMaxLength": "Vibe description must be at most 1000 characters",
-    "requirementsMaxLength": "Requirements must be at most 1000 characters"
+    "requirementsMaxLength": "Requirements must be at most 1000 characters",
+    "pastDateNotAllowed": "Cannot select past dates"
   },
   "landing": {
     "hero": {

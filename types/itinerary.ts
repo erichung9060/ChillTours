@@ -5,7 +5,7 @@ import { z } from "zod";
 // ============================================================================
 
 export const LocationSchema = z.object({
-  name: z.string().min(1, "Location name is required"),
+  name: z.string().min(1, "Location name is required").max(200, "Location name is too long"),
   lat: z.number().min(-90).max(90).optional().default(0),
   lng: z.number().min(-180).max(180).optional().default(0),
   place_id: z.string().optional(),
@@ -27,7 +27,7 @@ export const ActivitySchema = z.object({
   location: LocationSchema,
   duration_minutes: z.number().int().min(1).max(480),
   order: z.number().int().min(0),
-  url: z.string().optional(),
+  url: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
@@ -62,7 +62,7 @@ export const ItinerarySchema = z
     end_date: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format"),
-    requirements: z.string().optional(),
+    requirements: z.string().max(1000, "Requirements are too long").optional(),
     status: z.enum(["draft", "generating", "completed", "failed"]).optional(),
     days: z.array(DaySchema),
     created_at: z.iso.datetime(),
