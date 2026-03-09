@@ -16,6 +16,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface EditActivityDialogProps {
   activity: Activity;
@@ -35,23 +38,27 @@ export function EditActivityDialog({
   onDelete,
 }: EditActivityDialogProps) {
   const t = useTranslations("planner.editDialog");
-  const initialFocusRef = useRef<HTMLInputElement>(null);
+  const tv = useTranslations();
   const isSaving = useItineraryStore((state) => state.isSaving);
 
   const [step, setStep] = useState<Step>("edit");
-  const [formData, setFormData] = useState({
-    title: activity.title,
-    locationName: activity.location.name,
-    note: activity.note || "",
-    time: activity.time,
-    duration: activity.duration_minutes,
-    url: activity.url || "",
+
+  const form = useForm<ActivityFormValues>({
+    resolver: zodResolver(createActivityFormSchema((key) => tv(key))) as any,
+    defaultValues: {
+      title: activity.title,
+      locationName: activity.location.name,
+      note: activity.note || "",
+      time: activity.time,
+      duration: activity.duration_minutes,
+      url: activity.url || "",
+    },
   });
 
   useEffect(() => {
     if (isOpen) {
       setStep("edit");
-      setFormData({
+      form.reset({
         title: activity.title,
         locationName: activity.location.name,
         note: activity.note || "",
@@ -60,29 +67,20 @@ export function EditActivityDialog({
         url: activity.url || "",
       });
     }
-  }, [activity, isOpen]);
+  }, [activity, isOpen, form]);
 
-  useEffect(() => {
-    if (isOpen && step === "edit" && initialFocusRef.current) {
-      setTimeout(() => {
-        initialFocusRef.current?.focus();
-      }, 100);
-    }
-  }, [isOpen, step]);
-
-  const handleSave = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const onSubmit = async (data: ActivityFormValues) => {
     const updatedActivity: Activity = {
       ...activity,
-      title: formData.title,
+      title: data.title,
       location: {
         ...activity.location,
-        name: formData.locationName,
+        name: data.locationName,
       },
-      note: formData.note,
-      time: formData.time,
-      duration_minutes: Number(formData.duration),
-      url: formData.url || undefined,
+      note: data.note || "",
+      time: data.time,
+      duration_minutes: data.duration,
+      url: data.url || undefined,
     };
     try {
       await onSave(updatedActivity);
@@ -114,7 +112,7 @@ export function EditActivityDialog({
       <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
         {step === "edit" ? (
           /* ── Edit Step ── */
-          <form onSubmit={handleSave}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle>{t("title")}</DialogTitle>
               <DialogDescription>
@@ -127,14 +125,12 @@ export function EditActivityDialog({
                   {t("labelTitle")}
                 </label>
                 <Input
-                  ref={initialFocusRef}
                   id="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
+                  autoFocus
                   disabled={isSaving}
-                  required
+                  {...form.register("title")}
+                  error={!!form.formState.errors.title}
+                  helperText={form.formState.errors.title?.message?.toString()}
                 />
               </div>
               <div className="grid gap-2">
@@ -143,12 +139,10 @@ export function EditActivityDialog({
                 </label>
                 <Input
                   id="location"
-                  value={formData.locationName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, locationName: e.target.value })
-                  }
                   disabled={isSaving}
-                  required
+                  {...form.register("locationName")}
+                  error={!!form.formState.errors.locationName}
+                  helperText={form.formState.errors.locationName?.message?.toString()}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -159,12 +153,10 @@ export function EditActivityDialog({
                   <Input
                     id="time"
                     type="time"
-                    value={formData.time}
-                    onChange={(e) =>
-                      setFormData({ ...formData, time: e.target.value })
-                    }
                     disabled={isSaving}
-                    required
+                    {...form.register("time")}
+                    error={!!form.formState.errors.time}
+                    helperText={form.formState.errors.time?.message?.toString()}
                   />
                 </div>
                 <div className="grid gap-2">
@@ -174,16 +166,10 @@ export function EditActivityDialog({
                   <Input
                     id="duration"
                     type="number"
-                    value={formData.duration}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        duration: Number(e.target.value),
-                      })
-                    }
                     disabled={isSaving}
-                    required
-                    min="1"
+                    {...form.register("duration")}
+                    error={!!form.formState.errors.duration}
+                    helperText={form.formState.errors.duration?.message?.toString()}
                   />
                 </div>
               </div>
@@ -193,12 +179,11 @@ export function EditActivityDialog({
                 </label>
                 <Input
                   id="url"
-                  value={formData.url}
-                  onChange={(e) =>
-                    setFormData({ ...formData, url: e.target.value })
-                  }
                   disabled={isSaving}
                   placeholder="https://..."
+                  {...form.register("url")}
+                  error={!!form.formState.errors.url}
+                  helperText={form.formState.errors.url?.message?.toString()}
                 />
               </div>
               <div className="grid gap-2">
@@ -207,13 +192,15 @@ export function EditActivityDialog({
                 </label>
                 <Textarea
                   id="note"
-                  value={formData.note}
-                  onChange={(e) =>
-                    setFormData({ ...formData, note: e.target.value })
-                  }
                   disabled={isSaving}
                   placeholder={t("placeholderNote")}
+                  {...form.register("note")}
                 />
+                {form.formState.errors.note && (
+                  <p className="text-xs text-destructive mt-1">
+                    {form.formState.errors.note.message?.toString()}
+                  </p>
+                )}
               </div>
             </div>
             <DialogFooter className="flex-row items-center justify-between sm:justify-between">

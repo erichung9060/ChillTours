@@ -18,6 +18,9 @@ import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date"
 import type { Itinerary } from "@/types/itinerary";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useItineraryStore } from "../store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
+import { createEditMetadataFormSchema, type EditMetadataFormValues } from "@/types/forms";
 
 interface EditMetadataDialogProps {
     itinerary: Itinerary;
@@ -37,41 +40,46 @@ export function EditMetadataDialog({
     onDelete,
 }: EditMetadataDialogProps) {
     const t = useTranslations("planner.editMetadataDialog");
-    const initialFocusRef = useRef<HTMLInputElement>(null);
+    const tv = useTranslations();
     const isSaving = useItineraryStore((state) => state.isSaving);
 
     const [step, setStep] = useState<Step>("edit");
     const [isDeleting, setIsDeleting] = useState(false);
-    const [formData, setFormData] = useState({
-        title: itinerary.title,
-        destination: itinerary.destination,
-        requirements: itinerary.requirements || "",
-    });
-    const [startDate, setStartDate] = useState<Date | undefined>(parseLocalDate(itinerary.start_date));
-    const [endDate, setEndDate] = useState<Date | undefined>(parseLocalDate(itinerary.end_date));
 
+    const form = useForm<EditMetadataFormValues>({
+        resolver: zodResolver(createEditMetadataFormSchema((key) => tv(key))),
+        defaultValues: {
+            title: itinerary.title,
+            destination: itinerary.destination,
+            requirements: itinerary.requirements || "",
+            dates: {
+                from: parseLocalDate(itinerary.start_date),
+                to: parseLocalDate(itinerary.end_date),
+            },
+        },
+    });
+
+    // Make sure we update default values fully when itinerary or dialog visibility changes.
     useEffect(() => {
         if (isOpen) {
             setStep("edit");
-            setFormData({
+            form.reset({
                 title: itinerary.title,
                 destination: itinerary.destination,
                 requirements: itinerary.requirements || "",
+                dates: {
+                    from: parseLocalDate(itinerary.start_date),
+                    to: parseLocalDate(itinerary.end_date),
+                },
             });
-            setStartDate(parseLocalDate(itinerary.start_date));
-            setEndDate(parseLocalDate(itinerary.end_date));
         }
-    }, [itinerary, isOpen]);
-
-    useEffect(() => {
-        if (isOpen && step === "edit" && initialFocusRef.current) {
-            setTimeout(() => {
-                initialFocusRef.current?.focus();
-            }, 100);
-        }
-    }, [isOpen, step]);
+    }, [itinerary, isOpen, form]);
 
     // ─── Derived: how many days will be affected by shrinking ───────────────
+    const watchedDates = form.watch("dates");
+    const startDate = watchedDates?.from;
+    const endDate = watchedDates?.to;
+
     const oldDayCount = calcDayCount(itinerary.start_date, itinerary.end_date);
     const newDayCount =
         startDate && endDate
@@ -87,13 +95,11 @@ export function EditMetadataDialog({
         .sort((a, b) => a.day_number - b.day_number);
 
     // ─── Submit handlers ─────────────────────────────────────────────────────
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = (data: EditMetadataFormValues) => {
+        if (!data.dates.from || !data.dates.to) return;
 
-        if (!startDate || !endDate) return;
-
-        const formattedStart = formatLocalDate(startDate);
-        const formattedEnd = formatLocalDate(endDate);
+        const formattedStart = formatLocalDate(data.dates.from);
+        const formattedEnd = formatLocalDate(data.dates.to);
 
         // If the user is about to shorten the trip, show confirmation step first
         if (isShrinking && step === "edit") {
@@ -105,13 +111,14 @@ export function EditMetadataDialog({
     };
 
     const doSave = async (formattedStart: string, formattedEnd: string) => {
+        const data = form.getValues();
         try {
             await onSave({
-                title: formData.title,
-                destination: formData.destination,
+                title: data.title,
+                destination: data.destination,
                 start_date: formattedStart,
                 end_date: formattedEnd,
-                requirements: formData.requirements || undefined,
+                requirements: data.requirements || undefined,
             });
             onClose();
         } catch (err) {
@@ -120,8 +127,9 @@ export function EditMetadataDialog({
     };
 
     const handleConfirmShrink = () => {
-        if (!startDate || !endDate) return;
-        doSave(formatLocalDate(startDate), formatLocalDate(endDate));
+        const data = form.getValues();
+        if (!data.dates?.from || !data.dates?.to) return;
+        doSave(formatLocalDate(data.dates.from), formatLocalDate(data.dates.to));
     };
 
     const handleDelete = async () => {
@@ -145,7 +153,7 @@ export function EditMetadataDialog({
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
                 {step === "edit" ? (
-                    <form onSubmit={handleSave}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
                         <DialogHeader>
                             <DialogTitle>{t("title")}</DialogTitle>
                             <DialogDescription>{t("description")}</DialogDescription>
@@ -156,14 +164,12 @@ export function EditMetadataDialog({
                                     {t("labelTitle")}
                                 </label>
                                 <Input
-                                    ref={initialFocusRef}
                                     id="tripTitle"
-                                    value={formData.title}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, title: e.target.value })
-                                    }
+                                    autoFocus
                                     disabled={isSaving || isDeleting}
-                                    required
+                                    {...form.register("title")}
+                                    error={!!form.formState.errors.title}
+                                    helperText={form.formState.errors.title?.message?.toString()}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -172,26 +178,36 @@ export function EditMetadataDialog({
                                 </label>
                                 <Input
                                     id="tripDestination"
-                                    value={formData.destination}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, destination: e.target.value })
-                                    }
                                     disabled={isSaving || isDeleting}
-                                    required
+                                    {...form.register("destination")}
+                                    error={!!form.formState.errors.destination}
+                                    helperText={form.formState.errors.destination?.message?.toString()}
                                 />
                             </div>
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
                                     {t("labelDates")}
                                 </label>
-                                <DateRangePicker
-                                    startDate={startDate}
-                                    endDate={endDate}
-                                    onChange={(start, end) => {
-                                        setStartDate(start);
-                                        setEndDate(end);
-                                    }}
-                                    disabled={isSaving || isDeleting}
+                                <Controller
+                                    name="dates"
+                                    control={form.control}
+                                    render={({ field, fieldState }) => (
+                                        <>
+                                            <DateRangePicker
+                                                startDate={field.value?.from}
+                                                endDate={field.value?.to}
+                                                onChange={(start, end) => {
+                                                    field.onChange({ from: start, to: end });
+                                                }}
+                                                disabled={isSaving || isDeleting}
+                                            />
+                                            {(fieldState.error || form.formState.errors.dates) && (
+                                                <p className="text-xs text-destructive mt-1">
+                                                    {fieldState.error?.message || form.formState.errors.dates?.message?.toString()}
+                                                </p>
+                                            )}
+                                        </>
+                                    )}
                                 />
                                 {/* Inline shrink warning hint */}
                                 {isShrinking && (
@@ -207,13 +223,15 @@ export function EditMetadataDialog({
                                 </label>
                                 <Textarea
                                     id="tripRequirements"
-                                    value={formData.requirements}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, requirements: e.target.value })
-                                    }
                                     disabled={isSaving || isDeleting}
                                     className="min-h-[100px]"
+                                    {...form.register("requirements")}
                                 />
+                                {form.formState.errors.requirements && (
+                                    <p className="text-xs text-destructive mt-1">
+                                        {form.formState.errors.requirements.message?.toString()}
+                                    </p>
+                                )}
                             </div>
                         </div>
                         <DialogFooter className="flex-row items-center justify-between sm:justify-between w-full mt-4">
