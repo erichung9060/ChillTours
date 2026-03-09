@@ -69,15 +69,27 @@ import * as matchers from "@testing-library/jest-dom/matchers";
 expect.extend(matchers);
 
 // Mock next-intl globally
-vi.mock("next-intl", () => ({
-  useTranslations: () => (key: string) => key,
-  useLocale: () => "en",
-  useTimeZone: () => "UTC",
-  useMessages: () => ({}),
-  useNow: () => new Date(),
-  NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+vi.mock("next-intl", () => {
+  // Simple translation map for common test keys
+  const translations: Record<string, string> = {
+    // Validation messages
+    "validation.destinationRequired": "Destination is required",
+    "validation.startDateRequired": "Start date is required",
+    "validation.endDateRequired": "End date is required",
+    "validation.datesRequired": "Dates are required",
+    "validation.bothDatesRequired": "Please select both start and end dates",
+    "validation.endDateAfterStart": "End date must be on or after start date",
+  };
 
+  return {
+    useTranslations: () => (key: string) => translations[key] || key,
+    useLocale: () => "en",
+    useTimeZone: () => "UTC",
+    useMessages: () => ({}),
+    useNow: () => new Date(),
+    NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
+  };
+});
 // Mock next-intl/navigation if needed
 vi.mock("next-intl/navigation", () => ({
   useRouter: () => ({
