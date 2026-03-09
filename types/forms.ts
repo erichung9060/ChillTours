@@ -13,12 +13,18 @@ export type TranslationFunction = (key: string) => string;
 export const createTripFormSchema = (t: TranslationFunction) =>
   z
     .object({
-      destination: z.string().min(1, t("validation.destinationRequired")),
+      destination: z
+        .string()
+        .min(1, t("validation.destinationRequired"))
+        .max(100, t("validation.destinationMaxLength")),
       dates: z.object({
         from: z.date().optional(),
         to: z.date().optional(),
       }),
-      vibe: z.string().optional(),
+      vibe: z
+        .string()
+        .max(1000, t("validation.vibeMaxLength"))
+        .optional(),
     })
     .superRefine((data, ctx) => {
       const { from, to } = data.dates;
@@ -71,7 +77,10 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
         from: z.date().optional(),
         to: z.date().optional(),
       }),
-      requirements: z.string().optional(),
+      requirements: z
+        .string()
+        .max(1000, t("validation.requirementsMaxLength"))
+        .optional(),
     })
     .superRefine((data, ctx) => {
       const { from, to } = data.dates;
@@ -117,7 +126,10 @@ export const createActivityFormSchema = (t: TranslationFunction) =>
       .string()
       .min(1, t("validation.activityTitleRequired"))
       .max(100, t("validation.activityTitleMaxLength")),
-    locationName: z.string().min(1, t("validation.locationRequired")),
+    locationName: z
+      .string()
+      .min(1, t("validation.locationRequired"))
+      .max(200, t("validation.locationMaxLength")),
     time: z
       .string()
       .regex(
