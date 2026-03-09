@@ -15,6 +15,7 @@ export const createTripFormSchema = (t: TranslationFunction) =>
     .object({
       destination: z
         .string()
+        .trim()
         .min(1, t("validation.destinationRequired"))
         .max(100, t("validation.destinationMaxLength")),
       dates: z.object({
@@ -80,10 +81,12 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
     .object({
       title: z
         .string()
+        .trim()
         .min(1, t("validation.titleRequired"))
         .max(100, t("validation.titleMaxLength")),
       destination: z
         .string()
+        .trim()
         .min(1, t("validation.destinationRequired"))
         .max(100, t("validation.destinationMaxLength")),
       dates: z.object({
@@ -124,18 +127,6 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
         });
         return;
       }
-
-      // Prevent selecting past dates
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      if (from < today) {
-        ctx.addIssue({
-          code: "custom",
-          message: t("validation.pastDateNotAllowed"),
-          path: ["dates"],
-        });
-      }
     });
 
 export type EditMetadataFormValues = z.infer<
@@ -150,10 +141,12 @@ export const createActivityFormSchema = (t: TranslationFunction) =>
   z.object({
     title: z
       .string()
+      .trim()
       .min(1, t("validation.activityTitleRequired"))
       .max(100, t("validation.activityTitleMaxLength")),
     locationName: z
       .string()
+      .trim()
       .min(1, t("validation.locationRequired"))
       .max(200, t("validation.locationMaxLength")),
     time: z
@@ -166,9 +159,22 @@ export const createActivityFormSchema = (t: TranslationFunction) =>
       .number()
       .int()
       .min(1, t("validation.durationMin"))
-      .max(480, t("validation.durationMax")),
+      .max(1440, t("validation.durationMax")),
     url: z
-      .union([z.literal(""), z.string().url(t("validation.invalidUrl"))])
+      .string()
+      .refine(
+        (val) => {
+          if (!val || val === "") return true;
+          try {
+            new URL(val);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        { message: t("validation.invalidUrl") }
+      )
+      .or(z.literal(""))
       .optional(),
     note: z.string().max(500, t("validation.noteMaxLength")).optional(),
   });

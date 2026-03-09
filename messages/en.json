@@ -24,7 +24,7 @@
     "locationMaxLength": "Location must be at most 200 characters",
     "timeInvalidFormat": "Time must be in HH:MM format",
     "durationMin": "Duration must be at least 1 minute",
-    "durationMax": "Duration must be at most 480 minutes",
+    "durationMax": "Duration must be at most 1440 minutes",
     "invalidUrl": "Must be a valid URL",
     "noteMaxLength": "Note must be at most 500 characters",
     "vibeMaxLength": "Vibe description must be at most 1000 characters",
