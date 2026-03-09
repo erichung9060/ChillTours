@@ -208,15 +208,32 @@ Deno.serve(async (req) => {
 
         try {
           const result = await model.generateContentStream(prompt);
+          let accumulatedText = "";
+          let jsonStarted = false;
 
           for await (const chunk of result.stream) {
             const text = chunk.text();
             if (!text) continue;
 
-            // Remove markdown code blocks
-            const cleanText = text.replace(/```(?:json)?/gi, "");
-            if (cleanText) {
-              parser.write(cleanText);
+            accumulatedText += text;
+
+            if (!jsonStarted) {
+              // Look for the start of JSON
+              const jsonStartIndex = accumulatedText.indexOf("{");
+              if (jsonStartIndex === -1) continue;
+              
+              // Found JSON, extract from start and mark as started
+              jsonStarted = true;
+              accumulatedText = accumulatedText.substring(jsonStartIndex);
+            }
+
+            // Remove markdown code fences (both ``` and ```json)
+            const cleaned = accumulatedText.replace(/```(?:json)?/gi, "");
+            
+            // Only write the new content to parser
+            if (cleaned) {
+              parser.write(cleaned);
+              accumulatedText = ""; // Clear buffer after writing
             }
           }
 
