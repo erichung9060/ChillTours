@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
