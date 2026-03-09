@@ -211,8 +211,12 @@ Deno.serve(async (req) => {
 
           for await (const chunk of result.stream) {
             const text = chunk.text();
-            if (text) {
-              parser.write(text);
+            if (!text) continue;
+
+            // Remove markdown code blocks
+            const cleanText = text.replace(/```(?:json)?/gi, "");
+            if (cleanText) {
+              parser.write(cleanText);
             }
           }
 
