@@ -13,7 +13,6 @@ import { LoginDialog } from "@/components/auth/login-dialog";
 import { getCurrentUser } from "@/lib/supabase/client";
 import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 import { formatLocalDate } from "@/lib/utils/date";
-import { cn } from "@/lib/utils/cn";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
