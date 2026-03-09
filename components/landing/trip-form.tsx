@@ -121,24 +121,15 @@ export function TripForm() {
                   name="dates"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <>
-                      <DateRangePicker
-                        startDate={field.value?.from}
-                        endDate={field.value?.to}
-                        onChange={(start, end) => {
-                          field.onChange({ from: start, to: end });
-                        }}
-                        error={!!fieldState.error}
-                      />
-                      <p
-                        className={cn(
-                          "mt-1.5 text-sm transition-colors duration-200 text-destructive",
-                          !fieldState.error && "invisible"
-                        )}
-                      >
-                        {fieldState.error?.message ?? "\u00A0"}
-                      </p>
-                    </>
+                    <DateRangePicker
+                      startDate={field.value?.from}
+                      endDate={field.value?.to}
+                      onChange={(start, end) => {
+                        field.onChange({ from: start, to: end });
+                      }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
                   )}
                 />
               </div>
