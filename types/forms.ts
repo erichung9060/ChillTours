@@ -53,6 +53,19 @@ export const createTripFormSchema = (t: TranslationFunction) =>
           message: t("validation.endDateAfterStart"),
           path: ["dates"],
         });
+        return;
+      }
+
+      // Prevent selecting past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (from < today) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("validation.pastDateNotAllowed"),
+          path: ["dates"],
+        });
       }
     });
 
@@ -107,6 +120,19 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
         ctx.addIssue({
           code: "custom",
           message: t("validation.endDateAfterStart"),
+          path: ["dates"],
+        });
+        return;
+      }
+
+      // Prevent selecting past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (from < today) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("validation.pastDateNotAllowed"),
           path: ["dates"],
         });
       }

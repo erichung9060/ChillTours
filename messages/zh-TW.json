@@ -28,7 +28,8 @@
     "invalidUrl": "必須是有效的網址",
     "noteMaxLength": "筆記最多 500 個字元",
     "vibeMaxLength": "旅行風格描述最多 1000 個字元",
-    "requirementsMaxLength": "需求最多 1000 個字元"
+    "requirementsMaxLength": "需求最多 1000 個字元",
+    "pastDateNotAllowed": "不能選擇過去的日期"
   },
   "landing": {
     "hero": {
