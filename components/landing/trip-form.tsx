@@ -121,13 +121,13 @@ export function TripForm() {
                   name="dates"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <DateRangePicker
-                      startDate={field.value?.from}
-                      endDate={field.value?.to}
-                      onChange={(start, end) => {
-                        field.onChange({ from: start, to: end });
-                      }}
-                      error={!!fieldState.error}
+                      <DateRangePicker
+                        startDate={field.value?.from}
+                        endDate={field.value?.to}
+                        onChange={(start, end) => {
+                          field.onChange({ from: start, to: end });
+                        }}
+                        error={!!fieldState.error}
                       helperText={fieldState.error?.message}
                     />
                   )}
@@ -149,6 +149,8 @@ export function TripForm() {
                 disabled={isLoading}
                 className="min-h-[120px] resize-none"
                 {...form.register("vibe")}
+                error={!!form.formState.errors.vibe}
+                helperText={form.formState.errors.vibe?.message?.toString()}
               />
             </div>
 
