@@ -13,6 +13,7 @@ interface DateRangePickerProps {
   onChange: (start?: Date, end?: Date) => void;
   disabled?: boolean;
   error?: boolean;
+  helperText?: string;
 }
 
 export function DateRangePicker({
@@ -21,6 +22,7 @@ export function DateRangePicker({
   onChange,
   disabled,
   error,
+  helperText,
 }: DateRangePickerProps) {
   const t = useTranslations("landing.datePicker");
   const locale = useLocale();
@@ -228,7 +230,7 @@ export function DateRangePicker({
       : 0;
 
   return (
-    <>
+    <div>
       <Button
         ref={buttonRef}
         type="button"
@@ -248,6 +250,15 @@ export function DateRangePicker({
             : `${formatDate(startDate)} - ${t("selectEndDate")}`
           : t("selectDates")}
       </Button>
+
+      <p
+        className={cn(
+          "mt-1.5 text-sm transition-colors duration-200 text-destructive",
+          !helperText && "invisible"
+        )}
+      >
+        {helperText ?? "\u00A0"}
+      </p>
 
       {isOpen &&
         createPortal(
@@ -301,6 +312,6 @@ export function DateRangePicker({
           </div>,
           document.body
         )}
-    </>
+    </div>
   );
 }

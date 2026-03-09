@@ -192,21 +192,16 @@ export function EditMetadataDialog({
                                     name="dates"
                                     control={form.control}
                                     render={({ field, fieldState }) => (
-                                        <>
-                                            <DateRangePicker
-                                                startDate={field.value?.from}
-                                                endDate={field.value?.to}
-                                                onChange={(start, end) => {
-                                                    field.onChange({ from: start, to: end });
-                                                }}
-                                                disabled={isSaving || isDeleting}
-                                            />
-                                            {(fieldState.error || form.formState.errors.dates) && (
-                                                <p className="text-xs text-destructive mt-1">
-                                                    {fieldState.error?.message || form.formState.errors.dates?.message?.toString()}
-                                                </p>
-                                            )}
-                                        </>
+                                        <DateRangePicker
+                                            startDate={field.value?.from}
+                                            endDate={field.value?.to}
+                                            onChange={(start, end) => {
+                                                field.onChange({ from: start, to: end });
+                                            }}
+                                            disabled={isSaving || isDeleting}
+                                            error={!!fieldState.error}
+                                            helperText={fieldState.error?.message}
+                                        />
                                     )}
                                 />
                                 {/* Inline shrink warning hint */}
