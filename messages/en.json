@@ -15,8 +15,6 @@
     "destinationMaxLength": "Destination must be at most 100 characters",
     "startDateRequired": "Start date is required",
     "endDateRequired": "End date is required",
-    "datesRequired": "Dates are required",
-    "bothDatesRequired": "Both start and end dates are required",
     "endDateAfterStart": "End date must be on or after start date",
     "titleRequired": "Title is required",
     "titleMaxLength": "Title must be at most 100 characters",

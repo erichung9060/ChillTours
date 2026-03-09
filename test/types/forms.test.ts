@@ -34,7 +34,7 @@ describe("Form Schema Factories", () => {
       expect(result.success).toBe(false);
       if (!result.success) {
         const dateError = result.error.issues.find((issue) =>
-          issue.path.includes("from")
+          issue.path.join(".") === "dates"
         );
         expect(dateError?.message).toBe(
           "translated-validation.startDateRequired"
