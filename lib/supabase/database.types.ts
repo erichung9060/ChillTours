@@ -56,7 +56,7 @@ export interface Database {
           destination: string;
           start_date: string;
           end_date: string;
-          requirements: string | null;
+          preferences: string | null;
           status: "draft" | "generating" | "completed" | "failed";
           data: Json | null;
           created_at: string;
@@ -69,7 +69,7 @@ export interface Database {
           destination: string;
           start_date: string;
           end_date: string;
-          requirements?: string | null;
+          preferences?: string | null;
           status?: "draft" | "generating" | "completed" | "failed";
           data?: Json | null;
           created_at?: string;
@@ -82,7 +82,7 @@ export interface Database {
           destination?: string;
           start_date?: string;
           end_date?: string;
-          requirements?: string | null;
+          preferences?: string | null;
           status?: "draft" | "generating" | "completed" | "failed";
           data?: Json | null;
           created_at?: string;

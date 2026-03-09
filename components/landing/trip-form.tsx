@@ -31,7 +31,7 @@ export function TripForm() {
     resolver: zodResolver(createTripFormSchema((key) => tv(key))),
     defaultValues: {
       destination: "",
-      vibe: "",
+      preferences: "",
       dates: {
         from: undefined,
         to: undefined,
@@ -63,7 +63,7 @@ export function TripForm() {
         destination: data.destination,
         start_date: formattedStart,
         end_date: formattedEnd,
-        requirements: data.vibe?.trim() || undefined,
+        preferences: data.preferences?.trim() || undefined,
       });
 
       router.push(`/plan/${itinerary.id}`);
@@ -134,22 +134,22 @@ export function TripForm() {
               </div>
             </div>
 
-            {/* Vibe/Custom Requirements Textarea */}
+            {/* Preferences/Custom Preferences Textarea */}
             <div>
               <label
-                htmlFor="vibe"
+                htmlFor="preferences"
                 className="block text-sm font-medium mb-2 text-foreground/80"
               >
-                {t("describeYourVibe")}
+                {t("describeYourPreferences")}
               </label>
               <Textarea
-                id="vibe"
-                placeholder={t("vibePlaceholder")}
+                id="preferences"
+                placeholder={t("preferencesPlaceholder")}
                 disabled={isLoading}
                 className="min-h-[120px] resize-none"
-                {...form.register("vibe")}
-                error={!!form.formState.errors.vibe}
-                helperText={form.formState.errors.vibe?.message?.toString()}
+                {...form.register("preferences")}
+                error={!!form.formState.errors.preferences}
+                helperText={form.formState.errors.preferences?.message?.toString()}
               />
             </div>
 

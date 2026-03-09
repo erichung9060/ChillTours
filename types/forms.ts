@@ -22,9 +22,9 @@ export const createTripFormSchema = (t: TranslationFunction) =>
         from: z.date().optional(),
         to: z.date().optional(),
       }),
-      vibe: z
+      preferences: z
         .string()
-        .max(1000, t("validation.vibeMaxLength"))
+        .max(1000, t("validation.preferencesMaxLength"))
         .optional(),
     })
     .superRefine((data, ctx) => {
@@ -93,9 +93,9 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
         from: z.date().optional(),
         to: z.date().optional(),
       }),
-      requirements: z
+      preferences: z
         .string()
-        .max(1000, t("validation.requirementsMaxLength"))
+        .max(1000, t("validation.preferencesMaxLength"))
         .optional(),
     })
     .superRefine((data, ctx) => {

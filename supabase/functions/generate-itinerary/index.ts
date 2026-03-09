@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     // Fetch itinerary from DB — relying on RLS to enforce user ownership
     const { data: itineraryRow, error: fetchError } = await supabaseClient
       .from("itineraries")
-      .select("id, user_id, destination, start_date, end_date, requirements, status")
+      .select("id, user_id, destination, start_date, end_date, preferences, status")
       .eq("id", itinerary_id)
       .single();
 
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { destination, start_date: startDate, end_date: endDate, requirements } = itineraryRow;
+    const { destination, start_date: startDate, end_date: endDate, preferences } = itineraryRow;
 
     // Atomic concurrency guard: use conditional update to prevent race conditions
     // Only allow transition from draft/failed to generating
@@ -141,7 +141,7 @@ Deno.serve(async (req) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
-    const prompt = buildItineraryPrompt(destination, startDate, endDate, requirements ?? undefined, locale);
+    const prompt = buildItineraryPrompt(destination, startDate, endDate, preferences ?? undefined, locale);
 
     const stream = new ReadableStream({
       async start(controller) {

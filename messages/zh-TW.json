@@ -27,8 +27,7 @@
     "durationMax": "持續時間最多 1440 分鐘",
     "invalidUrl": "必須是有效的網址",
     "noteMaxLength": "筆記最多 500 個字元",
-    "vibeMaxLength": "旅行風格描述最多 1000 個字元",
-    "requirementsMaxLength": "需求最多 1000 個字元",
+    "preferencesMaxLength": "偏好最多 1000 個字元",
     "pastDateNotAllowed": "不能選擇過去的日期"
   },
   "landing": {
@@ -41,8 +40,8 @@
       "whereToNext": "下一站去哪裡？",
       "destinationPlaceholder": "例如：東京、峇里島、巴黎",
       "whenAreYouGoing": "您什麼時候出發？",
-      "describeYourVibe": "描述您的旅行風格",
-      "vibePlaceholder": "經濟實惠的美食之旅、登山景點、復古購物...",
+      "describeYourPreferences": "描述您的偏好",
+      "preferencesPlaceholder": "經濟實惠的美食之旅、登山景點、復古購物...",
       "generateButton": "產生行程",
       "generating": "產生中...",
       "createError": "建立行程失敗。請重試。"
@@ -151,7 +150,7 @@
       "labelTitle": "行程標題",
       "labelDestination": "目的地",
       "labelDates": "旅行日期",
-      "labelRequirements": "旅行風格 / 需求",
+      "labelPreferences": "旅行偏好 / 需求",
       "save": "儲存修改",
       "saving": "儲存中...",
       "saveAndShrink": "儲存並縮短行程",

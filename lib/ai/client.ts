@@ -44,7 +44,7 @@ export interface GenerateItineraryOptions {
   destination: string;
   startDate: string;
   endDate: string;
-  customRequirements?: string;
+  customPreferences?: string;
   userId: string;
 }
 

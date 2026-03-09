@@ -10,7 +10,7 @@ import {
  * Feature: tripai-travel-planner
  *
  * These tests verify that the chat system properly includes context
- * (conversation history, itinerary, custom requirements) when making
+ * (conversation history, itinerary, custom preferences) when making
  * API requests to the Edge Function.
  */
 

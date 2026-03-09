@@ -26,7 +26,7 @@ interface EditMetadataDialogProps {
     itinerary: Itinerary;
     isOpen: boolean;
     onClose: () => void;
-    onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "requirements">>) => Promise<void>;
+    onSave: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">>) => Promise<void>;
     onDelete?: () => Promise<void>;
 }
 
@@ -51,7 +51,7 @@ export function EditMetadataDialog({
         defaultValues: {
             title: itinerary.title,
             destination: itinerary.destination,
-            requirements: itinerary.requirements || "",
+            preferences: itinerary.preferences || "",
             dates: {
                 from: parseLocalDate(itinerary.start_date),
                 to: parseLocalDate(itinerary.end_date),
@@ -66,7 +66,7 @@ export function EditMetadataDialog({
             form.reset({
                 title: itinerary.title,
                 destination: itinerary.destination,
-                requirements: itinerary.requirements || "",
+                preferences: itinerary.preferences || "",
                 dates: {
                     from: parseLocalDate(itinerary.start_date),
                     to: parseLocalDate(itinerary.end_date),
@@ -118,7 +118,7 @@ export function EditMetadataDialog({
                 destination: data.destination,
                 start_date: formattedStart,
                 end_date: formattedEnd,
-                requirements: data.requirements || undefined,
+                preferences: data.preferences || undefined,
             });
             onClose();
         } catch (err) {
@@ -213,18 +213,18 @@ export function EditMetadataDialog({
                                 )}
                             </div>
                             <div className="grid gap-2">
-                                <label htmlFor="tripRequirements" className="text-sm font-medium">
-                                    {t("labelRequirements")}
+                                <label htmlFor="tripPreferences" className="text-sm font-medium">
+                                    {t("labelPreferences")}
                                 </label>
                                 <Textarea
-                                    id="tripRequirements"
+                                    id="tripPreferences"
                                     disabled={isSaving || isDeleting}
                                     className="min-h-[100px]"
-                                    {...form.register("requirements")}
+                                    {...form.register("preferences")}
                                 />
-                                {form.formState.errors.requirements && (
+                                {form.formState.errors.preferences && (
                                     <p className="text-xs text-destructive mt-1">
-                                        {form.formState.errors.requirements.message?.toString()}
+                                        {form.formState.errors.preferences.message?.toString()}
                                     </p>
                                 )}
                             </div>

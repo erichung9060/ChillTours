@@ -79,17 +79,17 @@ describe("TripForm - Form Validation", () => {
     });
   });
 
-  it("should handle optional custom requirements", async () => {
+  it("should handle optional custom preferences", async () => {
     render(<TripForm />);
 
     const destinationInput = screen.getByPlaceholderText(
       /destinationPlaceholder/i
     );
-    const vibeTextarea = screen.getByPlaceholderText(
-      /vibePlaceholder/i
+    const preferencesTextarea = screen.getByPlaceholderText(
+      /preferencesPlaceholder/i
     );
 
-    // Submit with destination only (no vibe)
+    // Submit with destination only (no preferences)
     fireEvent.change(destinationInput, { target: { value: "Paris" } });
 
     const submitButton = screen.getByRole("button", {
@@ -104,8 +104,8 @@ describe("TripForm - Form Validation", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Now add vibe and submit again
-    fireEvent.change(vibeTextarea, {
+    // Now add preferences and submit again
+    fireEvent.change(preferencesTextarea, {
       target: { value: "Budget-friendly foodie tour" },
     });
     fireEvent.click(submitButton);

@@ -48,7 +48,7 @@ ItinerarySchema = {
   destination: string (1-100字元)
   start_date: string (YYYY-MM-DD)
   end_date: string (YYYY-MM-DD, 必須 >= start_date)
-  requirements: string (可選, 使用者自訂需求)
+  preferences: string (可選, 使用者自訂偏好)
   status: "draft" | "generating" | "completed" | "failed"
   days: Day[]
   created_at: ISO datetime
@@ -73,7 +73,7 @@ itineraries Table:
   destination: string
   start_date: string
   end_date: string
-  requirements: string | null
+  preferences: string | null
   status: "draft" | "generating" | "completed" | "failed"
   data: Json | null  // 儲存 { days: Day[] }
   created_at: string (ISO timestamp)
@@ -118,7 +118,7 @@ itineraries Table:
 
 3. **建構 AI Prompt**
    ```typescript
-   buildItineraryPrompt(destination, startDate, endDate, requirements)
+   buildItineraryPrompt(destination, startDate, endDate, preferences)
    
    Prompt 包含：
    - 旅遊天數計算
