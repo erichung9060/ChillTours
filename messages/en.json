@@ -21,11 +21,14 @@
     "activityTitleRequired": "Activity title is required",
     "activityTitleMaxLength": "Activity title must be at most 100 characters",
     "locationRequired": "Location is required",
+    "locationMaxLength": "Location must be at most 200 characters",
     "timeInvalidFormat": "Time must be in HH:MM format",
     "durationMin": "Duration must be at least 1 minute",
     "durationMax": "Duration must be at most 480 minutes",
     "invalidUrl": "Must be a valid URL",
-    "noteMaxLength": "Note must be at most 500 characters"
+    "noteMaxLength": "Note must be at most 500 characters",
+    "vibeMaxLength": "Vibe description must be at most 1000 characters",
+    "requirementsMaxLength": "Requirements must be at most 1000 characters"
   },
   "landing": {
     "hero": {

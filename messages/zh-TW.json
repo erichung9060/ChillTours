@@ -21,11 +21,14 @@
     "activityTitleRequired": "請輸入活動標題",
     "activityTitleMaxLength": "活動標題最多 100 個字元",
     "locationRequired": "請輸入地點",
+    "locationMaxLength": "地點最多 200 個字元",
     "timeInvalidFormat": "時間格式必須為 HH:MM",
     "durationMin": "持續時間至少 1 分鐘",
     "durationMax": "持續時間最多 480 分鐘",
     "invalidUrl": "必須是有效的網址",
-    "noteMaxLength": "筆記最多 500 個字元"
+    "noteMaxLength": "筆記最多 500 個字元",
+    "vibeMaxLength": "旅行風格描述最多 1000 個字元",
+    "requirementsMaxLength": "需求最多 1000 個字元"
   },
   "landing": {
     "hero": {
