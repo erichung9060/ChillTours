@@ -3,8 +3,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ensureLocationData, geocodeLocation } from "@/lib/maps";
-import type { PartialLocation } from "@/lib/maps";
+import { ensureLocationData, geocodeLocation } from "@/lib/maps/geocoding";
+import type { PartialLocation } from "@/lib/maps/geocoding";
 
 // Mock Google Maps API
 const mockGeocode = vi.fn();

@@ -21,7 +21,6 @@ export type SSEActivityEvent = {
   day_number: number;
   activity: Activity;
 };
-export type SSECompleteEvent = {};
 export type SSEErrorEvent = { message: string };
 
 /**
@@ -38,17 +37,6 @@ export class AIError extends Error {
 }
 
 /**
- * Options for generating an itinerary
- */
-export interface GenerateItineraryOptions {
-  destination: string;
-  startDate: string;
-  endDate: string;
-  customPreferences?: string;
-  userId: string;
-}
-
-/**
  * Options for chat interaction
  */
 export interface ChatOptions {
@@ -57,14 +45,6 @@ export interface ChatOptions {
   context: Itinerary | null;
   locale: string;
 }
-
-/**
- * Callback for streaming chunks
- */
-export type StreamingCallback = (
-  chunk: string,
-  partial: Partial<Itinerary> | null
-) => void;
 
 /**
  * AI Client
