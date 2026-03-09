@@ -113,7 +113,7 @@ describe("TripForm - Form Validation", () => {
     // Should still not show validation errors
     await waitFor(() => {
       expect(
-        screen.queryByText("validation.destinationRequired")
+        screen.queryByText("Destination is required")
       ).not.toBeInTheDocument();
     });
   });
