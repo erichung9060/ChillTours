@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { z } from "zod";
 
 const ChatRequestSchema = z.object({
-  message: z.string().min(1, "Message is required"),
+  message: z.string().trim().min(1, "Message is required"),
   history: z.array(
     z.object({
       role: z.enum(["user", "assistant"]),
