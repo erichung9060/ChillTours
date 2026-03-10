@@ -31,7 +31,8 @@ export function buildItineraryPrompt(
             "lat": 0.0,
             "lng": 0.0
           },
-          "duration_minutes": 120
+          "duration_minutes": 120,
+          "opening_hours": { "open": "09:00", "close": "18:00" }
         }
       ]
     }
@@ -46,6 +47,7 @@ export function buildItineraryPrompt(
 - duration_minutes 必須介於 60 到 240 分鐘之間
 - 每天內的活動必須依照時間先後順序排列
 - note 欄位為選填，如果沒有特別要注意的事項可以不必填寫
+- opening_hours 為選填。根據通識知識填入最常見的開放時段（HH:MM 24 小時制），例如博物館通常 09:00-17:00。戶外景點或全天開放地點可省略。此為 AI 估計值，非即時資料
 - 所有輸出的內容（如 title, note, location name）請使用繁體中文`
     : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
@@ -65,7 +67,8 @@ Respond ONLY with a valid JSON object in this exact structure, no markdown, no e
             "lat": 0.0,
             "lng": 0.0
           },
-          "duration_minutes": 120
+          "duration_minutes": 120,
+          "opening_hours": { "open": "09:00", "close": "18:00" }
         }
       ]
     }
@@ -79,7 +82,8 @@ Requirements:
 - Provide accurate GPS coordinates for each location
 - duration_minutes should be between 60 and 240
 - Activities must be in chronological order within each day
-- 'note' is optional, leave it empty if there are no special tips or reminders`;
+- 'note' is optional, leave it empty if there are no special tips or reminders
+- 'opening_hours' is optional. Based on general knowledge, include typical open/close hours in HH:MM 24-hour format (e.g. museums 09:00-17:00). Omit for outdoor or 24-hour locations. This is an AI estimate, not real-time data.`;
 
   if (customPreferences) {
     prompt += isZH
