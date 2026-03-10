@@ -6,6 +6,8 @@ import type { Itinerary, Activity, Day } from "@/types/itinerary";
 
 export type ViewMode = "expandable" | "single-day" | "side-by-side";
 
+export type TransportMode = "driving" | "walking" | "transit" | "bicycling";
+
 export interface DroppableDayProps {
   dayNumber: number;
   isOver?: boolean;
@@ -72,6 +74,7 @@ export interface ExpandableViewProps extends DayTimeWindowProps {
   isOptimizingDay?: number | null;
   optimizeDayFull?: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
 
 export interface SingleDayViewProps extends DayTimeWindowProps {
@@ -86,6 +89,7 @@ export interface SingleDayViewProps extends DayTimeWindowProps {
   isOptimizingDay?: number | null;
   optimizeDayFull?: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
 
 export interface SideBySideViewProps extends DayTimeWindowProps {
@@ -98,4 +102,5 @@ export interface SideBySideViewProps extends DayTimeWindowProps {
   isOptimizingDay?: number | null;
   optimizeDayFull?: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
