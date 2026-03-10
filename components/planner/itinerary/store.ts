@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { Itinerary, Activity, Day } from "@/types/itinerary";
+import type { TransportMode } from "./types";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
@@ -73,6 +74,7 @@ interface ItineraryState {
   optimizeDay: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull: number | null;
   optimizeDayFull: (dayNumber: number) => Promise<void>;
+  setDayTransportMode: (dayNumber: number, mode: TransportMode) => Promise<void>;
 
   // Day Time Window
   setDayTimeWindow: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
@@ -453,6 +455,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             duration_minutes: a.duration_minutes,
             time: a.time,
           })),
+          mode: day.transport_mode ?? "driving",
           start_time: day.start_time ?? day.activities[0].time,
           end_time: day.end_time ?? "20:00",
         }),
@@ -520,12 +523,13 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         body: JSON.stringify({
           activities: day.activities.map((a) => ({
             id: a.id,
-            title: a.title,
+            title: a.location.name,
             lat: a.location.lat,
             lng: a.location.lng,
             duration_minutes: a.duration_minutes,
             time: a.time,
           })),
+          mode: day.transport_mode ?? "driving",
           date: dayDate,
           start_time: day.start_time ?? day.activities[0].time,
           end_time: day.end_time ?? "20:00",
@@ -609,6 +613,15 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
     const newDays = state.itinerary.days.map((d) => ({ ...d, start_time: startTime, end_time: endTime }));
+    await get().updateDays(newDays);
+  },
+
+  setDayTransportMode: async (dayNumber, mode) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) =>
+      d.day_number === dayNumber ? { ...d, transport_mode: mode } : d
+    );
     await get().updateDays(newDays);
   },
 
