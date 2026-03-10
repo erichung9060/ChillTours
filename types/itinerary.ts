@@ -17,6 +17,13 @@ export type Location = z.infer<typeof LocationSchema>;
 // Activity Types
 // ============================================================================
 
+export const OpeningHoursSchema = z.object({
+  open: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
+  close: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
+});
+
+export type OpeningHours = z.infer<typeof OpeningHoursSchema>;
+
 export const ActivitySchema = z.object({
   id: z.uuid(),
   time: z
@@ -28,6 +35,7 @@ export const ActivitySchema = z.object({
   duration_minutes: z.number().int().min(1).max(480),
   order: z.number().int().min(0),
   url: z.string().url("Invalid URL").optional().or(z.literal("")),
+  opening_hours: OpeningHoursSchema.optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
