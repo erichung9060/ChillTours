@@ -895,6 +895,9 @@ def optimize_full_endpoint(body: FullOptimizeRequest) -> FullOptimizeResponse:
             if tw_dict:
                 tw = TimeWindow(open=tw_dict["open"], close=tw_dict["close"])
                 logger.info("  TimeWindow for '%s': %s-%s", orig.title, tw.open, tw.close)
+        if tw is None and orig.opening_hours:
+            tw = orig.opening_hours
+            logger.info("  TimeWindow for '%s': using AI fallback %s-%s", orig.title, tw.open, tw.close)
         enriched_inputs.append(ActivityInput(
             id=orig.id,
             title=orig.title,
