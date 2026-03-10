@@ -90,6 +90,7 @@ export function ItineraryPanel({
   const isOptimizingDay = useItineraryStore((state) => state.isOptimizingDay);
   const optimizeDayFull = useItineraryStore((state) => state.optimizeDayFull);
   const isOptimizingDayFull = useItineraryStore((state) => state.isOptimizingDayFull);
+  const setDayTransportMode = useItineraryStore((state) => state.setDayTransportMode);
   const setDayTimeWindow = useItineraryStore((state) => state.setDayTimeWindow);
   const setAllDaysTimeWindow = useItineraryStore((state) => state.setAllDaysTimeWindow);
 
@@ -209,6 +210,7 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
         setDayTimeWindow={setDayTimeWindow}
         setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
@@ -226,6 +228,7 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
         setDayTimeWindow={setDayTimeWindow}
         setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
@@ -241,6 +244,7 @@ export function ItineraryPanel({
         isOptimizingDay={isOptimizingDay}
         optimizeDayFull={optimizeDayFull}
         isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
         setDayTimeWindow={setDayTimeWindow}
         setAllDaysTimeWindow={setAllDaysTimeWindow}
       />

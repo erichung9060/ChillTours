@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeEditor } from "../components/day-time-editor";
+import { TransportModeSelector } from "../components/transport-mode-selector";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SideBySideViewProps } from "../types";
@@ -26,6 +27,7 @@ export function SideBySideView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTransportMode,
   setDayTimeWindow,
   setAllDaysTimeWindow,
 }: SideBySideViewProps) {
@@ -69,7 +71,15 @@ export function SideBySideView({
                       )}
                     </div>
                     {day.activities.length >= 2 && (
-                      <div className="flex gap-1 shrink-0">
+                      <div className="flex flex-col gap-1 items-end shrink-0">
+                        {setDayTransportMode && (
+                          <TransportModeSelector
+                            mode={day.transport_mode ?? "driving"}
+                            onChange={(mode) => setDayTransportMode(day.day_number, mode)}
+                            disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                          />
+                        )}
+                        <div className="flex gap-1">
                         {optimizeDay && (
                           <Button
                             variant="outline"
@@ -112,6 +122,7 @@ export function SideBySideView({
                             {isOptimizingFull ? "優化中…" : "完整優化"}
                           </Button>
                         )}
+                        </div>
                       </div>
                     )}
                   </div>

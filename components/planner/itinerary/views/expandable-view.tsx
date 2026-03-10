@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeEditor } from "../components/day-time-editor";
+import { TransportModeSelector } from "../components/transport-mode-selector";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -28,6 +29,7 @@ export function ExpandableView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTransportMode,
   setDayTimeWindow,
   setAllDaysTimeWindow,
 }: ExpandableViewProps) {
@@ -75,6 +77,13 @@ export function ExpandableView({
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
+                  {setDayTransportMode && day.activities.length >= 2 && (
+                    <TransportModeSelector
+                      mode={day.transport_mode ?? "driving"}
+                      onChange={(mode) => setDayTransportMode(day.day_number, mode)}
+                      disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                    />
+                  )}
                   {optimizeDay && day.activities.length >= 2 && (
                     <Button
                       variant="outline"

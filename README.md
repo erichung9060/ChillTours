@@ -7,7 +7,7 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 - 🤖 AI-powered itinerary generation using Gemini 2.0 Flash
 - 🗺️ Interactive Google Maps integration
 - 💬 Conversational chat interface for itinerary refinement
-- 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering, with configurable per-day start/end time
+- 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering, with configurable per-day start/end time and transport mode (driving / transit / walking / bicycling)
 - 🤝 Real-time collaborative editing with Yjs
 - 📱 Mobile-responsive design
 - 🌓 Dark/Light theme support

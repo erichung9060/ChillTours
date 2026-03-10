@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeEditor } from "../components/day-time-editor";
+import { TransportModeSelector } from "../components/transport-mode-selector";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
@@ -27,6 +28,7 @@ export function SingleDayView({
   isOptimizingDay,
   optimizeDayFull,
   isOptimizingDayFull,
+  setDayTransportMode,
   setDayTimeWindow,
   setAllDaysTimeWindow,
 }: SingleDayViewProps) {
@@ -79,7 +81,14 @@ export function SingleDayView({
             </div>
           )}
           {day.activities.length >= 2 && (
-            <div className="flex gap-1 mt-1 justify-center">
+            <div className="flex gap-1 mt-1 justify-center items-center flex-wrap">
+              {setDayTransportMode && (
+                <TransportModeSelector
+                  mode={day.transport_mode ?? "driving"}
+                  onChange={(mode) => setDayTransportMode(day.day_number, mode)}
+                  disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                />
+              )}
               {optimizeDay && (
                 <Button
                   variant="outline"
