@@ -44,6 +44,7 @@ export const DaySchema = z.object({
   activities: z.array(ActivitySchema),
   start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
   end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  transport_mode: z.enum(["driving", "walking", "transit", "bicycling"]).optional(),
 });
 
 export type Day = z.infer<typeof DaySchema>;
