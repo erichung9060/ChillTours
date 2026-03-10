@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from "npm:@google/generative-ai";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
-
+import { checkChatRateLimit } from "../_shared/rate-limit.ts";
+import { createClient } from "npm:@supabase/supabase-js";
 import { z } from "npm:zod";
 
 const ChatRequestSchema = z.object({
@@ -208,6 +209,51 @@ Deno.serve(async (req) => {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
+      );
+    }
+
+    // Rate Limiting Check
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: req.headers.get("Authorization")! } } }
+    );
+
+    // TODO: Fetch daily limit from subscription table
+    // Example:
+    // const { data: subscription } = await supabaseClient
+    //   .from('subscriptions')
+    //   .select('chat_daily_limit')
+    //   .eq('user_id', user.userId)
+    //   .single();
+    // const DAILY_LIMIT = subscription?.chat_daily_limit;
+
+    const { allowed, error: rateLimitError } = await checkChatRateLimit(
+      supabaseClient,
+      user.userId,
+      // DAILY_LIMIT
+    );
+
+    if (rateLimitError) {
+      console.error("Rate limit check error:", rateLimitError);
+      // Depending on requirements, we might fail open or closed here.
+      // Assuming fail closed for now.
+      return new Response(
+        JSON.stringify({
+          error: "Internal Error checking rate limit. Please try again later.",
+          code: "RATE_LIMIT_ERROR",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "Daily chat limit exceeded",
+          code: "RATE_LIMIT_EXCEEDED",
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
