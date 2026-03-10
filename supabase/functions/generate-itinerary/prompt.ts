@@ -2,7 +2,7 @@ export function buildItineraryPrompt(
   destination: string,
   startDate: string,
   endDate: string,
-  customRequirements?: string,
+  customPreferences?: string,
   locale?: string
 ): string {
   const start = new Date(startDate);
@@ -81,10 +81,10 @@ Requirements:
 - Activities must be in chronological order within each day
 - 'note' is optional, leave it empty if there are no special tips or reminders`;
 
-  if (customRequirements) {
+  if (customPreferences) {
     prompt += isZH
-      ? `\n- 使用者客製化需求：${customRequirements}`
-      : `\n- Custom requirements: ${customRequirements}`;
+      ? `\n- 使用者客製化偏好：${customPreferences}`
+      : `\n- Custom preferences: ${customPreferences}`;
   }
 
   return prompt;

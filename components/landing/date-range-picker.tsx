@@ -12,6 +12,8 @@ interface DateRangePickerProps {
   endDate?: Date;
   onChange: (start?: Date, end?: Date) => void;
   disabled?: boolean;
+  error?: boolean;
+  helperText?: string;
 }
 
 export function DateRangePicker({
@@ -19,6 +21,8 @@ export function DateRangePicker({
   endDate,
   onChange,
   disabled,
+  error,
+  helperText,
 }: DateRangePickerProps) {
   const t = useTranslations("landing.datePicker");
   const locale = useLocale();
@@ -226,7 +230,7 @@ export function DateRangePicker({
       : 0;
 
   return (
-    <>
+    <div>
       <Button
         ref={buttonRef}
         type="button"
@@ -235,7 +239,8 @@ export function DateRangePicker({
         disabled={disabled}
         className={cn(
           "w-[300px] justify-start text-left font-normal",
-          !startDate && "text-[hsl(var(--muted-foreground))]"
+          !startDate && "text-[hsl(var(--muted-foreground))]",
+          error && "border-destructive dark:border-destructive hover:border-destructive"
         )}
       >
         <span className="mr-2">📅</span>
@@ -245,6 +250,15 @@ export function DateRangePicker({
             : `${formatDate(startDate)} - ${t("selectEndDate")}`
           : t("selectDates")}
       </Button>
+
+      <p
+        className={cn(
+          "mt-1.5 text-sm transition-colors duration-200 text-destructive",
+          !helperText && "invisible"
+        )}
+      >
+        {helperText ?? "\u00A0"}
+      </p>
 
       {isOpen &&
         createPortal(
@@ -298,6 +312,6 @@ export function DateRangePicker({
           </div>,
           document.body
         )}
-    </>
+    </div>
   );
 }

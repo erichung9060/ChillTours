@@ -5,7 +5,7 @@
  */
 
 import type { Activity, ActivityWithDay } from "@/types/itinerary";
-import type { PinIconResult } from "@/lib/maps";
+import type { PinIconResult } from "@/lib/maps/pin-icons";
 
 export interface MapRendererProps {
   activities: ActivityWithDay[];

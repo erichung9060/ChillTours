@@ -1,14 +1,54 @@
 import { NextRequest } from "next/server";
+import { z } from "zod";
+
+const ChatRequestSchema = z.object({
+  message: z.string().trim().min(1, "Message is required"),
+  history: z.array(
+    z.object({
+      role: z.enum(["user", "assistant"]),
+      content: z.string(),
+    })
+  ),
+  itinerary_context: z.object({
+    id: z.string(),
+    title: z.string(),
+    destination: z.string(),
+    start_date: z.string(),
+    end_date: z.string(),
+    days: z.array(
+      z.object({
+        day_number: z.number().int().min(1),
+        activities: z.array(
+          z.object({
+            id: z.string(),
+            time: z.string(),
+            title: z.string(),
+            note: z.string(),
+            location: z.object({
+              name: z.string(),
+              lat: z.number(),
+              lng: z.number(),
+            }),
+            duration_minutes: z.number().int().positive(),
+          })
+        ),
+      })
+    ),
+  }).optional(),
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  
-  const { message, locale } = body;
-  if (!message) {
+  const parsed = ChatRequestSchema.safeParse(body);
+
+  if (!parsed.success) {
     return new Response(
-      JSON.stringify({ error: "Missing required field: message" }),
+      JSON.stringify({
+        error: "Invalid request data",
+        details: parsed.error.issues,
+      }),
       {
         status: 400,
         headers: { "Content-Type": "application/json" },

@@ -14,48 +14,34 @@ import { getCurrentUser } from "@/lib/supabase/client";
 import { createItineraryMetadata } from "@/lib/supabase/itineraries";
 import { formatLocalDate } from "@/lib/utils/date";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, Controller } from "react-hook-form";
+import { createTripFormSchema, type TripFormValues } from "@/types/forms";
+
 export function TripForm() {
   const t = useTranslations("landing.form");
+  const tv = useTranslations();
   const ti = useTranslations("itineraries");
   const router = useRouter();
-  const [destination, setDestination] = useState("");
-  const [startDate, setStartDate] = useState<Date>();
-  const [endDate, setEndDate] = useState<Date>();
-  const [vibe, setVibe] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
-  const [errors, setErrors] = useState<{
-    destination?: string;
-    dates?: string;
-    general?: string;
-  }>({});
+  const [generalError, setGeneralError] = useState<string>();
 
-  const validateForm = () => {
-    const newErrors: { destination?: string; dates?: string; general?: string } = {};
+  const form = useForm<TripFormValues>({
+    resolver: zodResolver(createTripFormSchema((key) => tv(key))),
+    defaultValues: {
+      destination: "",
+      preferences: "",
+      dates: {
+        from: undefined,
+        to: undefined,
+      },
+    },
+  });
 
-    // Validate destination (required, non-empty)
-    if (!destination.trim()) {
-      newErrors.destination = t("destinationRequired");
-    }
-
-    // Validate dates
-    if (!startDate || !endDate) {
-      newErrors.dates = t("datesRequired");
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
+  const onSubmit = async (data: TripFormValues) => {
     setIsLoading(true);
-    setErrors({});
+    setGeneralError(undefined);
 
     try {
       const user = await getCurrentUser();
@@ -66,47 +52,40 @@ export function TripForm() {
         return;
       }
 
-      const formattedStart = formatLocalDate(startDate!);
-      const formattedEnd = formatLocalDate(endDate!);
+      const formattedStart = formatLocalDate(data.dates.from as Date);
+      const formattedEnd = formatLocalDate(data.dates.to as Date);
 
-      const title = ti("titleFormat", { destination });
+      const title = ti("titleFormat", { destination: data.destination });
 
       const itinerary = await createItineraryMetadata({
         user_id: user.id,
         title,
-        destination,
+        destination: data.destination,
         start_date: formattedStart,
         end_date: formattedEnd,
-        requirements: vibe.trim() || undefined,
+        preferences: data.preferences?.trim() || undefined,
       });
 
       router.push(`/plan/${itinerary.id}`);
     } catch (error) {
       console.error("Error creating itinerary:", error);
-      setErrors({
-        general:
-          error instanceof Error
-            ? error.message
-            : t("createError"),
-      });
+      setGeneralError(
+        error instanceof Error ? error.message : t("createError")
+      );
       setIsLoading(false);
     }
   };
 
   const handleDestinationClick = (dest: string) => {
-    setDestination(dest);
-    // Clear destination error if it exists
-    if (errors.destination) {
-      setErrors({ ...errors, destination: undefined });
-    }
+    form.setValue("destination", dest, { shouldValidate: true });
   };
 
   return (
     <>
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="p-6 md:p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-start">
               {/* Destination Input */}
               <div className="flex-1">
                 <label
@@ -123,12 +102,11 @@ export function TripForm() {
                     id="destination"
                     type="text"
                     placeholder={t("destinationPlaceholder")}
-                    value={destination}
-                    onChange={(e) => setDestination(e.target.value)}
-                    error={!!errors.destination}
-                    helperText={errors.destination}
                     disabled={isLoading}
                     className="pl-10"
+                    {...form.register("destination")}
+                    error={!!form.formState.errors.destination}
+                    helperText={form.formState.errors.destination?.message?.toString()}
                   />
                 </div>
               </div>
@@ -138,45 +116,47 @@ export function TripForm() {
                 <label className="block text-sm font-medium mb-2 text-foreground/80">
                   {t("whenAreYouGoing")}
                 </label>
-                <DateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={(start, end) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                    if (start && end && errors.dates) {
-                      setErrors({ ...errors, dates: undefined });
-                    }
-                  }}
+                <Controller
+                  name="dates"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                      <DateRangePicker
+                        startDate={field.value?.from}
+                        endDate={field.value?.to}
+                        onChange={(start, end) => {
+                          field.onChange({ from: start, to: end });
+                        }}
+                        error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
                 />
-                {errors.dates && (
-                  <p className="text-xs text-destructive mt-1">{errors.dates}</p>
-                )}
               </div>
             </div>
 
-            {/* Vibe/Custom Requirements Textarea */}
+            {/* Preferences/Custom Preferences Textarea */}
             <div>
               <label
-                htmlFor="vibe"
+                htmlFor="preferences"
                 className="block text-sm font-medium mb-2 text-foreground/80"
               >
-                {t("describeYourVibe")}
+                {t("describeYourPreferences")}
               </label>
               <Textarea
-                id="vibe"
-                placeholder={t("vibePlaceholder")}
-                value={vibe}
-                onChange={(e) => setVibe(e.target.value)}
+                id="preferences"
+                placeholder={t("preferencesPlaceholder")}
                 disabled={isLoading}
                 className="min-h-[120px] resize-none"
+                {...form.register("preferences")}
+                error={!!form.formState.errors.preferences}
+                helperText={form.formState.errors.preferences?.message?.toString()}
               />
             </div>
 
             {/* General Error Message */}
-            {errors.general && (
+            {generalError && (
               <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                <p className="text-sm text-destructive">{errors.general}</p>
+                <p className="text-sm text-destructive">{generalError}</p>
               </div>
             )}
 

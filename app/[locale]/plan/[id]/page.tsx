@@ -21,7 +21,7 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 
 // Panel width constraints
-const MIN_ITINERARY_PANEL_WIDTH = 200;
+const MIN_ITINERARY_PANEL_WIDTH = 380;
 const MIN_MAP_PANEL_WIDTH = 300;
 const MIN_CHAT_PANEL_WIDTH = 200;
 const DAY_CARD_WIDTH = 320; // Width of each day card in side-by-side view
@@ -38,8 +38,10 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
   const minMapWidth = Math.max(windowWidth * 0.25, MIN_MAP_PANEL_WIDTH);
   const maxItineraryWidth = Math.max(MIN_ITINERARY_PANEL_WIDTH, windowWidth - minMapWidth - (MIN_CHAT_PANEL_WIDTH / 2)); // Leave some space for chat if needed
 
-  const neededWidth =
-    numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING;
+  const neededWidth = Math.max(
+    MIN_ITINERARY_PANEL_WIDTH,
+    numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING
+  );
 
   return Math.min(neededWidth, maxItineraryWidth);
 };

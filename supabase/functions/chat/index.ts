@@ -1,38 +1,47 @@
 import { GoogleGenerativeAI } from "npm:@google/generative-ai";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
+import { checkChatRateLimit } from "../_shared/rate-limit.ts";
+import { createClient } from "npm:@supabase/supabase-js";
+import { z } from "npm:zod";
 
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
-}
+const ChatRequestSchema = z.object({
+  message: z.string().min(1, "Message is required"),
+  history: z.array(
+    z.object({
+      role: z.enum(["user", "assistant"]),
+      content: z.string(),
+    })
+  ),
+  itinerary_context: z.object({
+    id: z.string(),
+    title: z.string(),
+    destination: z.string(),
+    start_date: z.string(),
+    end_date: z.string(),
+    days: z.array(
+      z.object({
+        day_number: z.number().int().min(1),
+        activities: z.array(
+          z.object({
+            id: z.string(),
+            time: z.string(),
+            title: z.string(),
+            note: z.string(),
+            location: z.object({
+              name: z.string(),
+              lat: z.number(),
+              lng: z.number(),
+            }),
+            duration_minutes: z.number().int().positive(),
+          })
+        ),
+      })
+    ),
+  }).optional(),
+});
 
-interface ChatRequest {
-  message: string;
-  history: ChatMessage[];
-  itinerary_context?: {
-    id: string;
-    title: string;
-    destination: string;
-    start_date: string;
-    end_date: string;
-    days: Array<{
-      day_number: number;
-      activities: Array<{
-        id: string;
-        time: string;
-        title: string;
-        note: string;
-        location: {
-          name: string;
-          lat: number;
-          lng: number;
-        };
-        duration_minutes: number;
-      }>;
-    }>;
-  };
-}
+type ChatRequest = z.infer<typeof ChatRequestSchema>;
 
 /**
  * Build a structured prompt for chat with itinerary context
@@ -203,17 +212,66 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse request body
-    const { message, history, itinerary_context }: ChatRequest =
-      await req.json();
+    // Rate Limiting Check
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: req.headers.get("Authorization")! } } }
+    );
 
-    // Validate required fields
-    if (!message || !message.trim()) {
-      return new Response(JSON.stringify({ error: "Message is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    // TODO: Fetch daily limit from subscription table
+    // Example:
+    // const { data: subscription } = await supabaseClient
+    //   .from('subscriptions')
+    //   .select('chat_daily_limit')
+    //   .eq('user_id', user.userId)
+    //   .single();
+    // const DAILY_LIMIT = subscription?.chat_daily_limit;
+
+    const { allowed, error: rateLimitError } = await checkChatRateLimit(
+      supabaseClient,
+      user.userId,
+      // DAILY_LIMIT
+    );
+
+    if (rateLimitError) {
+      console.error("Rate limit check error:", rateLimitError);
+      // Depending on requirements, we might fail open or closed here.
+      // Assuming fail closed for now.
+      return new Response(
+        JSON.stringify({
+          error: "Internal Error checking rate limit. Please try again later.",
+          code: "RATE_LIMIT_ERROR",
+        }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({
+          error: "Daily chat limit exceeded",
+          code: "RATE_LIMIT_EXCEEDED",
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse request body
+    const body = await req.json();
+    const parsed = ChatRequestSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({
+          error: "Invalid request data",
+          details: parsed.error.issues,
+        }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { message, history, itinerary_context }: ChatRequest = parsed.data;
 
     // Get Gemini API key from environment
     const apiKey = Deno.env.get("GEMINI_API_KEY");

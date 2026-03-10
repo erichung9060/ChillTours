@@ -6,6 +6,7 @@
 
 "use client";
 
+import "mapbox-gl/dist/mapbox-gl.css";
 import { useEffect, useRef, useState, useCallback } from "react";
 import Map, { Marker, Popup } from "react-map-gl/mapbox";
 import type { MapRef } from "react-map-gl/mapbox";

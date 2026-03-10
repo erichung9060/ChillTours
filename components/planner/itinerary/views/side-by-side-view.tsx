@@ -33,7 +33,7 @@ export function SideBySideView({
 
   return (
     <div className="flex-1 overflow-x-auto overflow-y-auto">
-      <div className="flex gap-4 p-4 min-w-max">
+      <div className="flex gap-4 p-4 min-w-max h-full">
         {itinerary.days.map((day) => {
           const formattedDate = formatDayHeader(
             calculateDayDate(itinerary.start_date, day.day_number),

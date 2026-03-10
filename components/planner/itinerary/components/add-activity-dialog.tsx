@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import {
     Dialog,
@@ -15,6 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface AddActivityDialogProps {
     dayNumber: number;
@@ -30,70 +33,55 @@ export function AddActivityDialog({
     onClose,
 }: AddActivityDialogProps) {
     const t = useTranslations("planner.addDialog");
-    const initialFocusRef = useRef<HTMLInputElement>(null);
-    const locationTouched = useRef(false);
+    const tv = useTranslations();
     const isSaving = useItineraryStore((state) => state.isSaving);
     const addActivity = useItineraryStore((state) => state.addActivity);
 
-    const [formData, setFormData] = useState({
-        title: "",
-        locationName: "",
-        note: "",
-        time: "09:00",
-        duration: 60,
-        url: "",
+    const form = useForm<ActivityFormValues>({
+        resolver: zodResolver(createActivityFormSchema((key) => tv(key))) as any,
+        defaultValues: {
+            title: "",
+            locationName: "",
+            time: "09:00",
+            duration: 60,
+            url: "",
+            note: "",
+        },
     });
+
+    const titleValue = form.watch("title");
+    const isDirtyLocation = form.getFieldState("locationName").isDirty;
+
+    useEffect(() => {
+        if (!isDirtyLocation && titleValue) {
+            form.setValue("locationName", titleValue, {
+                shouldValidate: true,
+                shouldDirty: false,
+            });
+        }
+    }, [titleValue, isDirtyLocation, form]);
 
     useEffect(() => {
         if (isOpen) {
-            setFormData({
-                title: "",
-                locationName: "",
-                note: "",
-                time: "09:00",
-                duration: 60,
-                url: "",
-            });
-            locationTouched.current = false;
+            form.reset();
         }
-    }, [isOpen]);
+    }, [isOpen, form]);
 
-    useEffect(() => {
-        if (isOpen && initialFocusRef.current) {
-            setTimeout(() => {
-                initialFocusRef.current?.focus();
-            }, 100);
-        }
-    }, [isOpen]);
+    // removed initialFocusRef
 
-    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newTitle = e.target.value;
-        setFormData((prev) => ({
-            ...prev,
-            title: newTitle,
-            locationName: locationTouched.current ? prev.locationName : newTitle,
-        }));
-    };
-
-    const handleLocationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        locationTouched.current = true;
-        setFormData((prev) => ({ ...prev, locationName: e.target.value }));
-    };
-
-    const handleSave = async (e?: React.FormEvent) => {
-        if (e) e.preventDefault();
+    const onSubmit = async (data: ActivityFormValues) => {
         const newActivity: Activity = {
             id: crypto.randomUUID(),
-            title: formData.title,
+            title: data.title,
             location: {
-                name: formData.locationName,
+                name: data.locationName,
                 lat: 0,
                 lng: 0,
             },
-            note: formData.note,
-            time: formData.time,
-            duration_minutes: Number(formData.duration),
-            url: formData.url || undefined,
+            note: data.note || "",
+            time: data.time,
+            duration_minutes: data.duration,
+            url: data.url || undefined,
             order: insertionIndex,
         };
         try {
@@ -107,7 +95,7 @@ export function AddActivityDialog({
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
-                <form onSubmit={handleSave}>
+                <form onSubmit={form.handleSubmit(onSubmit)}>
                     <DialogHeader>
                         <DialogTitle>{t("title")}</DialogTitle>
                         <DialogDescription>
@@ -120,12 +108,12 @@ export function AddActivityDialog({
                                 {t("labelTitle")}
                             </label>
                             <Input
-                                ref={initialFocusRef}
                                 id="title"
-                                value={formData.title}
-                                onChange={handleTitleChange}
+                                autoFocus
                                 disabled={isSaving}
-                                required
+                                {...form.register("title")}
+                                error={!!form.formState.errors.title}
+                                helperText={form.formState.errors.title?.message?.toString()}
                             />
                         </div>
                         <div className="grid gap-2">
@@ -134,10 +122,10 @@ export function AddActivityDialog({
                             </label>
                             <Input
                                 id="location"
-                                value={formData.locationName}
-                                onChange={handleLocationChange}
                                 disabled={isSaving}
-                                required
+                                {...form.register("locationName")}
+                                error={!!form.formState.errors.locationName}
+                                helperText={form.formState.errors.locationName?.message?.toString()}
                             />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
@@ -148,12 +136,10 @@ export function AddActivityDialog({
                                 <Input
                                     id="time"
                                     type="time"
-                                    value={formData.time}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, time: e.target.value })
-                                    }
                                     disabled={isSaving}
-                                    required
+                                    {...form.register("time")}
+                                    error={!!form.formState.errors.time}
+                                    helperText={form.formState.errors.time?.message?.toString()}
                                 />
                             </div>
                             <div className="grid gap-2">
@@ -163,16 +149,10 @@ export function AddActivityDialog({
                                 <Input
                                     id="duration"
                                     type="number"
-                                    value={formData.duration}
-                                    onChange={(e) =>
-                                        setFormData({
-                                            ...formData,
-                                            duration: Number(e.target.value),
-                                        })
-                                    }
                                     disabled={isSaving}
-                                    required
-                                    min="1"
+                                    {...form.register("duration")}
+                                    error={!!form.formState.errors.duration}
+                                    helperText={form.formState.errors.duration?.message?.toString()}
                                 />
                             </div>
                         </div>
@@ -182,12 +162,11 @@ export function AddActivityDialog({
                             </label>
                             <Input
                                 id="url"
-                                value={formData.url}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, url: e.target.value })
-                                }
                                 disabled={isSaving}
                                 placeholder="https://..."
+                                {...form.register("url")}
+                                error={!!form.formState.errors.url}
+                                helperText={form.formState.errors.url?.message?.toString()}
                             />
                         </div>
                         <div className="grid gap-2">
@@ -196,13 +175,15 @@ export function AddActivityDialog({
                             </label>
                             <Textarea
                                 id="note"
-                                value={formData.note}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, note: e.target.value })
-                                }
                                 disabled={isSaving}
                                 placeholder={t("placeholderNote")}
+                                {...form.register("note")}
                             />
+                            {form.formState.errors.note && (
+                                <p className="text-xs text-destructive mt-1">
+                                    {form.formState.errors.note.message?.toString()}
+                                </p>
+                            )}
                         </div>
                     </div>
                     <DialogFooter>

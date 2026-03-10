@@ -4,10 +4,14 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 
-interface GenerateItineraryRequest {
-  itinerary_id: string;
-  locale?: string;
-}
+import { z } from "npm:zod";
+
+const GenerateRequestSchema = z.object({
+  itinerary_id: z.string().min(1, "Itinerary ID is required"),
+  locale: z.string().optional(),
+});
+
+type GenerateItineraryRequest = z.infer<typeof GenerateRequestSchema>;
 
 function createSupabaseAdminClient() {
   const url = Deno.env.get("SUPABASE_URL")!;
@@ -41,14 +45,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { itinerary_id, locale }: GenerateItineraryRequest = await req.json();
+    const body = await req.json();
+    const parsed = GenerateRequestSchema.safeParse(body);
 
-    if (!itinerary_id) {
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Missing required field: itinerary_id" }),
+        JSON.stringify({
+          error: "Invalid request data",
+          details: parsed.error.issues,
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;
 
     const modelName = Deno.env.get("GEMINI_MODEL");
     if (!modelName) {
@@ -74,7 +84,7 @@ Deno.serve(async (req) => {
     // Fetch itinerary from DB — relying on RLS to enforce user ownership
     const { data: itineraryRow, error: fetchError } = await supabaseClient
       .from("itineraries")
-      .select("id, user_id, destination, start_date, end_date, requirements, status")
+      .select("id, user_id, destination, start_date, end_date, preferences, status")
       .eq("id", itinerary_id)
       .single();
 
@@ -85,7 +95,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { destination, start_date: startDate, end_date: endDate, requirements } = itineraryRow;
+    const { destination, start_date: startDate, end_date: endDate, preferences } = itineraryRow;
 
     // Atomic concurrency guard: use conditional update to prevent race conditions
     // Only allow transition from draft/failed to generating
@@ -131,7 +141,7 @@ Deno.serve(async (req) => {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: modelName });
-    const prompt = buildItineraryPrompt(destination, startDate, endDate, requirements ?? undefined, locale);
+    const prompt = buildItineraryPrompt(destination, startDate, endDate, preferences ?? undefined, locale);
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -198,11 +208,32 @@ Deno.serve(async (req) => {
 
         try {
           const result = await model.generateContentStream(prompt);
+          let accumulatedText = "";
+          let jsonStarted = false;
 
           for await (const chunk of result.stream) {
             const text = chunk.text();
-            if (text) {
-              parser.write(text);
+            if (!text) continue;
+
+            accumulatedText += text;
+
+            if (!jsonStarted) {
+              // Look for the start of JSON
+              const jsonStartIndex = accumulatedText.indexOf("{");
+              if (jsonStartIndex === -1) continue;
+              
+              // Found JSON, extract from start and mark as started
+              jsonStarted = true;
+              accumulatedText = accumulatedText.substring(jsonStartIndex);
+            }
+
+            // Remove markdown code fences (both ``` and ```json)
+            const cleaned = accumulatedText.replace(/```(?:json)?/gi, "");
+            
+            // Only write the new content to parser
+            if (cleaned) {
+              parser.write(cleaned);
+              accumulatedText = ""; // Clear buffer after writing
             }
           }
 
