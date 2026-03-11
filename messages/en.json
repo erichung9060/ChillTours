@@ -171,6 +171,15 @@
       "confirmDeleteItinerary": "Yes, delete"
     }
   },
+  "activityType": {
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "breakfast": "Breakfast"
+  },
+  "transit": {
+    "about": "~",
+    "minutes": "min"
+  },
   "chat": {
     "title": "Chat",
     "deleteConfirm": "Delete all chat history for this itinerary?",

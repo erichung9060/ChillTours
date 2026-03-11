@@ -171,6 +171,15 @@
       "confirmDeleteItinerary": "確認刪除"
     }
   },
+  "activityType": {
+    "lunch": "午餐",
+    "dinner": "晚餐",
+    "breakfast": "早餐"
+  },
+  "transit": {
+    "about": "約",
+    "minutes": "分鐘"
+  },
   "chat": {
     "title": "聊天",
     "deleteConfirm": "刪除此行程的所有聊天記錄？",
