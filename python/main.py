@@ -64,6 +64,7 @@ class ActivityInput(BaseModel):
     duration_minutes: int
     time: str  # "HH:MM" planned start time
     opening_hours: Optional[TimeWindow] = None
+    flexible: Optional[bool] = None  # False = fixed time anchor (tickets, shows)
 
 
 class OptimizeRequest(BaseModel):
@@ -213,6 +214,14 @@ def _apply_time_windows(
 ) -> None:
     for i, activity in enumerate(activities):
         node_index = manager.NodeToIndex(i + node_offset)
+        if activity.flexible is False:
+            planned = parse_time_to_minutes(activity.time) - start_time_minutes
+            lo = max(0, planned - 15)
+            hi = planned + 15
+            time_dim.CumulVar(node_index).SetRange(lo, hi)
+            logger.info("  Time window [%s]: FIXED %d-%d min from start (%s ±15)",
+                        activity.title, lo, hi, activity.time)
+            continue
         if activity.opening_hours:
             open_min = parse_time_to_minutes(activity.opening_hours.open) - start_time_minutes
             close_min = parse_time_to_minutes(activity.opening_hours.close) - start_time_minutes
