@@ -14,6 +14,13 @@ import type { ActivityCardProps } from "../types";
 import { createNavigationLink } from "@/lib/maps/utils";
 import { EditActivityDialog } from "./edit-activity-dialog";
 import { useItineraryStore } from "../store";
+import { useTranslations } from "next-intl";
+
+const MEAL_EMOJI: Record<string, string> = {
+  lunch: "🍱",
+  dinner: "🍽️",
+  breakfast: "🥐",
+};
 
 export function ActivityCard({
   activity,
@@ -24,6 +31,7 @@ export function ActivityCard({
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const updateActivity = useItineraryStore((state) => state.updateActivity);
   const deleteActivity = useItineraryStore((state) => state.deleteActivity);
+  const t = useTranslations("activityType");
 
   const handleNavigationConfig = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -73,9 +81,16 @@ export function ActivityCard({
 
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          {/* Time Badge */}
-          <div className="flex-shrink-0 px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
-            {activity.time}
+          {/* Time Badge + Meal Badge */}
+          <div className="flex-shrink-0 flex items-center gap-1.5">
+            <div className="px-2 py-1 bg-primary/10 rounded text-xs font-medium text-primary">
+              {activity.time}
+            </div>
+            {activity.type && activity.type !== "transit" && (
+              <div className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded text-xs font-medium text-amber-700 dark:text-amber-400">
+                {MEAL_EMOJI[activity.type]} {t(activity.type as "lunch" | "dinner" | "breakfast")}
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-w-0 pr-6">
