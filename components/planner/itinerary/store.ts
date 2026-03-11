@@ -654,6 +654,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
                   duration_minutes: a.duration_minutes,
                   time: a.time,
                   flexible: a.flexible,
+                  ...(a.type ? { type: a.type } : {}),
                   ...(opening_hours ? { opening_hours } : {}),
                 };
               }),
