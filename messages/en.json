@@ -44,7 +44,9 @@
       "preferencesPlaceholder": "Budget-friendly foodie tour, hiking spots, vintage shopping...",
       "generateButton": "Generate Free Itinerary",
       "generating": "Generating...",
-      "createError": "Failed to create itinerary. Please try again."
+      "createError": "Failed to create itinerary. Please try again.",
+      "perfectArrangeButton": "Perfect Arrangement",
+      "autoOptimizing": "Optimizing routes..."
     },
     "trending": {
       "title": "Trending Destinations",
