@@ -1,2 +1,2 @@
-[functions.chat]
+[functions]
 verify_jwt = false
