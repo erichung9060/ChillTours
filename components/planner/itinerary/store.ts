@@ -41,12 +41,14 @@ interface ItineraryState {
   updateDays: (newDays: Day[]) => Promise<void>;
 
   // Generation Actions
-  startStreaming: (itineraryId: string, locale: string) => Promise<void>;
+  isPerfectMode: boolean;
+  startStreaming: (itineraryId: string, locale: string, perfectMode?: boolean) => Promise<void>;
   appendStreamedActivity: (dayNumber: number, activity: Activity) => void;
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
   stopPolling: () => void;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
+  autoOptimizeAllDays: () => Promise<void>;
 
   // Drag & Drop Actions
   handleDragOver: (
@@ -71,6 +73,7 @@ interface ItineraryState {
 
   // Route Optimization
   isOptimizingDay: number | null;
+  isAutoOptimizing: boolean;
   optimizeDay: (dayNumber: number) => Promise<void>;
   isOptimizingDayFull: number | null;
   optimizeDayFull: (dayNumber: number) => Promise<void>;
@@ -88,6 +91,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   error: null,
   isGenerating: false,
   isSaving: false,
+  isPerfectMode: false,
+  isAutoOptimizing: false,
   generationAbortController: null,
   pollingIntervalId: null,
   crossDayDragInfo: null,
@@ -311,7 +316,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  startStreaming: async (itineraryId, locale) => {
+  startStreaming: async (itineraryId, locale, perfectMode = false) => {
     const state = get();
 
     // Concurrency guard: abort any in-flight stream (handles React StrictMode double-invoke)
@@ -320,7 +325,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }
 
     const controller = new AbortController();
-    set({ isGenerating: true, generationAbortController: controller });
+    set({ isGenerating: true, isPerfectMode: perfectMode, generationAbortController: controller });
 
     try {
       await aiClient.streamItinerary(
@@ -386,8 +391,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       };
     }),
 
-  completeGeneration: () =>
-    set({ isGenerating: false, generationAbortController: null }),
+  completeGeneration: () => {
+    const { isPerfectMode } = get();
+    set({ isGenerating: false, generationAbortController: null });
+    if (isPerfectMode) get().autoOptimizeAllDays();
+  },
 
   startPolling: (itineraryId) => {
     const existing = get().pollingIntervalId;
@@ -598,6 +606,92 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       console.error("Failed to run full route optimization:", err);
     } finally {
       set({ isOptimizingDayFull: null });
+    }
+  },
+
+  // Auto-optimize all days after "完美安排" generation
+  autoOptimizeAllDays: async () => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
+      lunch: { open: "11:00", close: "14:00" },
+      dinner: { open: "17:30", close: "21:00" },
+      breakfast: { open: "07:00", close: "10:00" },
+    };
+
+    const parseTime = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+    const formatTime = (mins: number) => {
+      const h = Math.floor(mins / 60).toString().padStart(2, "0");
+      const m = (mins % 60).toString().padStart(2, "0");
+      return `${h}:${m}`;
+    };
+
+    set({ isAutoOptimizing: true });
+
+    try {
+      for (const day of state.itinerary.days) {
+        if (day.activities.length <= 1) continue;
+
+        set({ isOptimizingDay: day.day_number });
+
+        try {
+          const response = await fetch("/api/optimize-route", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              activities: day.activities.map((a) => {
+                const mealWindow = a.type && MEAL_WINDOWS[a.type] ? MEAL_WINDOWS[a.type] : null;
+                const opening_hours = a.opening_hours ?? mealWindow ?? undefined;
+                return {
+                  id: a.id,
+                  title: a.title,
+                  lat: a.location.lat,
+                  lng: a.location.lng,
+                  duration_minutes: a.duration_minutes,
+                  time: a.time,
+                  flexible: a.flexible,
+                  ...(opening_hours ? { opening_hours } : {}),
+                };
+              }),
+              mode: day.transport_mode ?? "driving",
+              start_time: day.start_time ?? day.activities[0].time,
+              end_time: day.end_time ?? "20:00",
+            }),
+          });
+
+          if (!response.ok) continue;
+
+          const { order, travel_times_minutes } = await response.json() as {
+            order: string[];
+            travel_times_minutes: number[];
+          };
+
+          const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
+          let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
+
+          const reorderedActivities = order.map((id, i) => {
+            const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
+            currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+            return activity;
+          });
+
+          const newDays = get().itinerary!.days.map((d) =>
+            d.day_number === day.day_number ? { ...d, activities: reorderedActivities } : d
+          );
+
+          await get().updateDays(newDays);
+        } catch (err) {
+          console.error(`Failed to auto-optimize day ${day.day_number}:`, err);
+        } finally {
+          set({ isOptimizingDay: null });
+        }
+      }
+    } finally {
+      set({ isAutoOptimizing: false, isPerfectMode: false });
     }
   },
 
