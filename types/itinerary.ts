@@ -37,6 +37,7 @@ export const ActivitySchema = z.object({
   url: z.string().url("Invalid URL").optional().or(z.literal("")),
   opening_hours: OpeningHoursSchema.optional(),
   type: z.enum(["lunch", "dinner", "breakfast", "transit"]).optional(),
+  flexible: z.boolean().optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
