@@ -55,8 +55,9 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 #### Windows（一鍵安裝）
 
 ```bat
-setup.bat   # 建立 Python venv、安裝所有依賴
-run.bat     # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
+setup.bat              # 建立 Python venv、安裝所有依賴
+run.bat                # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
+run-with-supabase.bat  # 同上，另加啟動本地 Supabase（需 Docker Desktop）
 ```
 
 #### macOS / Linux（一鍵安裝）
@@ -193,6 +194,7 @@ npm start
 │   └── functions/           # Edge Functions
 ├── setup.bat                # Windows: set up Python venv & install dependencies
 ├── run.bat                  # Windows: start Python service + Next.js
+├── run-with-supabase.bat    # Windows: start Python service + Next.js + local Supabase
 ├── setup.sh                 # macOS/Linux: set up Python venv & install dependencies
 └── run.sh                   # macOS/Linux: start Python service + Next.js
 ```
