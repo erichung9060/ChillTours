@@ -33,7 +33,8 @@ export function buildItineraryPrompt(
           },
           "duration_minutes": 120,
           "opening_hours": { "open": "09:00", "close": "18:00" },
-          "type": "lunch"
+          "type": "lunch",
+          "flexible": true
         }
       ]
     }
@@ -54,6 +55,7 @@ export function buildItineraryPrompt(
 - 早餐（"type": "breakfast"）只在使用者明確要求時才加入
 - 一般景點活動請省略 type 欄位（不要輸出 type）
 - 禁止輸出 "type": "transit"
+- flexible 欄位：有固定時間的活動（票券、演出、已預約導覽）設為 false，其餘（景點、購物、博物館、餐廳）設為 true。如果不確定，省略此欄位
 - 所有輸出的內容（如 title, note, location name）請使用繁體中文`
     : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
@@ -75,7 +77,8 @@ Respond ONLY with a valid JSON object in this exact structure, no markdown, no e
           },
           "duration_minutes": 120,
           "opening_hours": { "open": "09:00", "close": "18:00" },
-          "type": "lunch"
+          "type": "lunch",
+          "flexible": true
         }
       ]
     }
@@ -95,7 +98,8 @@ Requirements:
 - Each day must include one dinner restaurant ("type": "dinner"), with flexible timing, located near surrounding attractions
 - Breakfast ("type": "breakfast") should only be added when the user explicitly requests it
 - Regular sightseeing activities must omit the type field entirely (do not output type)
-- Never output "type": "transit"` ;
+- Never output "type": "transit"
+- flexible field: set to false for activities with fixed times (tickets, shows, pre-booked tours), true for everything else (sightseeing, shopping, museums, restaurants). Omit if unsure` ;
 
   if (customPreferences) {
     prompt += isZH
