@@ -36,6 +36,7 @@ export const ActivitySchema = z.object({
   order: z.number().int().min(0),
   url: z.string().url("Invalid URL").optional().or(z.literal("")),
   opening_hours: OpeningHoursSchema.optional(),
+  type: z.enum(["lunch", "dinner", "breakfast", "transit"]).optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
