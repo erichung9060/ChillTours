@@ -65,6 +65,7 @@ class ActivityInput(BaseModel):
     time: str  # "HH:MM" planned start time
     opening_hours: Optional[TimeWindow] = None
     flexible: Optional[bool] = None  # False = fixed time anchor (tickets, shows)
+    type: Optional[str] = None  # "lunch" | "dinner" | "breakfast" | None
 
 
 class OptimizeRequest(BaseModel):
@@ -204,6 +205,13 @@ def build_distance_matrix(activities: List[ActivityInput], mode: str = "walking"
 # OR-Tools: shared helpers
 # ============================================================
 
+_MEAL_HARD_WINDOWS: Dict[str, Tuple[str, str]] = {
+    "breakfast": ("07:00", "10:00"),
+    "lunch":     ("11:00", "14:00"),
+    "dinner":    ("17:30", "21:00"),
+}
+
+
 def _apply_time_windows(
     time_dim: pywrapcp.RoutingDimension,
     manager: pywrapcp.RoutingIndexManager,
@@ -214,6 +222,15 @@ def _apply_time_windows(
 ) -> None:
     for i, activity in enumerate(activities):
         node_index = manager.NodeToIndex(i + node_offset)
+        # Meal activities: hard range constraint (must arrive within meal window)
+        if activity.type in _MEAL_HARD_WINDOWS:
+            open_str, close_str = _MEAL_HARD_WINDOWS[activity.type]
+            lo = max(0, parse_time_to_minutes(open_str) - start_time_minutes)
+            hi = max(lo, parse_time_to_minutes(close_str) - start_time_minutes)
+            time_dim.CumulVar(node_index).SetRange(lo, hi)
+            logger.info("  Time window [%s]: MEAL hard range %d-%d min from start (%s-%s)",
+                        activity.title, lo, hi, open_str, close_str)
+            continue
         if activity.flexible is False:
             planned = parse_time_to_minutes(activity.time) - start_time_minutes
             lo = max(0, planned - 15)
