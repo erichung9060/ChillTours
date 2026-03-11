@@ -32,7 +32,8 @@ export function buildItineraryPrompt(
             "lng": 0.0
           },
           "duration_minutes": 120,
-          "opening_hours": { "open": "09:00", "close": "18:00" }
+          "opening_hours": { "open": "09:00", "close": "18:00" },
+          "type": "lunch"
         }
       ]
     }
@@ -48,6 +49,11 @@ export function buildItineraryPrompt(
 - 每天內的活動必須依照時間先後順序排列
 - note 欄位為選填，如果沒有特別要注意的事項可以不必填寫
 - opening_hours 為選填。根據通識知識填入最常見的開放時段（HH:MM 24 小時制），例如博物館通常 09:00-17:00。戶外景點或全天開放地點可省略。此為 AI 估計值，非即時資料
+- 每天必須安排一個午餐餐廳（"type": "lunch"），時間安排在 11:00 到 14:00 之間，地點盡量靠近前後景點
+- 每天必須安排一個晚餐餐廳（"type": "dinner"），時間彈性，地點盡量靠近前後景點
+- 早餐（"type": "breakfast"）只在使用者明確要求時才加入
+- 一般景點活動請省略 type 欄位（不要輸出 type）
+- 禁止輸出 "type": "transit"
 - 所有輸出的內容（如 title, note, location name）請使用繁體中文`
     : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
@@ -68,7 +74,8 @@ Respond ONLY with a valid JSON object in this exact structure, no markdown, no e
             "lng": 0.0
           },
           "duration_minutes": 120,
-          "opening_hours": { "open": "09:00", "close": "18:00" }
+          "opening_hours": { "open": "09:00", "close": "18:00" },
+          "type": "lunch"
         }
       ]
     }
@@ -83,7 +90,12 @@ Requirements:
 - duration_minutes should be between 60 and 240
 - Activities must be in chronological order within each day
 - 'note' is optional, leave it empty if there are no special tips or reminders
-- 'opening_hours' is optional. Based on general knowledge, include typical open/close hours in HH:MM 24-hour format (e.g. museums 09:00-17:00). Omit for outdoor or 24-hour locations. This is an AI estimate, not real-time data.`;
+- 'opening_hours' is optional. Based on general knowledge, include typical open/close hours in HH:MM 24-hour format (e.g. museums 09:00-17:00). Omit for outdoor or 24-hour locations. This is an AI estimate, not real-time data.
+- Each day must include one lunch restaurant ("type": "lunch"), scheduled between 11:00 and 14:00, located near surrounding attractions
+- Each day must include one dinner restaurant ("type": "dinner"), with flexible timing, located near surrounding attractions
+- Breakfast ("type": "breakfast") should only be added when the user explicitly requests it
+- Regular sightseeing activities must omit the type field entirely (do not output type)
+- Never output "type": "transit"` ;
 
   if (customPreferences) {
     prompt += isZH
