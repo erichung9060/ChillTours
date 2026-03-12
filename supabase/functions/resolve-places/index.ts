@@ -209,12 +209,12 @@ async function resolvePlace(
       id: input.id,
       place_id: placeId,
       name: (cached.name as string) ?? input.name,
-      lat: cached.lat as number | undefined,
-      lng: cached.lng as number | undefined,
-      rating: cached.rating as number | undefined,
-      user_ratings_total: cached.user_ratings_total as number | undefined,
-      opening_hours: cached.opening_hours as Record<string, unknown> | undefined,
-      website: cached.website as string | undefined,
+      lat: (cached.lat as number) ?? undefined,
+      lng: (cached.lng as number) ?? undefined,
+      rating: (cached.rating as number) ?? undefined,
+      user_ratings_total: (cached.user_ratings_total as number) ?? undefined,
+      opening_hours: (cached.opening_hours as Record<string, unknown>) ?? undefined,
+      website: (cached.website as string) ?? undefined,
     };
   }
 
@@ -235,10 +235,10 @@ async function resolvePlace(
     name: displayName ?? input.name,
     lat: location?.latitude,
     lng: location?.longitude,
-    rating: details.rating as number | undefined,
-    user_ratings_total: details.userRatingCount as number | undefined,
-    website: details.websiteUri as string | undefined,
-    opening_hours: details.regularOpeningHours as Record<string, unknown> | undefined,
+    rating: (details.rating as number) ?? undefined,
+    user_ratings_total: (details.userRatingCount as number) ?? undefined,
+    website: (details.websiteUri as string) ?? undefined,
+    opening_hours: (details.regularOpeningHours as Record<string, unknown>) ?? undefined,
   };
 
   // Step 4: Save to cache
