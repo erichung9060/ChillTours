@@ -9,6 +9,20 @@ const GenerateRequestSchema = z.object({
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export async function POST(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({
+        error: "Unauthorized. Please log in to generate itineraries.",
+        code: "UNAUTHORIZED",
+      }),
+      {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   const body = await request.json();
   const parsed = GenerateRequestSchema.safeParse(body);
 
@@ -20,20 +34,6 @@ export async function POST(request: NextRequest) {
       }),
       {
         status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader) {
-    return new Response(
-      JSON.stringify({
-        error: "Unauthorized. Please log in to generate itineraries.",
-        code: "UNAUTHORIZED",
-      }),
-      {
-        status: 401,
         headers: { "Content-Type": "application/json" },
       }
     );
