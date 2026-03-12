@@ -46,6 +46,8 @@ supabase/.temp
 .vscode
 .kiro
 .agent
+.agents
+
 # Worktrees
 .worktrees/
 worktrees/
