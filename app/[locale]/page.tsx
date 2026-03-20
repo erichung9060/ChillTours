@@ -1,11 +1,9 @@
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { HeroSection } from "@/components/landing/hero-section";
 import { TripForm } from "@/components/landing/trip-form";
-import { getTranslations } from "next-intl/server";
 
 export default async function Home() {
-  const t = await getTranslations("landing");
-
   return (
     <>
       <Header />
@@ -19,9 +17,7 @@ export default async function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="py-4 text-center text-sm text-muted-foreground border-t border-border/40">
-          <p>{t("footer")}</p>
-        </footer>
+        <Footer />
       </main>
     </>
   );

@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useItineraries } from "@/hooks/use-itineraries";
 import { useTranslations } from "next-intl";
 import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
 import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { ItineraryList } from "@/components/itineraries/itinerary-list";
@@ -24,7 +25,12 @@ export default function ItinerariesPage() {
   const t = useTranslations("itineraries");
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { itineraries, loading: dataLoading, error, refetch } = useItineraries();
+  const {
+    itineraries,
+    loading: dataLoading,
+    error,
+    refetch,
+  } = useItineraries();
 
   // Authentication check and redirect
   useEffect(() => {
@@ -54,20 +60,18 @@ export default function ItinerariesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      
-      <main className="pt-24 pb-16 px-4 max-w-[1600px] mx-auto">
+
+      <main className="flex-1 pt-24 pb-16 px-4 w-full max-w-[1600px] mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground mb-2">
               {t("title")}
             </h1>
-            <p className="text-muted-foreground">
-              {t("subtitle")}
-            </p>
+            <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
-          
+
           {!dataLoading && !error && itineraries.length > 0 && (
             <Button variant="primary" size="lg" onClick={handleCreateClick}>
               {t("createNew")}
@@ -105,6 +109,7 @@ export default function ItinerariesPage() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
