@@ -7,7 +7,7 @@ const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 );
 
 // ──────────────────────────────────────────────
@@ -64,7 +64,7 @@ const DETAILS_FIELD_MASK = [
 async function findPlace(
   name: string,
   lat?: number,
-  lng?: number,
+  lng?: number
 ): Promise<string | null> {
   if (!apiKey) {
     console.error("Missing GOOGLE_MAPS_API_KEY environment variable");
@@ -98,12 +98,14 @@ async function findPlace(
 
     if (!resp.ok) {
       console.warn(`[findPlace] HTTP Error ${resp.status}: ${resp.statusText}`);
-      return null;
+      throw new Error(
+        `Google Maps API Error: ${resp.status} ${resp.statusText}`
+      );
     }
 
     const data = await resp.json();
     const places = data.places ?? [];
-    
+
     if (places.length === 0) {
       console.log(`[findPlace] no candidates returned for '${name}'`);
       return null;
@@ -112,12 +114,12 @@ async function findPlace(
     return places[0].id ?? null;
   } catch (err) {
     console.error(`[findPlace] Exception for '${name}':`, err);
-    return null;
+    throw err;
   }
 }
 
 async function getPlaceDetails(
-  placeId: string,
+  placeId: string
 ): Promise<Record<string, unknown> | null> {
   if (!apiKey) {
     console.error("Missing GOOGLE_MAPS_API_KEY environment variable");
@@ -136,19 +138,23 @@ async function getPlaceDetails(
     });
 
     if (!resp.ok) {
-      console.warn(`[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`);
-      return null;
+      console.warn(
+        `[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`
+      );
+      throw new Error(
+        `Google Maps API Error: ${resp.status} ${resp.statusText}`
+      );
     }
 
     return await resp.json();
   } catch (err) {
     console.error(`[getPlaceDetails] Exception for ${placeId}:`, err);
-    return null;
+    throw err;
   }
 }
 
 async function checkPlaceCache(
-  placeId: string,
+  placeId: string
 ): Promise<Record<string, unknown> | null> {
   try {
     const { data, error } = await supabase
@@ -158,7 +164,10 @@ async function checkPlaceCache(
       .maybeSingle();
 
     if (error) {
-      console.warn(`[checkPlaceCache] Supabase error for ${placeId}:`, error.message);
+      console.warn(
+        `[checkPlaceCache] Supabase error for ${placeId}:`,
+        error.message
+      );
       return null;
     }
 
@@ -170,9 +179,7 @@ async function checkPlaceCache(
   }
 }
 
-async function savePlaceCache(
-  row: Record<string, unknown>,
-): Promise<void> {
+async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
   try {
     const { error } = await supabase
       .from("google_places")
@@ -190,9 +197,7 @@ async function savePlaceCache(
 // Core resolve logic (per place)
 // ──────────────────────────────────────────────
 
-async function resolvePlace(
-  input: PlaceInput,
-): Promise<ResolvedPlace> {
+async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
   const base: ResolvedPlace = { id: input.id, name: input.name };
 
   // Step 1: Find Place → place_id only
@@ -228,7 +233,7 @@ async function resolvePlace(
 
   // Parse all fields from the New Places API structure
   const displayName = (details.displayName as Record<string, string>)?.text;
-  const location = (details.location as Record<string, number>);
+  const location = details.location as Record<string, number>;
 
   const data = {
     place_id: placeId,
@@ -246,7 +251,6 @@ async function resolvePlace(
 
   return { id: input.id, ...data };
 }
-
 
 // ──────────────────────────────────────────────
 // Edge Function handler
@@ -267,7 +271,7 @@ Deno.serve(async (req) => {
         {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -283,10 +287,10 @@ Deno.serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
-    
+
     const parsed = ResolveRequestSchema.safeParse(body);
     if (!parsed.success) {
       return new Response(
@@ -297,7 +301,7 @@ Deno.serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -310,21 +314,15 @@ Deno.serve(async (req) => {
       resolved.push(result);
     }
 
-    return new Response(
-      JSON.stringify({ resolved }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ resolved }), {
+      status: 200,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Resolve places error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
