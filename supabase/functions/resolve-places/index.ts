@@ -179,6 +179,32 @@ async function checkPlaceCache(
   }
 }
 
+async function checkPlaceCacheByName(
+  name: string
+): Promise<Record<string, unknown> | null> {
+  try {
+    const { data, error } = await supabase
+      .from("google_places")
+      .select("*")
+      .ilike("name", name)
+      .maybeSingle();
+
+    if (error) {
+      console.warn(
+        `[checkPlaceCacheByName] Supabase error for '${name}':`,
+        error.message
+      );
+      return null;
+    }
+
+    if (!data) return null;
+    return data as Record<string, unknown>;
+  } catch (err) {
+    console.error(`[checkPlaceCacheByName] Exception for '${name}':`, err);
+    return null;
+  }
+}
+
 async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
   try {
     const { error } = await supabase
@@ -200,14 +226,31 @@ async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
 async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
   const base: ResolvedPlace = { id: input.id, name: input.name };
 
-  // Step 1: Find Place → place_id only
+  if (input.lat === undefined || input.lng === undefined) {
+    const cachedByName = await checkPlaceCacheByName(input.name);
+    if (cachedByName) {
+      return {
+        id: input.id,
+        place_id: (cachedByName.place_id as string) ?? undefined,
+        name: (cachedByName.name as string) ?? input.name,
+        lat: (cachedByName.lat as number) ?? undefined,
+        lng: (cachedByName.lng as number) ?? undefined,
+        rating: (cachedByName.rating as number) ?? undefined,
+        user_ratings_total:
+          (cachedByName.user_ratings_total as number) ?? undefined,
+        opening_hours:
+          (cachedByName.opening_hours as Record<string, unknown>) ?? undefined,
+        website: (cachedByName.website as string) ?? undefined,
+      };
+    }
+  }
+
   const placeId = await findPlace(input.name, input.lat, input.lng);
   if (!placeId) {
     console.warn(`[resolvePlace] no place_id found for '${input.name}'`);
     return { ...base, error: "NOT_FOUND" };
   }
 
-  // Step 2: Check cache
   const cached = await checkPlaceCache(placeId);
   if (cached) {
     return {
@@ -223,7 +266,6 @@ async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
     };
   }
 
-  // Step 3: Place Details (cache miss)
   const details = await getPlaceDetails(placeId);
 
   if (!details) {
@@ -265,7 +307,7 @@ Deno.serve(async (req) => {
   // API Gateway Secret Check (Request from Next.JS api)
   const expectedSecret = Deno.env.get("API_GATEWAY_SECRET");
   const providedSecret = req.headers.get("x-gateway-secret");
-  
+
   if (providedSecret !== expectedSecret) {
     console.warn("Blocked direct access attempt: Invalid Gateway Secret");
     return new Response(
