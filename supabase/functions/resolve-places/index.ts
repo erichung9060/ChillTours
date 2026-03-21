@@ -262,6 +262,21 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // API Gateway Secret Check (Request from Next.JS api)
+  const expectedSecret = Deno.env.get("API_GATEWAY_SECRET");
+  const providedSecret = req.headers.get("x-gateway-secret");
+  
+  if (providedSecret !== expectedSecret) {
+    console.warn("Blocked direct access attempt: Invalid Gateway Secret");
+    return new Response(
+      JSON.stringify({ error: "Forbidden. Direct access not allowed." }),
+      {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
   try {
     // Auth
     const user = await verifyUser(req);

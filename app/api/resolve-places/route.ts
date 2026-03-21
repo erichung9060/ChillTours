@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const gatewaySecret = process.env.API_GATEWAY_SECRET || "";
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -23,6 +24,7 @@ export async function POST(request: NextRequest) {
     headers: {
       "Content-Type": "application/json",
       Authorization: authHeader,
+      ...(gatewaySecret && { "x-gateway-secret": gatewaySecret }),
     },
     body: JSON.stringify(body),
   });
