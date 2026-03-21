@@ -51,3 +51,14 @@ supabase/.temp
 # Worktrees
 .worktrees/
 worktrees/
+
+# Python
+python/venv/
+python/__pycache__/
+python/*.pyc
+
+# Claude Code
+.claude/
+
+# Supabase local state
+supabase/.branches/
