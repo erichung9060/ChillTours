@@ -10,6 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useParams } from "@/lib/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Header } from "@/components/layout/header";
@@ -48,8 +49,10 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
 
 export default function PlanningPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const itineraryId = params.id as string;
   const locale = useLocale();
+  const isPerfectMode = searchParams.get("mode") === "perfect";
   const t = useTranslations("planner");
 
   // Store Lifecycle & Data
@@ -117,7 +120,7 @@ export default function PlanningPage() {
       itinerary.days.length === 0
     ) {
       // Fresh itinerary — trigger SSE streaming
-      startStreaming(itinerary.id, locale); // metadata read from DB in Edge Function
+      startStreaming(itinerary.id, locale, isPerfectMode); // metadata read from DB in Edge Function
     } else if (itinerary.status === "generating") {
       // User returned mid-generation — use polling
       startPolling(itinerary.id);

@@ -9,7 +9,10 @@
 import { useLocale } from "next-intl";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { DayTimeEditor } from "../components/day-time-editor";
+import { TransportModeSelector } from "../components/transport-mode-selector";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -22,6 +25,13 @@ export function ExpandableView({
   toggleDay,
   onDayHover,
   onActivityHover,
+  optimizeDay,
+  isOptimizingDay,
+  optimizeDayFull,
+  isOptimizingDayFull,
+  setDayTransportMode,
+  setDayTimeWindow,
+  setAllDaysTimeWindow,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -50,11 +60,72 @@ export function ExpandableView({
                   <p className="text-sm text-muted-foreground mt-1">
                     {formattedDate}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {day.activities.length}{" "}
-                    {day.activities.length === 1 ? "activity" : "activities"}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {day.activities.length}{" "}
+                      {day.activities.length === 1 ? "activity" : "activities"}
+                    </p>
+                    {setDayTimeWindow && setAllDaysTimeWindow && (
+                      <DayTimeEditor
+                        dayNumber={day.day_number}
+                        startTime={day.start_time ?? "09:00"}
+                        endTime={day.end_time ?? "20:00"}
+                        onSave={setDayTimeWindow}
+                        onApplyAll={setAllDaysTimeWindow}
+                      />
+                    )}
+                  </div>
                 </div>
+                <div className="flex items-center gap-2">
+                  {setDayTransportMode && day.activities.length >= 2 && (
+                    <TransportModeSelector
+                      mode={day.transport_mode ?? "driving"}
+                      onChange={(mode) => setDayTransportMode(day.day_number, mode)}
+                      disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                    />
+                  )}
+                  {optimizeDay && day.activities.length >= 2 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2"
+                      disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                      onClick={(e) => { e.stopPropagation(); optimizeDay(day.day_number); }}
+                    >
+                      {isOptimizingDay === day.day_number ? (
+                        <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                      )}
+                      {isOptimizingDay === day.day_number ? "Optimizing…" : "快速優化"}
+                    </Button>
+                  )}
+                  {optimizeDayFull && day.activities.length >= 2 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs px-2"
+                      disabled={isOptimizingDay !== null || isOptimizingDayFull !== null}
+                      onClick={(e) => { e.stopPropagation(); optimizeDayFull(day.day_number); }}
+                    >
+                      {isOptimizingDayFull === day.day_number ? (
+                        <svg className="animate-spin h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      ) : (
+                        <svg className="h-3 w-3 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                      )}
+                      {isOptimizingDayFull === day.day_number ? "Enriching…" : "完整優化"}
+                    </Button>
+                  )}
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="20"
@@ -69,6 +140,7 @@ export function ExpandableView({
                 >
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
+                </div>
               </div>
             </CardHeader>
 

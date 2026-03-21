@@ -86,6 +86,13 @@ export function ItineraryPanel({
 
   // Global mouse tracking for add activity mode
   useGlobalAddModeTracking();
+  const optimizeDay = useItineraryStore((state) => state.optimizeDay);
+  const isOptimizingDay = useItineraryStore((state) => state.isOptimizingDay);
+  const optimizeDayFull = useItineraryStore((state) => state.optimizeDayFull);
+  const isOptimizingDayFull = useItineraryStore((state) => state.isOptimizingDayFull);
+  const setDayTransportMode = useItineraryStore((state) => state.setDayTransportMode);
+  const setDayTimeWindow = useItineraryStore((state) => state.setDayTimeWindow);
+  const setAllDaysTimeWindow = useItineraryStore((state) => state.setAllDaysTimeWindow);
 
   // Early return if no itinerary loaded
   if (!itinerary) {
@@ -199,6 +206,13 @@ export function ItineraryPanel({
         toggleDay={toggleDay}
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
+        optimizeDay={optimizeDay}
+        isOptimizingDay={isOptimizingDay}
+        optimizeDayFull={optimizeDayFull}
+        isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
     "single-day": () => (
@@ -210,6 +224,13 @@ export function ItineraryPanel({
         goToPreviousDay={goToPreviousDay}
         goToNextDay={goToNextDay}
         onActivityHover={setHoveredActivity}
+        optimizeDay={optimizeDay}
+        isOptimizingDay={isOptimizingDay}
+        optimizeDayFull={optimizeDayFull}
+        isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
     "side-by-side": () => (
@@ -219,6 +240,13 @@ export function ItineraryPanel({
         crossDayDragInfo={crossDayDragInfo}
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
+        optimizeDay={optimizeDay}
+        isOptimizingDay={isOptimizingDay}
+        optimizeDayFull={optimizeDayFull}
+        isOptimizingDayFull={isOptimizingDayFull}
+        setDayTransportMode={setDayTransportMode}
+        setDayTimeWindow={setDayTimeWindow}
+        setAllDaysTimeWindow={setAllDaysTimeWindow}
       />
     ),
   };

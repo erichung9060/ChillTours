@@ -1,11 +1,12 @@
 import { create } from "zustand";
 import type { Itinerary, Activity, Day } from "@/types/itinerary";
+import type { TransportMode } from "./types";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
-import { calcDayCount } from "@/lib/utils/date";
+import { calcDayCount, calculateDayDate } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
 
 interface ItineraryState {
@@ -40,12 +41,14 @@ interface ItineraryState {
   updateDays: (newDays: Day[]) => Promise<void>;
 
   // Generation Actions
-  startStreaming: (itineraryId: string, locale: string) => Promise<void>;
+  isPerfectMode: boolean;
+  startStreaming: (itineraryId: string, locale: string, perfectMode?: boolean) => Promise<void>;
   appendStreamedActivity: (dayNumber: number, activity: Activity) => void;
   completeGeneration: () => void;
   startPolling: (itineraryId: string) => void;
   stopPolling: () => void;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
+  autoOptimizeAllDays: () => Promise<void>;
 
   // Drag & Drop Actions
   handleDragOver: (
@@ -67,6 +70,18 @@ interface ItineraryState {
   setIsAddingActivity: (flag: boolean) => void;
   setAddingActivityTarget: (target: { dayNumber: number; insertionIndex: number } | null) => void;
   setAddModePlaceholder: (placeholder: { dayNumber: number; insertionIndex: number } | null) => void;
+
+  // Route Optimization
+  isOptimizingDay: number | null;
+  isAutoOptimizing: boolean;
+  optimizeDay: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull: number | null;
+  optimizeDayFull: (dayNumber: number) => Promise<void>;
+  setDayTransportMode: (dayNumber: number, mode: TransportMode) => Promise<void>;
+
+  // Day Time Window
+  setDayTimeWindow: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow: (startTime: string, endTime: string) => Promise<void>;
 }
 
 export const useItineraryStore = create<ItineraryState>((set, get) => ({
@@ -76,6 +91,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   error: null,
   isGenerating: false,
   isSaving: false,
+  isPerfectMode: false,
+  isAutoOptimizing: false,
   generationAbortController: null,
   pollingIntervalId: null,
   crossDayDragInfo: null,
@@ -85,6 +102,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   isAddingActivity: false,
   addingActivityTarget: null,
   addModePlaceholder: null,
+  isOptimizingDay: null,
+  isOptimizingDayFull: null,
 
   // Basic Setters
   setCrossDayDragInfo: (info) => set({ crossDayDragInfo: info }),
@@ -297,7 +316,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  startStreaming: async (itineraryId, locale) => {
+  startStreaming: async (itineraryId, locale, perfectMode = false) => {
     const state = get();
 
     // Concurrency guard: abort any in-flight stream (handles React StrictMode double-invoke)
@@ -306,7 +325,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }
 
     const controller = new AbortController();
-    set({ isGenerating: true, generationAbortController: controller });
+    set({ isGenerating: true, isPerfectMode: perfectMode, generationAbortController: controller });
 
     try {
       await aiClient.streamItinerary(
@@ -372,8 +391,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       };
     }),
 
-  completeGeneration: () =>
-    set({ isGenerating: false, generationAbortController: null }),
+  completeGeneration: () => {
+    const { isPerfectMode } = get();
+    set({ isGenerating: false, generationAbortController: null });
+    if (isPerfectMode) get().autoOptimizeAllDays();
+  },
 
   startPolling: (itineraryId) => {
     const existing = get().pollingIntervalId;
@@ -416,6 +438,319 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const { pollingIntervalId } = get();
     if (pollingIntervalId) clearInterval(pollingIntervalId);
     set({ pollingIntervalId: null, isGenerating: false });
+  },
+
+  // Route Optimization
+  optimizeDay: async (dayNumber: number) => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const day = state.itinerary.days.find((d) => d.day_number === dayNumber);
+    if (!day || day.activities.length <= 1) return;
+
+    set({ isOptimizingDay: dayNumber });
+
+    try {
+      const response = await fetch("/api/optimize-route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activities: day.activities.map((a) => ({
+            id: a.id,
+            title: a.title,
+            lat: a.location.lat,
+            lng: a.location.lng,
+            duration_minutes: a.duration_minutes,
+            time: a.time,
+            ...(a.opening_hours ? { opening_hours: a.opening_hours } : {}),
+          })),
+          mode: day.transport_mode ?? "driving",
+          start_time: day.start_time ?? day.activities[0].time,
+          end_time: day.end_time ?? "20:00",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Optimize request failed: ${response.status}`);
+      }
+
+      const { order, travel_times_minutes } = await response.json() as {
+        order: string[];
+        travel_times_minutes: number[];
+      };
+
+      // Build a lookup map for activities by ID
+      const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
+
+      // Reorder activities and recalculate times
+      const parseTime = (t: string) => {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      };
+      const formatTime = (mins: number) => {
+        const h = Math.floor(mins / 60).toString().padStart(2, "0");
+        const m = (mins % 60).toString().padStart(2, "0");
+        return `${h}:${m}`;
+      };
+
+      let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
+
+      const reorderedActivities = order.map((id, i) => {
+        const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
+        currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+        return activity;
+      });
+
+      const newDays = state.itinerary.days.map((d) =>
+        d.day_number === dayNumber ? { ...d, activities: reorderedActivities } : d
+      );
+
+      await get().updateDays(newDays);
+    } catch (err) {
+      console.error("Failed to optimize route:", err);
+    } finally {
+      set({ isOptimizingDay: null });
+    }
+  },
+
+  // Full Route Optimization (with Place enrichment + time windows)
+  optimizeDayFull: async (dayNumber: number) => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const day = state.itinerary.days.find((d) => d.day_number === dayNumber);
+    if (!day || day.activities.length <= 1) return;
+
+    set({ isOptimizingDayFull: dayNumber });
+
+    try {
+      const dayDate = calculateDayDate(state.itinerary.start_date, dayNumber);
+
+      // Step 1: Resolve Places via Edge Function
+      const resolveResponse = await fetch("/api/resolve-places", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          places: day.activities.map((a) => ({
+            id: a.id,
+            name: a.location.name,
+            lat: a.location.lat,
+            lng: a.location.lng,
+          })),
+        }),
+      });
+
+      if (!resolveResponse.ok) {
+        throw new Error(`Resolve places request failed: ${resolveResponse.status}`);
+      }
+
+      const { resolved } = await resolveResponse.json() as {
+        resolved: Array<{
+          id: string;
+          place_id?: string;
+          name: string;
+          lat?: number;
+          lng?: number;
+          rating?: number;
+          opening_hours?: object;
+        }>;
+      };
+
+      const enrichedById = Object.fromEntries(resolved.map((e) => [e.id, e]));
+
+      // Step 2: Build fully enriched activities list for OR-Tools
+      const enrichedActivitiesInput = day.activities.map((a) => {
+        const enriched = enrichedById[a.id];
+        return {
+          id: a.id,
+          title: a.location.name,
+          lat: enriched?.lat ?? a.location.lat,
+          lng: enriched?.lng ?? a.location.lng,
+          duration_minutes: a.duration_minutes,
+          time: a.time,
+          // Forward either the enriched opening hours or the original fallback
+          ...(enriched?.opening_hours || a.opening_hours ? { opening_hours: enriched?.opening_hours ?? a.opening_hours } : {}),
+        };
+      });
+
+      // Step 3: Run Route Optimization (Python)
+      const response = await fetch("/api/optimize-route-full", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activities: enrichedActivitiesInput,
+          mode: day.transport_mode ?? "driving",
+          date: dayDate,
+          start_time: day.start_time ?? day.activities[0].time,
+          end_time: day.end_time ?? "20:00",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Full optimize request failed: ${response.status}`);
+      }
+
+      const { order, travel_times_minutes } = await response.json() as {
+        order: string[];
+        travel_times_minutes: number[];
+      };
+
+      // Build lookup maps
+      const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
+
+      const parseTime = (t: string) => {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      };
+      const formatTime = (mins: number) => {
+        const h = Math.floor(mins / 60).toString().padStart(2, "0");
+        const m = (mins % 60).toString().padStart(2, "0");
+        return `${h}:${m}`;
+      };
+
+      let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
+
+      const reorderedActivities = order.map((id, i) => {
+        const base = activityById[id];
+        const enriched = enrichedById[id];
+        const activity = {
+          ...base,
+          order: i,
+          time: formatTime(currentMinutes),
+          location: {
+            ...base.location,
+            lat: enriched?.lat ?? base.location.lat,
+            lng: enriched?.lng ?? base.location.lng,
+            ...(enriched?.place_id ? { place_id: enriched.place_id } : {}),
+          },
+        };
+        currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+        return activity;
+      });
+
+      const newDays = state.itinerary.days.map((d) =>
+        d.day_number === dayNumber ? { ...d, activities: reorderedActivities } : d
+      );
+
+      await get().updateDays(newDays);
+    } catch (err) {
+      console.error("Failed to run full route optimization:", err);
+    } finally {
+      set({ isOptimizingDayFull: null });
+    }
+  },
+
+  // Auto-optimize all days after "完美安排" generation
+  autoOptimizeAllDays: async () => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
+      lunch: { open: "11:00", close: "14:00" },
+      dinner: { open: "17:30", close: "21:00" },
+      breakfast: { open: "07:00", close: "10:00" },
+    };
+
+    const parseTime = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+    const formatTime = (mins: number) => {
+      const h = Math.floor(mins / 60).toString().padStart(2, "0");
+      const m = (mins % 60).toString().padStart(2, "0");
+      return `${h}:${m}`;
+    };
+
+    set({ isAutoOptimizing: true });
+
+    try {
+      for (const day of state.itinerary.days) {
+        if (day.activities.length <= 1) continue;
+
+        set({ isOptimizingDay: day.day_number });
+
+        try {
+          const response = await fetch("/api/optimize-route", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              activities: day.activities.map((a) => {
+                const mealWindow = a.type && MEAL_WINDOWS[a.type] ? MEAL_WINDOWS[a.type] : null;
+                const opening_hours = a.opening_hours ?? mealWindow ?? undefined;
+                return {
+                  id: a.id,
+                  title: a.title,
+                  lat: a.location.lat,
+                  lng: a.location.lng,
+                  duration_minutes: a.duration_minutes,
+                  time: a.time,
+                  flexible: a.flexible,
+                  ...(a.type ? { type: a.type } : {}),
+                  ...(opening_hours ? { opening_hours } : {}),
+                };
+              }),
+              mode: day.transport_mode ?? "driving",
+              start_time: day.start_time ?? day.activities[0].time,
+              end_time: day.end_time ?? "20:00",
+            }),
+          });
+
+          if (!response.ok) continue;
+
+          const { order, travel_times_minutes } = await response.json() as {
+            order: string[];
+            travel_times_minutes: number[];
+          };
+
+          const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
+          let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
+
+          const reorderedActivities = order.map((id, i) => {
+            const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
+            currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+            return activity;
+          });
+
+          const newDays = get().itinerary!.days.map((d) =>
+            d.day_number === day.day_number ? { ...d, activities: reorderedActivities } : d
+          );
+
+          await get().updateDays(newDays);
+        } catch (err) {
+          console.error(`Failed to auto-optimize day ${day.day_number}:`, err);
+        } finally {
+          set({ isOptimizingDay: null });
+        }
+      }
+    } finally {
+      set({ isAutoOptimizing: false, isPerfectMode: false });
+    }
+  },
+
+  // Day Time Window
+  setDayTimeWindow: async (dayNumber, startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) =>
+      d.day_number === dayNumber ? { ...d, start_time: startTime, end_time: endTime } : d
+    );
+    await get().updateDays(newDays);
+  },
+
+  setAllDaysTimeWindow: async (startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) => ({ ...d, start_time: startTime, end_time: endTime }));
+    await get().updateDays(newDays);
+  },
+
+  setDayTransportMode: async (dayNumber, mode) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const newDays = state.itinerary.days.map((d) =>
+      d.day_number === dayNumber ? { ...d, transport_mode: mode } : d
+    );
+    await get().updateDays(newDays);
   },
 
   // Drag & Drop Logic
