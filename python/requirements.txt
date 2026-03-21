@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+ortools>=9.6.2534
+requests
+supabase
+python-dotenv
+numpy

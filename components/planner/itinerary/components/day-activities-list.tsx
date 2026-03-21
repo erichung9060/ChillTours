@@ -17,6 +17,44 @@ import { SortableActivity } from "./sortable-activity";
 import { ActivityPlaceholderCard } from "./activity-placeholder-card";
 import { useItineraryStore } from "../store";
 import type { DayActivitiesListProps } from "../types";
+import type { Activity } from "@/types/itinerary";
+import { useTranslations } from "next-intl";
+
+const TRANSPORT_ICON: Record<string, string> = {
+  driving: "🚗",
+  transit: "🚌",
+  walking: "🚶",
+  bicycling: "🚲",
+};
+
+function toMinutes(time: string): number {
+  const [h, m] = time.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function TransitConnector({
+  prev,
+  next,
+  transportMode,
+}: {
+  prev: Activity;
+  next: Activity;
+  transportMode?: string;
+}) {
+  const t = useTranslations("transit");
+  const gap = toMinutes(next.time) - (toMinutes(prev.time) + prev.duration_minutes);
+  if (gap <= 0) return null;
+
+  const icon = TRANSPORT_ICON[transportMode ?? ""] ?? "🚌";
+
+  return (
+    <div className="flex items-center gap-2 px-4 py-1 text-xs text-muted-foreground select-none">
+      <div className="flex-1 h-px bg-border" />
+      <span>{icon} {t("about")} {gap} {t("minutes")}</span>
+      <div className="flex-1 h-px bg-border" />
+    </div>
+  );
+}
 
 export function DayActivitiesList({
   day,
@@ -25,6 +63,7 @@ export function DayActivitiesList({
   onActivityHover,
 }: DayActivitiesListProps) {
   const activities = day.activities;
+  const transportMode = day.transport_mode;
   const itemIds = useMemo(
     () => activities.map((activity) => activity.id),
     [activities]
@@ -77,6 +116,13 @@ export function DayActivitiesList({
           <Fragment key={activity.id}>
             {isAddMode && placeholderIndex === i && (
               <ActivityPlaceholderCard onClick={handlePlaceholderClick} />
+            )}
+            {i > 0 && !draggingActivityId && (
+              <TransitConnector
+                prev={day.activities[i - 1]}
+                next={activity}
+                transportMode={transportMode}
+              />
             )}
             <SortableActivity
               activity={activity}

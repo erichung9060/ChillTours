@@ -6,6 +6,8 @@ import type { Itinerary, Activity, Day } from "@/types/itinerary";
 
 export type ViewMode = "expandable" | "single-day" | "side-by-side";
 
+export type TransportMode = "driving" | "walking" | "transit" | "bicycling";
+
 export interface DroppableDayProps {
   dayNumber: number;
   isOver?: boolean;
@@ -55,7 +57,12 @@ export interface ChatToggleButtonProps {
   isChatOpen?: boolean;
 }
 
-export interface ExpandableViewProps {
+export interface DayTimeWindowProps {
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
+}
+
+export interface ExpandableViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
@@ -63,9 +70,14 @@ export interface ExpandableViewProps {
   toggleDay: (dayNumber: number) => void;
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
 
-export interface SingleDayViewProps {
+export interface SingleDayViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   currentDayIndex: number;
   draggingActivityId: string | null;
@@ -73,12 +85,22 @@ export interface SingleDayViewProps {
   goToPreviousDay: () => void;
   goToNextDay: () => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
 
-export interface SideBySideViewProps {
+export interface SideBySideViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
+  optimizeDay?: (dayNumber: number) => Promise<void>;
+  isOptimizingDay?: number | null;
+  optimizeDayFull?: (dayNumber: number) => Promise<void>;
+  isOptimizingDayFull?: number | null;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
 }
