@@ -308,12 +308,12 @@ Deno.serve(async (req) => {
   const expectedSecret = Deno.env.get("API_GATEWAY_SECRET");
   const providedSecret = req.headers.get("x-gateway-secret");
 
-  if (providedSecret !== expectedSecret) {
+    if (providedSecret !== expectedSecret) {
     console.warn("Blocked direct access attempt: Invalid Gateway Secret");
     return new Response(
-      JSON.stringify({ error: "Forbidden. Direct access not allowed." }),
+      JSON.stringify({ error: "Unauthorized.", code: "UNAUTHORIZED" }),
       {
-        status: 403,
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       }
     );
