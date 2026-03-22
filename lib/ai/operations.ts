@@ -44,8 +44,9 @@ export const AddOperationSchema = z.object({
     note: z.string().optional(),
     location: z.object({
       name: z.string(),
-      lat: z.number(),
-      lng: z.number(),
+      lat: z.number().nullable().optional(),
+      lng: z.number().nullable().optional(),
+      place_id: z.string().optional(),
     }),
     duration_minutes: z.number().int().positive().optional(),
     insert_at: z.number().int().min(0).optional(), // 0-based position
@@ -77,8 +78,9 @@ export const UpdateOperationSchema = z.object({
     location: z
       .object({
         name: z.string(),
-        lat: z.number().optional(),
-        lng: z.number().optional(),
+        lat: z.number().nullable().optional(),
+        lng: z.number().nullable().optional(),
+        place_id: z.string().optional(),
       })
       .optional(),
     duration_minutes: z.number().int().positive().optional(),
