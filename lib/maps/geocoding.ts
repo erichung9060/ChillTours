@@ -64,8 +64,8 @@ export async function resolvePlaceWithAPI(
           {
             id,
             name: location.name,
-            ...(location.lat !== undefined && { lat: location.lat }),
-            ...(location.lng !== undefined && { lng: location.lng }),
+            ...(typeof location.lat === "number" && !isNaN(location.lat) && { lat: location.lat }),
+            ...(typeof location.lng === "number" && !isNaN(location.lng) && { lng: location.lng }),
           },
         ],
       }),
