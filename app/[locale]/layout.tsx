@@ -6,6 +6,7 @@ import { locales } from '@/lib/i18n/config';
 import { ThemeProvider } from "@/lib/theme/theme-provider";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Analytics } from "@vercel/analytics/next";
+import { Toaster } from "@/components/ui/toaster";
 import "../globals.css";
 
 export async function generateMetadata({
@@ -18,7 +19,7 @@ export async function generateMetadata({
 
   // Determine the base URL (use environment variable or default)
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://chilltour.com';
-  
+
   // Generate canonical URL
   const canonicalPath = locale === 'en' ? '/' : `/${locale}`;
   const canonical = `${baseUrl}${canonicalPath}`;
@@ -78,6 +79,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
             <AuthProvider>{children}</AuthProvider>
+            <Toaster />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
