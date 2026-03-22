@@ -11,7 +11,6 @@ import type {
   MarkerIcon,
   PlaceDetails,
 } from "../types";
-import { calculateMapBounds } from "../client";
 import { generatePinIcon } from "../pin-icons";
 
 export class GoogleMapsProvider implements MapProvider {
@@ -35,13 +34,6 @@ export class GoogleMapsProvider implements MapProvider {
       width: size.width,
       height: size.height,
     });
-  }
-
-  calculateBounds(locations: Location[]): {
-    center: { lat: number; lng: number };
-    zoom: number;
-  } {
-    return calculateMapBounds(locations);
   }
 
   async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {

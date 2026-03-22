@@ -71,14 +71,6 @@ export interface MapProvider {
   }): MarkerIcon;
 
   /**
-   * Calculate map bounds for multiple locations
-   */
-  calculateBounds(locations: Location[]): {
-    center: { lat: number; lng: number };
-    zoom: number;
-  };
-
-  /**
    * Get place details from a place ID
    * Returns detailed information about a specific place
    */
