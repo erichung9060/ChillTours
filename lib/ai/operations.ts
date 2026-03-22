@@ -23,7 +23,13 @@ import { ensureDayExists } from "@/lib/utils/itinerary";
 // Operation Types
 // ============================================================================
 
-export const OperationTypeSchema = z.enum(["ADD", "REMOVE", "UPDATE", "MOVE", "REORDER"]);
+export const OperationTypeSchema = z.enum([
+  "ADD",
+  "REMOVE",
+  "UPDATE",
+  "MOVE",
+  "REORDER",
+]);
 export type OperationType = z.infer<typeof OperationTypeSchema>;
 
 /**
@@ -68,11 +74,13 @@ export const UpdateOperationSchema = z.object({
     time: z.string().optional(),
     title: z.string().optional(),
     note: z.string().optional(),
-    location: z.object({
-      name: z.string(),
-      lat: z.number().optional(),
-      lng: z.number().optional(),
-    }).optional(),
+    location: z
+      .object({
+        name: z.string(),
+        lat: z.number().optional(),
+        lng: z.number().optional(),
+      })
+      .optional(),
     duration_minutes: z.number().int().positive().optional(),
   }),
 });
@@ -122,7 +130,7 @@ export type OperationsUpdate = z.infer<typeof OperationsUpdateSchema>;
 // ============================================================================
 
 /**
- * Apply a list of operations to an itinerary with automatic geocoding
+ * Apply a list of operations to an itinerary with backend location resolution
  *
  * @param itinerary - Current itinerary
  * @param operations - List of operations to apply
@@ -175,7 +183,7 @@ async function applyOperation(
 // ============================================================================
 
 /**
- * Add new activity to a day with automatic geocoding
+ * Add new activity to a day with backend location resolution
  */
 async function applyAddOperation(
   itinerary: Itinerary,
@@ -290,8 +298,8 @@ function applyRemoveOperation(
 }
 
 /**
- * Update existing activity with automatic geocoding for location changes
- * Note: LLM can optionally provide coordinates; if not provided, geocoding API is used
+ * Update existing activity with backend location resolution for location changes
+ * Note: LLM can optionally provide coordinates; if not provided, backend API is used
  */
 async function applyUpdateOperation(
   itinerary: Itinerary,
@@ -323,14 +331,13 @@ async function applyUpdateOperation(
   // Apply simple field changes
   if (op.changes.time !== undefined) activity.time = op.changes.time;
   if (op.changes.title !== undefined) activity.title = op.changes.title;
-  if (op.changes.note !== undefined)
-    activity.note = op.changes.note;
+  if (op.changes.note !== undefined) activity.note = op.changes.note;
   if (op.changes.duration_minutes !== undefined)
     activity.duration_minutes = op.changes.duration_minutes;
 
   // Handle location change
   // LLM can provide name (required), and optionally name/lat/lng
-  // If coordinates not provided, ensureLocationData will geocode automatically
+  // If coordinates not provided, ensureLocationData will resolve them via API
   if (op.changes.location !== undefined) {
     activity.location = await ensureLocationData({
       name: op.changes.location.name,
@@ -455,9 +462,6 @@ function applyReorderOperation(
 
   return itinerary;
 }
-
-
-
 
 // ============================================================================
 // Parse Operations from LLM Response
