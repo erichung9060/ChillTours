@@ -56,6 +56,7 @@ export function buildItineraryPrompt(
 - 一般景點活動請省略 type 欄位（不要輸出 type）
 - 禁止輸出 "type": "transit"
 - flexible 欄位：有固定時間的活動（票券、演出、已預約導覽）設為 false，其餘（景點、購物、博物館、餐廳）設為 true。如果不確定，省略此欄位
+- importance 欄位：根據使用者偏好設定，使用者明確指定必去設為 "must"，有提到偏好（例如「想爬山」「喜歡夜市」）設為 "preferred"，其餘省略此欄位
 - 所有輸出的內容（如 title, note, location name）請使用繁體中文`
     : `You are a travel planning assistant. Generate a detailed ${duration}-day travel itinerary for ${destination} from ${startDate} to ${endDate}.
 
@@ -99,7 +100,8 @@ Requirements:
 - Breakfast ("type": "breakfast") should only be added when the user explicitly requests it
 - Regular sightseeing activities must omit the type field entirely (do not output type)
 - Never output "type": "transit"
-- flexible field: set to false for activities with fixed times (tickets, shows, pre-booked tours), true for everything else (sightseeing, shopping, museums, restaurants). Omit if unsure` ;
+- flexible field: set to false for activities with fixed times (tickets, shows, pre-booked tours), true for everything else (sightseeing, shopping, museums, restaurants). Omit if unsure
+- importance field: set to "must" for locations the user explicitly said they must visit, "preferred" for locations matching user preferences (e.g. "I like hiking", "love night markets"), omit for all other activities` ;
 
   if (customPreferences) {
     prompt += isZH
