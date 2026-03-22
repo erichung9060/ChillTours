@@ -46,7 +46,6 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 ### Prerequisites
 
 - Node.js 18+ and npm
-- Python 3.10+ (for route optimization service)
 - Supabase account
 - Google Cloud account (for Maps API and OAuth)
 - Google AI Studio account (for Gemini API)
@@ -56,20 +55,16 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 #### Windows（一鍵安裝）
 
 ```bat
-setup.bat              # 建立 Python venv、安裝所有依賴
-run.bat                # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
+run.bat                # 啟動 Next.js（port 3000）
 run-with-supabase.bat  # 同上，另加啟動本地 Supabase（需 Docker Desktop）
 ```
 
 #### macOS / Linux（一鍵安裝）
 
 ```bash
-chmod +x setup.sh run.sh
-./setup.sh  # 建立 Python venv、安裝所有依賴
-./run.sh    # 同時啟動 Python 服務（port 8000）與 Next.js（port 3000）
+chmod +x run.sh
+./run.sh    # 啟動 Next.js（port 3000）
 ```
-
-Worker 數量依 CPU 核心數自動設定（`cpu_count // 2`，上限 4）。
 
 #### 手動安裝
 
@@ -86,16 +81,7 @@ cd aitravelplanner
 npm install
 ```
 
-3. Install Python dependencies:
-
-```bash
-cd python
-python -m venv venv
-venv/Scripts/pip install -r requirements.txt   # Windows
-# source venv/bin/activate && pip install -r requirements.txt  # macOS/Linux
-```
-
-4. Set up environment variables:
+3. Set up environment variables:
 
 ```bash
 cp .env.local.example .env.local
@@ -108,20 +94,13 @@ Edit `.env.local` and add your API keys:
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anonymous key |
 | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Maps API key (domain-restricted, for map rendering) |
-| `GOOGLE_MAPS_API_KEY` | Google Maps API key (unrestricted, for Distance Matrix & Places API used by Python service) |
-| `PYTHON_API_URL` | Python route-optimization service URL (default: `http://localhost:8000`) |
-| `SUPABASE_URL` | Supabase URL (for Python service place cache) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (for Python service place cache writes) |
-| `SOLVER_TIME_LIMIT_SMALL` | OR-Tools time limit per strategy for n≤8 (default: `1`) |
-| `SOLVER_TIME_LIMIT_LARGE` | OR-Tools time limit per strategy for n>8 (default: `3`) |
+| `GOOGLE_MAPS_API_KEY` | Google Maps API key (unrestricted, server-side Distance Matrix & Places API) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key (server-side place cache writes) |
+| `ORS_API_KEY` | OpenRouteService API key (server-side Vroom route optimization) |
 
-1. Run the services:
+1. Run the application:
 
 ```bash
-# Terminal 1 — Python route optimization service
-cd python && uvicorn main:app --reload
-
-# Terminal 2 — Next.js frontend
 npm run dev
 ```
 
@@ -210,8 +189,8 @@ _備註：每次請求的 `places` 數量必須介於 1 到 50 之間。_
 │   ├── (auth)/              # Authentication routes
 │   ├── (main)/              # Main application routes
 │   ├── api/                 # API routes
-│   │   ├── optimize-route/       # POST — fast TSP ordering (proxy → Python /optimize)
-│   │   └── optimize-route-full/  # POST — full optimization with Place enrichment (proxy → Python /optimize/full)
+│   │   ├── optimize-route/       # POST — fast TSP ordering (ORS Vroom + Google Distance Matrix)
+│   │   └── optimize-route-full/  # POST — full optimization with Google Places enrichment
 │   ├── layout.tsx           # Root layout
 │   ├── page.tsx             # Landing page
 │   └── globals.css          # Global styles
@@ -221,18 +200,21 @@ _備註：每次請求的 `places` 數量必須介於 1 到 50 之間。_
 │   ├── planner/             # Planning interface components
 │   └── layout/              # Layout components
 ├── lib/                     # Core libraries
+│   ├── route-optimization/  # Route optimization engine (ORS Vroom + Google APIs)
+│   │   ├── types.ts         # Shared TypeScript types
+│   │   ├── distance-matrix.ts  # Google Distance Matrix with Haversine fallback
+│   │   ├── vroom.ts         # ORS Vroom solver with time windows & priority
+│   │   ├── greedy.ts        # Time-window-aware greedy fallback
+│   │   ├── places.ts        # Google Places enrichment + Supabase cache
+│   │   └── orchestrator.ts  # Orchestration of the full pipeline
 │   ├── supabase/            # Supabase integration
 │   ├── gemini/              # Gemini AI integration
 │   ├── maps/                # Google Maps integration
 │   ├── collaboration/       # Yjs collaboration
 │   └── utils/               # Utility functions
-├── python/                  # Route optimization service (FastAPI)
-│   ├── main.py              # OR-Tools TSP solver + Places API enrichment
-│   ├── requirements.txt     # Python dependencies (ortools, fastapi, numpy…)
-│   └── venv/                # Python virtual environment (git-ignored)
+├── python/                  # Legacy route optimization service (deprecated)
 ├── doc/                     # Technical documentation
-│   ├── route-optimization.md    # OR-Tools algorithm design & benchmarks
-│   ├── python-concurrency.md    # GIL, multi-worker, threading guide
+│   ├── route-optimization.md    # Algorithm design & benchmarks
 │   └── ORTOOLS_SPEC.md          # Original OR-Tools specification
 ├── hooks/                   # Custom React hooks
 ├── types/                   # TypeScript type definitions

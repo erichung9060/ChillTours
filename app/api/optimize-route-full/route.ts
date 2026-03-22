@@ -1,18 +1,15 @@
-import { NextRequest } from "next/server";
-
-const PYTHON_API_URL = process.env.PYTHON_API_URL ?? "http://localhost:8000";
+import { NextRequest, NextResponse } from "next/server";
+import { optimizeRouteFull } from "@/lib/route-optimization/orchestrator";
+import type { OptimizeRequest } from "@/lib/route-optimization/types";
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
+  const body: OptimizeRequest & { date: string } = await request.json();
 
-  const response = await fetch(`${PYTHON_API_URL}/optimize/full`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  return new Response(response.body, {
-    status: response.status,
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    const result = await optimizeRouteFull(body);
+    return NextResponse.json(result);
+  } catch (err) {
+    console.error("[optimize-route-full] error:", err);
+    return NextResponse.json({ error: "Full route optimization failed" }, { status: 500 });
+  }
 }
