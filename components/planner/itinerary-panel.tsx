@@ -36,12 +36,6 @@ import { useItineraryStore } from "./itinerary/store";
 import { useGlobalAddModeTracking } from "./itinerary/hooks/use-global-add-mode-tracking";
 import { toast } from "sonner";
 
-const pointerSensorOptions = {
-  activationConstraint: {
-    distance: 8, // 8px movement required to start drag
-  },
-};
-
 export function ItineraryPanel({
   onFullscreenChange,
   onToggleChat,
