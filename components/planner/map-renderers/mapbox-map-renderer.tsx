@@ -76,12 +76,12 @@ export function MapboxMapRenderer({
     if (mapRef.current && activities.length > 0 && isLoaded) {
       const bounds: [[number, number], [number, number]] = [
         [
-          Math.min(...activities.map((a) => a.location.lng)),
-          Math.min(...activities.map((a) => a.location.lat)),
+          Math.min(...activities.map((a) => a.location.lng as number)),
+          Math.min(...activities.map((a) => a.location.lat as number)),
         ],
         [
-          Math.max(...activities.map((a) => a.location.lng)),
-          Math.max(...activities.map((a) => a.location.lat)),
+          Math.max(...activities.map((a) => a.location.lng as number)),
+          Math.max(...activities.map((a) => a.location.lat as number)),
         ],
       ];
 
@@ -115,10 +115,13 @@ export function MapboxMapRenderer({
     if (!mapRef.current || !isLoaded || highlightedActivities.length === 0)
       return;
 
-    // Check if any highlighted activity is outside the visible bounds
+        // Check if any highlighted activity is outside the visible bounds
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
-        !isLocationVisible(activity.location.lat, activity.location.lng)
+        !isLocationVisible(
+          activity.location.lat as number,
+          activity.location.lng as number
+        )
     );
 
     if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
@@ -129,12 +132,12 @@ export function MapboxMapRenderer({
     try {
       const bounds: [[number, number], [number, number]] = [
         [
-          Math.min(...locations.map((l) => l.lng)),
-          Math.min(...locations.map((l) => l.lat)),
+          Math.min(...locations.map((l) => l.lng as number)),
+          Math.min(...locations.map((l) => l.lat as number)),
         ],
         [
-          Math.max(...locations.map((l) => l.lng)),
-          Math.max(...locations.map((l) => l.lat)),
+          Math.max(...locations.map((l) => l.lng as number)),
+          Math.max(...locations.map((l) => l.lat as number)),
         ],
       ];
 
@@ -203,8 +206,8 @@ export function MapboxMapRenderer({
         return (
           <Marker
             key={activity.id}
-            longitude={activity.location.lng}
-            latitude={activity.location.lat}
+            longitude={activity.location.lng as number}
+            latitude={activity.location.lat as number}
             anchor="bottom"
             onClick={(e) => {
               e.originalEvent.stopPropagation();
@@ -235,8 +238,8 @@ export function MapboxMapRenderer({
       {/* Popup for selected activity */}
       {selectedActivity && (
         <Popup
-          longitude={selectedActivity.location.lng}
-          latitude={selectedActivity.location.lat}
+          longitude={selectedActivity.location.lng as number}
+          latitude={selectedActivity.location.lat as number}
           anchor="bottom"
           onClose={onInfoWindowClose}
           closeButton={true}
