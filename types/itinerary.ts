@@ -6,8 +6,8 @@ import { z } from "zod";
 
 export const LocationSchema = z.object({
   name: z.string().min(1, "Location name is required").max(200, "Location name is too long"),
-  lat: z.number().min(-90).max(90).optional().default(0),
-  lng: z.number().min(-180).max(180).optional().default(0),
+  lat: z.number().min(-90).max(90).nullable().optional(),
+  lng: z.number().min(-180).max(180).nullable().optional(),
   place_id: z.string().optional(),
 });
 
