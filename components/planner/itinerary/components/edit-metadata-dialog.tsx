@@ -250,7 +250,6 @@ export function EditMetadataDialog({
               <Button
                 type="submit"
                 variant={isShrinking ? "destructive" : "default"}
-                disabled={isSaving || isDeleting}
                 isLoading={isSaving}
                 loadingText={t("saving")}
               >
@@ -282,7 +281,6 @@ export function EditMetadataDialog({
               <Button
                 variant="destructive"
                 onClick={handleDelete}
-                disabled={isDeleting}
                 isLoading={isDeleting}
                 loadingText={t("deleting")}
               >
@@ -335,7 +333,6 @@ export function EditMetadataDialog({
               <Button
                 variant="destructive"
                 onClick={handleConfirmShrink}
-                disabled={isSaving}
                 isLoading={isSaving}
                 loadingText={t("saving")}
               >

@@ -185,7 +185,6 @@ export function AddActivityDialog({
             </Button>
             <Button
               type="submit"
-              disabled={isSaving}
               isLoading={isSaving}
               loadingText={t("saving")}
             >

@@ -206,7 +206,6 @@ export function EditActivityDialog({
               </Button>
               <Button
                 type="submit"
-                disabled={isSaving}
                 isLoading={isSaving}
                 loadingText={t("saving")}
               >
@@ -249,7 +248,6 @@ export function EditActivityDialog({
               <Button
                 variant="destructive"
                 onClick={handleConfirmDelete}
-                disabled={isSaving}
                 isLoading={isSaving}
                 loadingText={t("deleting")}
               >
