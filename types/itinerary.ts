@@ -38,6 +38,7 @@ export const ActivitySchema = z.object({
   opening_hours: OpeningHoursSchema.optional(),
   type: z.enum(["lunch", "dinner", "breakfast", "transit"]).optional(),
   flexible: z.boolean().optional(),
+  importance: z.enum(["must", "preferred"]).optional(),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;
