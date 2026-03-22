@@ -128,8 +128,8 @@ describe("Map Pin Placement Property Tests", () => {
           expect(Number.isFinite(activity.location.lng)).toBe(true);
         });
 
-        // Property: Number of pins should equal number of valid activities
-        return validActivities.length === validActivities.length;
+        // Property: Total activities across days should equal flattened activity count
+        return totalActivities === allActivities.length;
       }),
       { numRuns: 100 }
     );
