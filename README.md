@@ -66,7 +66,7 @@ npm install
 3. Set up environment variables:
 
 ```bash
-cp .env.local.example .env.local
+cp .env.example .env
 ```
 
 Edit `.env.local` and add your API keys:
