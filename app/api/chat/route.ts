@@ -79,7 +79,44 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify(body),
   });
 
-  return new Response(response.body, {
+  if (!response.body) {
+    return new Response(response.body, {
+      status: response.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // 分叉 stream：stream1 給 client，stream2 在背景 log
+  const [stream1, stream2] = response.body.tee();
+
+  (async () => {
+    const reader = stream2.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        fullText += decoder.decode(value, { stream: true });
+      }
+      const opsMatch = fullText.match(/ITINERARY_OPERATIONS:\s*(\{[\s\S]*\})/);
+      if (opsMatch) {
+        try {
+          const ops = JSON.parse(opsMatch[1]);
+          const count = ops.operations?.length ?? 0;
+          console.info(`\n[chat] Gemini operations (${count}):`);
+          console.info(JSON.stringify(ops, null, 2));
+        } catch {
+          console.info("\n[chat] Gemini operations (parse failed):", opsMatch[1].slice(0, 200));
+        }
+      } else {
+        const snippet = fullText.slice(0, 300).replace(/\n/g, " ");
+        console.info(`\n[chat] Gemini response (${fullText.length} chars): ${snippet}`);
+      }
+    } catch { /* ignore logging errors */ }
+  })();
+
+  return new Response(stream1, {
     status: response.status,
     headers: {
       "Content-Type": response.headers.get("Content-Type") || "application/json",
