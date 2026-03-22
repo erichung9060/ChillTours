@@ -132,7 +132,9 @@
       "confirmDeleteDescription": "This action cannot be undone. The activity will be permanently removed from your itinerary.",
       "confirmDeleteNote": "Please confirm you want to permanently delete this activity.",
       "cancelDelete": "Go back",
-      "confirmDelete": "Yes, delete"
+      "confirmDelete": "Yes, delete",
+      "errorSave": "Failed to save activity. Please try again.",
+      "errorDelete": "Failed to delete activity. Please try again."
     },
     "addDialog": {
       "title": "Add Activity",
@@ -146,7 +148,8 @@
       "placeholderNote": "Write down your note...",
       "save": "Add activity",
       "saving": "Adding...",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "errorAdd": "Failed to add activity. Please try again."
     },
     "activityPlaceholderCard": {
       "clickToAdd": "Click to Add"

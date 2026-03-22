@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -76,6 +77,7 @@ export function EditActivityDialog({
       onClose();
     } catch (err) {
       console.error("Save activity failed:", err);
+      toast.error(t("errorSave"));
     }
   };
 
@@ -89,6 +91,7 @@ export function EditActivityDialog({
       onClose();
     } catch (err) {
       console.error("Delete activity failed:", err);
+      toast.error(t("errorDelete"));
     }
   };
 

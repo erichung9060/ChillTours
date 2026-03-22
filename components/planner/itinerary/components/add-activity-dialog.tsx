@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -77,6 +78,7 @@ export function AddActivityDialog({
       onClose();
     } catch (err) {
       console.error("Add activity failed:", err);
+      toast.error(t("errorAdd"));
     }
   };
 

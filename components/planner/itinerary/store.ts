@@ -36,20 +36,20 @@ interface ItineraryState {
   fetchItinerary: (id: string) => Promise<void>;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">>) => Promise<void>;
   addActivity: (dayNumber: number, activityInput: {
-    title: string;
-    locationName: string;
-    time: string;
-    duration: number;
-    note?: string;
-    url?: string;
+      title: string;
+      locationName: string;
+      time: string;
+      duration: number;
+      note?: string;
+      url?: string;
   }, insertionIndex?: number) => Promise<void>;
   updateActivity: (activityId: string, activityInput: {
-    title: string;
-    locationName: string;
-    time: string;
-    duration: number;
-    note?: string;
-    url?: string;
+      title: string;
+      locationName: string;
+      time: string;
+      duration: number;
+      note?: string;
+      url?: string;
   }) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
   updateDays: (newDays: Day[]) => Promise<void>;
@@ -235,7 +235,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true, error: null });
+    set({ isSaving: true });
     try {
       // Resolve location data
       const resolvedLocation = await ensureLocationData({
@@ -257,18 +257,18 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       const days = state.itinerary.days.map((day) =>
         day.day_number === dayNumber
           ? {
-            ...day,
-            activities:
-              insertionIndex !== undefined &&
+              ...day,
+              activities:
+                insertionIndex !== undefined &&
                 insertionIndex >= 0 &&
                 insertionIndex <= day.activities.length
-                ? [
-                  ...day.activities.slice(0, insertionIndex),
-                  activity,
-                  ...day.activities.slice(insertionIndex),
-                ]
-                : [...day.activities, activity],
-          }
+                  ? [
+                      ...day.activities.slice(0, insertionIndex),
+                      activity,
+                      ...day.activities.slice(insertionIndex),
+                    ]
+                  : [...day.activities, activity],
+            }
           : day
       );
 
@@ -276,7 +276,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to add activity:", err);
-      set({ error: "Failed to add activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -288,7 +287,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true, error: null });
+    set({ isSaving: true });
     try {
       // Find the existing activity to get current location
       let existingActivity: Activity | undefined;
@@ -331,7 +330,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to update activity:", err);
-      set({ error: "Failed to update activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -343,7 +341,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true, error: null });
+    set({ isSaving: true });
     try {
       const newDays = state.itinerary.days.map((day) => ({
         ...day,
@@ -354,7 +352,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to delete activity:", err);
-      set({ error: "Failed to delete activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });
