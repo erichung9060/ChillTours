@@ -250,6 +250,7 @@ def _apply_time_windows(
                         activity.opening_hours.open, activity.opening_hours.close)
         else:
             time_dim.CumulVar(node_index).SetRange(0, total_available)
+            logger.info("  Time window [%s]: FREE (0-%dmin)", activity.title, total_available)
 
 
 def _build_params(fss, lsm, seconds: int, sol_limit: int = 100) -> pywrapcp.DefaultRoutingSearchParameters:
@@ -625,9 +626,18 @@ def optimize_route(activities: List[ActivityInput], mode: str = "walking", start
                 n, mode, start_time, start_time_minutes, end_time, end_time_minutes,
                 end_time_minutes - start_time_minutes)
     for i, a in enumerate(activities):
-        tw = a.opening_hours
-        tw_str = f"  time_window=[{tw.open},{tw.close}]" if tw else "  no_time_window"
-        logger.info("  [%d] %s | duration=%dmin%s", i, a.title, a.duration_minutes, tw_str)
+        # Determine which constraint will be applied (mirrors _apply_time_windows logic)
+        if a.type in _MEAL_HARD_WINDOWS:
+            open_str, close_str = _MEAL_HARD_WINDOWS[a.type]
+            constraint = f"MEAL({a.type}) hard window {open_str}-{close_str}"
+        elif a.flexible is False:
+            constraint = f"FIXED flexible=False → {a.time} ±15min"
+        elif a.opening_hours:
+            constraint = f"opening_hours {a.opening_hours.open}-{a.opening_hours.close} (arrive -30min early)"
+        else:
+            constraint = "FREE (no constraint)"
+        logger.info("  [%d] %s | duration=%dmin | type=%s flexible=%s → %s",
+                    i, a.title, a.duration_minutes, a.type or "-", a.flexible, constraint)
     logger.info("  Distance matrix (minutes):")
     for row in matrix:
         logger.info("    %s", [round(v) for v in row])
@@ -865,11 +875,14 @@ def extract_time_window(opening_hours: dict, dow: int) -> Optional[dict]:
 def optimize_endpoint(body: OptimizeRequest) -> OptimizeResponse:
     activities = body.activities
 
-    logger.info("=== /optimize (快速) request ===")
+    logger.info("=== /optimize (快速) request === mode=%s start=%s end=%s",
+                body.mode, body.start_time, body.end_time)
     logger.info("Input activities (%d):", len(activities))
     for i, a in enumerate(activities):
-        logger.info("  [%d] %s | lat=%.5f lng=%.5f | duration=%dmin | time=%s",
-                    i, a.title, a.lat, a.lng, a.duration_minutes, a.time)
+        tw = f" opening_hours={a.opening_hours.open}-{a.opening_hours.close}" if a.opening_hours else ""
+        logger.info("  [%d] %s | lat=%.5f lng=%.5f | duration=%dmin | time=%s | type=%s flexible=%s%s",
+                    i, a.title, a.lat, a.lng, a.duration_minutes, a.time,
+                    a.type or "-", a.flexible, tw)
 
     if len(activities) <= 1:
         logger.info("Only 1 activity — returning as-is.")
@@ -893,12 +906,15 @@ def optimize_full_endpoint(body: FullOptimizeRequest) -> FullOptimizeResponse:
     dow = get_day_of_week(day_date)
     dow_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-    logger.info("=== /optimize/full (完整) request ===")
+    logger.info("=== /optimize/full (完整) request === mode=%s start=%s end=%s",
+                body.mode, body.start_time, body.end_time)
     logger.info("Date: %s (%s), day-of-week=%d", day_date, dow_names[dow], dow)
     logger.info("Input activities (%d):", len(activities))
     for i, a in enumerate(activities):
-        logger.info("  [%d] %s | lat=%.5f lng=%.5f | duration=%dmin | time=%s",
-                    i, a.title, a.lat, a.lng, a.duration_minutes, a.time)
+        tw = f" opening_hours={a.opening_hours.open}-{a.opening_hours.close}" if a.opening_hours else ""
+        logger.info("  [%d] %s | lat=%.5f lng=%.5f | duration=%dmin | time=%s | type=%s flexible=%s%s",
+                    i, a.title, a.lat, a.lng, a.duration_minutes, a.time,
+                    a.type or "-", a.flexible, tw)
 
     if len(activities) <= 1:
         enriched = [enrich_activity(a) for a in activities]
