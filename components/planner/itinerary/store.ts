@@ -455,15 +455,27 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          activities: day.activities.map((a) => ({
-            id: a.id,
-            title: a.title,
-            lat: a.location.lat,
-            lng: a.location.lng,
-            duration_minutes: a.duration_minutes,
-            time: a.time,
-            ...(a.opening_hours ? { opening_hours: a.opening_hours } : {}),
-          })),
+          activities: day.activities.map((a) => {
+            const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
+              lunch: { open: "11:00", close: "14:00" },
+              dinner: { open: "17:30", close: "21:00" },
+              breakfast: { open: "07:00", close: "10:00" },
+            };
+            const mealWindow = a.type && MEAL_WINDOWS[a.type] ? MEAL_WINDOWS[a.type] : null;
+            const opening_hours = a.opening_hours ?? mealWindow ?? undefined;
+            return {
+              id: a.id,
+              title: a.title,
+              lat: a.location.lat,
+              lng: a.location.lng,
+              duration_minutes: a.duration_minutes,
+              time: a.time,
+              flexible: a.flexible,
+              ...(a.type ? { type: a.type } : {}),
+              ...(opening_hours ? { opening_hours } : {}),
+              ...(a.importance ? { importance: a.importance } : {}),
+            };
+          }),
           mode: day.transport_mode ?? "driving",
           start_time: day.start_time ?? day.activities[0].time,
           end_time: day.end_time ?? "20:00",
@@ -493,11 +505,26 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         return `${h}:${m}`;
       };
 
+      const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
+        lunch: { open: "11:00", close: "14:00" },
+        dinner: { open: "17:30", close: "21:00" },
+        breakfast: { open: "07:00", close: "10:00" },
+      };
+
       let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
 
       const reorderedActivities = order.map((id, i) => {
-        const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
-        currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+        const base = activityById[id];
+        let startMinutes = currentMinutes;
+        if (base.type && MEAL_WINDOWS[base.type]) {
+          startMinutes = Math.max(currentMinutes, parseTime(MEAL_WINDOWS[base.type].open));
+        } else if (base.opening_hours) {
+          startMinutes = Math.max(currentMinutes, parseTime(base.opening_hours.open));
+        } else if (base.flexible === false) {
+          startMinutes = parseTime(base.time);
+        }
+        const activity = { ...base, order: i, time: formatTime(startMinutes) };
+        currentMinutes = startMinutes + activity.duration_minutes + (travel_times_minutes[i] ?? 0);
         return activity;
       });
 
@@ -537,7 +564,10 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             lng: a.location.lng,
             duration_minutes: a.duration_minutes,
             time: a.time,
+            flexible: a.flexible,
+            ...(a.type ? { type: a.type } : {}),
             ...(a.opening_hours ? { opening_hours: a.opening_hours } : {}),
+            ...(a.importance ? { importance: a.importance } : {}),
           })),
           mode: day.transport_mode ?? "driving",
           date: dayDate,
@@ -577,15 +607,29 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         return `${h}:${m}`;
       };
 
+      const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
+        lunch: { open: "11:00", close: "14:00" },
+        dinner: { open: "17:30", close: "21:00" },
+        breakfast: { open: "07:00", close: "10:00" },
+      };
+
       let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
 
       const reorderedActivities = order.map((id, i) => {
         const base = activityById[id];
         const enriched = enrichedById[id];
+        let startMinutes = currentMinutes;
+        if (base.type && MEAL_WINDOWS[base.type]) {
+          startMinutes = Math.max(currentMinutes, parseTime(MEAL_WINDOWS[base.type].open));
+        } else if (base.opening_hours) {
+          startMinutes = Math.max(currentMinutes, parseTime(base.opening_hours.open));
+        } else if (base.flexible === false) {
+          startMinutes = parseTime(base.time);
+        }
         const activity = {
           ...base,
           order: i,
-          time: formatTime(currentMinutes),
+          time: formatTime(startMinutes),
           location: {
             ...base.location,
             lat: enriched?.lat ?? base.location.lat,
@@ -593,7 +637,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             ...(enriched?.place_id ? { place_id: enriched.place_id } : {}),
           },
         };
-        currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+        currentMinutes = startMinutes + activity.duration_minutes + (travel_times_minutes[i] ?? 0);
         return activity;
       });
 
@@ -675,8 +719,17 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           let currentMinutes = parseTime(day.start_time ?? day.activities[0].time);
 
           const reorderedActivities = order.map((id, i) => {
-            const activity = { ...activityById[id], order: i, time: formatTime(currentMinutes) };
-            currentMinutes += activity.duration_minutes + (travel_times_minutes[i] ?? 0);
+            const base = activityById[id];
+            let startMinutes = currentMinutes;
+            if (base.type && MEAL_WINDOWS[base.type]) {
+              startMinutes = Math.max(currentMinutes, parseTime(MEAL_WINDOWS[base.type].open));
+            } else if (base.opening_hours) {
+              startMinutes = Math.max(currentMinutes, parseTime(base.opening_hours.open));
+            } else if (base.flexible === false) {
+              startMinutes = parseTime(base.time);
+            }
+            const activity = { ...base, order: i, time: formatTime(startMinutes) };
+            currentMinutes = startMinutes + activity.duration_minutes + (travel_times_minutes[i] ?? 0);
             return activity;
           });
 
