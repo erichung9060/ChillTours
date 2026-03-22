@@ -239,31 +239,28 @@ describe("Operations System", () => {
     });
 
     it("should geocode location when coordinates not provided by LLM", async () => {
-      // Mock Google Maps API for this test
-      const mockGeocode = vi.fn().mockResolvedValue({
-        results: [
-          {
-            geometry: {
-              location: {
-                lat: () => 36.0,
-                lng: () => 140.0,
-              },
-            },
-            place_id: "new_place_id",
-            formatted_address: "Updated Location",
-          },
-        ],
-      });
+      // Mock global fetch for API resolving
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch;
 
-      global.window = {
-        google: {
-          maps: {
-            Geocoder: class {
-              geocode = mockGeocode;
-            },
-          },
-        },
-      } as any;
+      mockFetch.mockImplementationOnce(async (url, options) => {
+        const body = JSON.parse(options.body);
+        const reqId = body.places[0].id;
+        return {
+          ok: true,
+          json: async () => ({
+            resolved: [
+              {
+                id: reqId,
+                name: "Updated Location",
+                lat: 36.0,
+                lng: 140.0,
+                place_id: "new_place_id",
+              },
+            ],
+          }),
+        };
+      });
 
       const result = await applyOperations(mockItinerary, {
         operations: [
@@ -285,7 +282,7 @@ describe("Operations System", () => {
       expect(updated.location.name).toBe("Updated Location");
       expect(updated.location.lat).toBe(36.0);
       expect(updated.location.lng).toBe(140.0);
-      expect(mockGeocode).toHaveBeenCalledWith({ address: "Updated Location" });
+      expect(mockFetch).toHaveBeenCalled();
     });
   });
 
