@@ -10,6 +10,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import {
   DndContext,
   DragOverlay,
@@ -33,6 +34,7 @@ import {
 import type { ItineraryPanelProps, ViewMode } from "./itinerary";
 import { useItineraryStore } from "./itinerary/store";
 import { useGlobalAddModeTracking } from "./itinerary/hooks/use-global-add-mode-tracking";
+import { toast } from "sonner";
 
 const pointerSensorOptions = {
   activationConstraint: {
@@ -49,6 +51,7 @@ export function ItineraryPanel({
   currentDayIndex,
   onCurrentDayChange,
 }: ItineraryPanelProps) {
+  const t = useTranslations("planner");
   // Store state - Read itinerary directly from store
   const itinerary = useItineraryStore((state) => state.itinerary);
   const updateDays = useItineraryStore(
@@ -167,25 +170,30 @@ export function ItineraryPanel({
     handleDragOverAction(active, over, activeData, overData);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     setDraggingActivityId(null);
     setCrossDayDragInfo(null);
     const currentItinerary = useItineraryStore.getState().itinerary;
     if (currentItinerary) {
-      updateDays(currentItinerary.days);
+      try {
+        await updateDays(currentItinerary.days);
+      } catch (err) {
+        console.error("Update days failed:", err);
+        toast.error(t("errorUpdateDays"));
+      }
     }
   };
 
   // Get the active activity for drag overlay
   const activeActivity = draggingActivityId
     ? itinerary.days
-      .flatMap((day) =>
-        day.activities.map((activity) => ({
-          activity,
-          dayNumber: day.day_number,
-        }))
-      )
-      .find(({ activity }) => activity.id === draggingActivityId)
+        .flatMap((day) =>
+          day.activities.map((activity) => ({
+            activity,
+            dayNumber: day.day_number,
+          }))
+        )
+        .find(({ activity }) => activity.id === draggingActivityId)
     : null;
 
   // View renderers mapping

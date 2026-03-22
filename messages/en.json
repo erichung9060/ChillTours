@@ -115,6 +115,7 @@
     "loading": "Loading your itinerary...",
     "loadError": "Failed to Load Itinerary",
     "generating": "Generating your itinerary...",
+    "errorUpdateDays": "Failed to update itinerary order. Please try again.",
     "editDialog": {
       "title": "Edit Activity",
       "description": "Make changes to your activity here. Click save when you're done.",
@@ -178,7 +179,9 @@
       "confirmDeleteItineraryDescription": "This action cannot be undone. All activities and metadata will be permanently removed.",
       "confirmDeleteItineraryNote": "Please confirm you want to permanently delete this itinerary.",
       "cancelDeleteItinerary": "Go back",
-      "confirmDeleteItinerary": "Yes, delete"
+      "confirmDeleteItinerary": "Yes, delete",
+      "errorSave": "Failed to save changes. Please try again.",
+      "errorDeleteItinerary": "Failed to delete itinerary. Please try again."
     }
   },
   "activityType": {
@@ -197,7 +200,8 @@
     "emptyDescription": "Ask me to modify your itinerary, suggest activities, or answer questions about your trip.",
     "placeholder": "Ask me anything about your trip...",
     "sendHint": "Press Enter to send, Shift+Enter for new line",
-    "error": "Sorry, I encountered an error. Please try again."
+    "error": "Sorry, I encountered an error. Please try again.",
+    "errorApplyOperations": "Failed to apply AI suggestions. Please try again."
   },
   "legal": {
     "terms": {

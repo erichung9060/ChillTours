@@ -28,6 +28,7 @@ import { aiClient } from "@/lib/ai/client";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 import type { Itinerary } from "@/types/itinerary";
 import type { ChatMessage } from "@/types/chat";
+import { toast } from "sonner";
 
 interface ChatPanelProps {
   itinerary: Itinerary;
@@ -132,7 +133,12 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
 
         // Apply itinerary operations if present
         if (result.operations) {
-          await applyOperations(result.operations);
+          try {
+            await applyOperations(result.operations);
+          } catch (err) {
+            console.error("Apply operations failed:", err);
+            toast.error(t("errorApplyOperations"));
+          }
         }
       } catch (error) {
         console.error("Chat error:", error);
@@ -262,9 +268,9 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                 <div
                   className={`max-w-[80%] rounded-lg px-4 py-2 ${
                     message.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                    }`}
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-foreground"
+                  }`}
                 >
                   {/* Render message content with Markdown support for assistant messages */}
                   {message.role === "assistant" ? (
