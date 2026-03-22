@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ensureLocationData, resolvePlaceWithAPI } from "@/lib/maps/geocoding";
+import { ensureLocationData, resolvePlaceWithAPI, hasValidCoordinates } from "@/lib/maps/geocoding";
 import type { PartialLocation } from "@/lib/maps/geocoding";
 
 // Mock Supabase client
@@ -110,7 +110,7 @@ describe("ensureLocationData", () => {
     expect(mockFetch).toHaveBeenCalled();
   });
 
-  it("should return default coordinates if API fails", async () => {
+  it("should return null coordinates when geocoding fails", async () => {
     const location: PartialLocation = {
       name: "Unknown Place",
     };
@@ -122,8 +122,8 @@ describe("ensureLocationData", () => {
     const result = await ensureLocationData(location);
 
     expect(result.name).toBe("Unknown Place");
-    expect(result.lat).toBe(0);
-    expect(result.lng).toBe(0);
+    expect(result.lat).toBeNull();
+    expect(result.lng).toBeNull();
     expect(result.place_id).toBeUndefined();
   });
 
@@ -158,5 +158,13 @@ describe("ensureLocationData", () => {
     expect(result.lat).toBe(35.6586);
     expect(result.lng).toBe(139.7454);
     expect(mockFetch).toHaveBeenCalled();
+  });
+});
+
+describe("hasValidCoordinates", () => {
+  it("should return false for null coordinates", () => {
+    expect(hasValidCoordinates({ lat: null, lng: null })).toBe(false);
+    expect(hasValidCoordinates({ lat: 25, lng: null })).toBe(false);
+    expect(hasValidCoordinates({ lat: null, lng: 121 })).toBe(false);
   });
 });
