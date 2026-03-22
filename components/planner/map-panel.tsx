@@ -21,7 +21,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useLocale } from "next-intl";
 import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
 import {
@@ -41,11 +41,6 @@ interface MapPanelProps {
   onActivityClick?: (activityId: string) => void;
 }
 
-const defaultCenter = {
-  lat: 0,
-  lng: 0,
-};
-
 export function MapPanel({
   itinerary,
   hoveredDayNumber,
@@ -54,15 +49,12 @@ export function MapPanel({
   onActivityClick,
 }: MapPanelProps) {
   // Get the map provider (abstraction layer)
-  const mapProvider = getMapProvider();
   const providerType = getConfiguredProviderType();
   const locale = useLocale();
 
   const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
     null
   );
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
-  const [mapZoom, setMapZoom] = useState(2);
 
   // Collect all activities with their day numbers (memoized to prevent unnecessary re-renders)
   const allActivities = useMemo<ActivityWithDay[]>(
@@ -81,21 +73,6 @@ export function MapPanel({
     () => allActivities.filter((a) => hasValidCoordinates(a.location)),
     [allActivities]
   );
-
-  // Get all valid locations for bounds calculation
-  const validLocations = useMemo(
-    () => mappableActivities.map((a) => a.location),
-    [mappableActivities]
-  );
-
-  // Calculate map bounds when itinerary changes
-  useEffect(() => {
-    if (validLocations.length > 0) {
-      const bounds = mapProvider.calculateBounds(validLocations);
-      setMapCenter(bounds.center);
-      setMapZoom(bounds.zoom);
-    }
-  }, [itinerary, mapProvider, validLocations]);
 
   // Calculate highlighted activities for highlighting and smart zoom (memoized)
   const highlightedActivities = useMemo(() => {
@@ -125,6 +102,7 @@ export function MapPanel({
   // Determine marker icon based on highlight state (using provider abstraction)
   const getMarkerIcon = useCallback(
     (activity: ActivityWithDay) => {
+      const mapProvider = getMapProvider();
       const isHighlighted = isActivityHighlighted(activity);
       const config = isHighlighted
         ? PIN_CONFIGS.highlighted
@@ -136,7 +114,7 @@ export function MapPanel({
         size: { width: config.width, height: config.height },
       });
     },
-    [isActivityHighlighted, mapProvider]
+    [isActivityHighlighted]
   );
 
   const handleMarkerClick = useCallback(
@@ -154,8 +132,6 @@ export function MapPanel({
   // Common props for all renderers
   const rendererProps = {
     activities: mappableActivities,
-    mapCenter,
-    mapZoom,
     selectedActivity,
     highlightedActivities: highlightedActivities.filter((a) =>
       hasValidCoordinates(a.location)

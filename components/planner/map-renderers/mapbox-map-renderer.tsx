@@ -16,8 +16,6 @@ import type { MapRendererProps } from "./types";
 
 export function MapboxMapRenderer({
   activities,
-  mapCenter,
-  mapZoom,
   selectedActivity,
   highlightedActivities,
   onMarkerClick,
@@ -31,6 +29,9 @@ export function MapboxMapRenderer({
   const { resolvedTheme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
+
+  const fallbackCenter = { lng: 0, lat: 0 };
+  const fallbackZoom = 2;
 
   // Choose map style based on theme
   const mapStyle =
@@ -115,7 +116,7 @@ export function MapboxMapRenderer({
     if (!mapRef.current || !isLoaded || highlightedActivities.length === 0)
       return;
 
-        // Check if any highlighted activity is outside the visible bounds
+    // Check if any highlighted activity is outside the visible bounds
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
         !isLocationVisible(
@@ -190,9 +191,9 @@ export function MapboxMapRenderer({
       ref={mapRef}
       mapboxAccessToken={mapboxToken}
       initialViewState={{
-        longitude: mapCenter.lng,
-        latitude: mapCenter.lat,
-        zoom: mapZoom,
+        longitude: fallbackCenter.lng,
+        latitude: fallbackCenter.lat,
+        zoom: fallbackZoom,
       }}
       style={{ width: "100%", height: "100%" }}
       mapStyle={mapStyle}

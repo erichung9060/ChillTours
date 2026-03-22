@@ -46,10 +46,10 @@ function MapContent({
     const bounds = new google.maps.LatLngBounds();
 
     activities.forEach((activity) => {
-        bounds.extend({
-          lat: activity.location.lat as number,
-          lng: activity.location.lng as number,
-        });
+      bounds.extend({
+        lat: activity.location.lat as number,
+        lng: activity.location.lng as number,
+      });
     });
 
     // Only fit bounds if we have valid points
@@ -105,7 +105,10 @@ function MapContent({
     try {
       const bounds = new google.maps.LatLngBounds();
       locations.forEach((location) => {
-        bounds.extend({ lat: location.lat as number, lng: location.lng as number });
+        bounds.extend({
+          lat: location.lat as number,
+          lng: location.lng as number,
+        });
       });
 
       map.fitBounds(bounds, 100);
@@ -199,8 +202,6 @@ function MapContent({
 
 export function GoogleMapRenderer({
   activities,
-  mapCenter,
-  mapZoom,
   selectedActivity,
   highlightedActivities,
   onMarkerClick,
@@ -210,6 +211,9 @@ export function GoogleMapRenderer({
 }: MapRendererProps) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
   const { resolvedTheme } = useTheme();
+
+  const fallbackCenter = { lat: 0, lng: 0 };
+  const fallbackZoom = 2;
 
   if (!apiKey) {
     return (
@@ -246,8 +250,8 @@ export function GoogleMapRenderer({
     <APIProvider apiKey={apiKey} language={locale}>
       <Map
         style={mapContainerStyle}
-        defaultCenter={mapCenter}
-        defaultZoom={mapZoom}
+        defaultCenter={fallbackCenter}
+        defaultZoom={fallbackZoom}
         gestureHandling="greedy"
         disableDefaultUI={false}
         mapId={process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID}
@@ -255,8 +259,6 @@ export function GoogleMapRenderer({
       >
         <MapContent
           activities={activities}
-          mapCenter={mapCenter}
-          mapZoom={mapZoom}
           selectedActivity={selectedActivity}
           highlightedActivities={highlightedActivities}
           onMarkerClick={onMarkerClick}
