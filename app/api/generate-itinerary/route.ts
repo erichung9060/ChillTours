@@ -51,7 +51,52 @@ export async function POST(request: NextRequest) {
     }
   );
 
-  return new Response(response.body, {
+  if (!response.body) {
+    return new Response(response.body, {
+      status: response.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // 分叉 stream：stream1 給 client，stream2 在背景 log
+  const [stream1, stream2] = response.body.tee();
+
+  (async () => {
+    const reader = stream2.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let activityCount = 0;
+    console.info("\n[generate-itinerary] Gemini stream started");
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const events = buffer.split("\n\n");
+        buffer = events.pop() ?? "";
+        for (const event of events) {
+          const lines = event.split("\n");
+          const eventType = lines.find((l) => l.startsWith("event:"))?.slice(6).trim();
+          const dataLine  = lines.find((l) => l.startsWith("data:"))?.slice(5).trim();
+          if (eventType === "activity" && dataLine) {
+            try {
+              const { day_number, activity } = JSON.parse(dataLine);
+              activityCount++;
+              const tag = activity.type ? ` [${activity.type}]` : "";
+              const hours = activity.opening_hours ? ` hours=${activity.opening_hours.open}–${activity.opening_hours.close}` : "";
+              console.info(`  [Day ${day_number}] ${activity.time} ${activity.title} (${activity.duration_minutes}min)${tag}${hours}`);
+            } catch { /* ignore parse errors */ }
+          } else if (eventType === "complete") {
+            console.info(`[generate-itinerary] complete — ${activityCount} activities generated`);
+          } else if (eventType === "error") {
+            console.error(`[generate-itinerary] error:`, dataLine);
+          }
+        }
+      }
+    } catch { /* ignore logging errors */ }
+  })();
+
+  return new Response(stream1, {
     status: response.status,
     headers: {
       "Content-Type": response.headers.get("Content-Type") || "application/json",
