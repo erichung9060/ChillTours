@@ -54,6 +54,7 @@ export function AddActivityDialog({
 
   const titleValue = form.watch("title");
   const isDirtyLocation = form.getFieldState("locationName").isDirty;
+  const { isDirty } = form.formState;
 
   useEffect(() => {
     if (!isDirtyLocation && titleValue) {
@@ -187,6 +188,7 @@ export function AddActivityDialog({
               type="submit"
               isLoading={isSaving}
               loadingText={t("saving")}
+              disabled={!isDirty}
             >
               {t("save")}
             </Button>

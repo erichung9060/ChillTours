@@ -57,6 +57,8 @@ export function EditActivityDialog({
     },
   });
 
+  const { isDirty } = form.formState;
+
   useEffect(() => {
     if (isOpen) {
       setStep("edit");
@@ -208,6 +210,7 @@ export function EditActivityDialog({
                 type="submit"
                 isLoading={isSaving}
                 loadingText={t("saving")}
+                disabled={!isDirty}
               >
                 {t("save")}
               </Button>

@@ -60,6 +60,8 @@ export function EditMetadataDialog({
     },
   });
 
+  const { isDirty } = form.formState;
+
   // Make sure we update default values fully when itinerary or dialog visibility changes.
   useEffect(() => {
     if (isOpen) {
@@ -252,6 +254,7 @@ export function EditMetadataDialog({
                 variant={isShrinking ? "destructive" : "default"}
                 isLoading={isSaving}
                 loadingText={t("saving")}
+                disabled={!isDirty}
               >
                 {isShrinking ? t("saveAndShrink") : t("save")}
               </Button>
