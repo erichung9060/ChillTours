@@ -41,14 +41,19 @@ function MapContent({
 
   // Fit bounds when map loads or activities change
   useEffect(() => {
-    if (map && activities.length > 0) {
-      const bounds = new google.maps.LatLngBounds();
-      activities.forEach((activity) => {
+    if (!map || activities.length === 0) return;
+
+    const bounds = new google.maps.LatLngBounds();
+
+    activities.forEach((activity) => {
         bounds.extend({
-          lat: activity.location.lat,
-          lng: activity.location.lng,
+          lat: activity.location.lat as number,
+          lng: activity.location.lng as number,
         });
-      });
+    });
+
+    // Only fit bounds if we have valid points
+    if (!bounds.isEmpty()) {
       map.fitBounds(bounds);
     }
   }, [map, activities]);
@@ -86,7 +91,10 @@ function MapContent({
     // Check if any highlighted activity is outside the visible bounds
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
-        !isLocationVisible(activity.location.lat, activity.location.lng)
+        !isLocationVisible(
+          activity.location.lat as number,
+          activity.location.lng as number
+        )
     );
 
     if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
@@ -97,7 +105,7 @@ function MapContent({
     try {
       const bounds = new google.maps.LatLngBounds();
       locations.forEach((location) => {
-        bounds.extend({ lat: location.lat, lng: location.lng });
+        bounds.extend({ lat: location.lat as number, lng: location.lng as number });
       });
 
       map.fitBounds(bounds, 100);
@@ -121,8 +129,8 @@ function MapContent({
   const handleMarkerClick = useCallback(
     (activity: Activity) => {
       setInfoWindowPosition({
-        lat: activity.location.lat,
-        lng: activity.location.lng,
+        lat: activity.location.lat as number,
+        lng: activity.location.lng as number,
       });
       onMarkerClick(activity);
     },
@@ -144,8 +152,8 @@ function MapContent({
           <AdvancedMarker
             key={activity.id}
             position={{
-              lat: activity.location.lat,
-              lng: activity.location.lng,
+              lat: activity.location.lat as number,
+              lng: activity.location.lng as number,
             }}
             onClick={() => handleMarkerClick(activity)}
             title={activity.title}
