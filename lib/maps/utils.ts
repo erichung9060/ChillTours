@@ -10,7 +10,7 @@ export function createNavigationLink(location: Location): string {
     const { name, place_id } = location;
 
     if (place_id) {
-        return `https://www.google.com/maps/search/?api=1&query_place_id=${place_id}`;
+        return `https://www.google.com/maps/place/?q=place_id:${place_id}`;
     } else {
         return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`;
     }
