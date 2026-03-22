@@ -14,13 +14,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { DateRangePicker } from "@/components/landing/date-range-picker";
-import { parseLocalDate, formatLocalDate, calcDayCount } from "@/lib/utils/date";
+import {
+  parseLocalDate,
+  formatLocalDate,
+  calcDayCount,
+} from "@/lib/utils/date";
 import type { Itinerary } from "@/types/itinerary";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, Controller } from "react-hook-form";
-import { createEditMetadataFormSchema, type EditMetadataFormValues } from "@/types/forms";
+import {
+  createEditMetadataFormSchema,
+  type EditMetadataFormValues,
+} from "@/types/forms";
 import { toast } from "sonner";
 
 interface EditMetadataDialogProps {
@@ -178,7 +185,10 @@ export function EditMetadataDialog({
                 />
               </div>
               <div className="grid gap-2">
-                                <label htmlFor="tripDestination" className="text-sm font-medium">
+                <label
+                  htmlFor="tripDestination"
+                  className="text-sm font-medium"
+                >
                   {t("labelDestination")}
                 </label>
                 <Input
@@ -190,9 +200,7 @@ export function EditMetadataDialog({
                 />
               </div>
               <div className="grid gap-2">
-                                <label className="text-sm font-medium">
-                                    {t("labelDates")}
-                                </label>
+                <label className="text-sm font-medium">{t("labelDates")}</label>
                 <Controller
                   name="dates"
                   control={form.control}
@@ -218,7 +226,10 @@ export function EditMetadataDialog({
                 )}
               </div>
               <div className="grid gap-2">
-                                <label htmlFor="tripPreferences" className="text-sm font-medium">
+                <label
+                  htmlFor="tripPreferences"
+                  className="text-sm font-medium"
+                >
                   {t("labelPreferences")}
                 </label>
                 <Textarea
@@ -278,7 +289,11 @@ export function EditMetadataDialog({
             </p>
 
             <DialogFooter className="mt-6 gap-2">
-                            <Button variant="outline" onClick={handleBackToEdit} disabled={isDeleting}>
+              <Button
+                variant="outline"
+                onClick={handleBackToEdit}
+                disabled={isDeleting}
+              >
                 {t("cancelDeleteItinerary")}
               </Button>
               <Button
@@ -330,7 +345,11 @@ export function EditMetadataDialog({
             </p>
 
             <DialogFooter className="mt-6 gap-2">
-                            <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={handleBackToEdit}
+                disabled={isSaving}
+              >
                 {t("cancelShrink")}
               </Button>
               <Button
