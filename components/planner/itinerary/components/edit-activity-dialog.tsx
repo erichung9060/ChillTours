@@ -204,8 +204,13 @@ export function EditActivityDialog({
                 <Trash2 className="h-4 w-4 mr-2" />
                 {t("delete")}
               </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? t("saving") : t("save")}
+              <Button
+                type="submit"
+                disabled={isSaving}
+                isLoading={isSaving}
+                loadingText={t("saving")}
+              >
+                {t("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -245,8 +250,10 @@ export function EditActivityDialog({
                 variant="destructive"
                 onClick={handleConfirmDelete}
                 disabled={isSaving}
+                isLoading={isSaving}
+                loadingText={t("deleting")}
               >
-                {isSaving ? t("saving") : t("confirmDelete")}
+                {t("confirmDelete")}
               </Button>
             </DialogFooter>
           </div>

@@ -1,5 +1,6 @@
 import * as React from "react";
 import { cn } from "@/lib/utils/cn";
+import { Loader2 } from "lucide-react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:
@@ -10,10 +11,24 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     | "outline"
     | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
+  isLoading?: boolean;
+  loadingText?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = "default", size = "default", ...props }, ref) => {
+  (
+    {
+      className,
+      variant = "default",
+      size = "default",
+      isLoading,
+      loadingText,
+      children,
+      disabled,
+      ...props
+    },
+    ref
+  ) => {
     return (
       <button
         className={cn(
@@ -21,7 +36,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "inline-flex items-center justify-center rounded-lg font-medium",
           "transition-all duration-200 ease-out",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          "disabled:pointer-events-none disabled:opacity-50",
+          "disabled:pointer-events-none",
+          isLoading ? "opacity-80" : "disabled:opacity-50",
           "active:scale-[0.98]",
           "relative overflow-hidden",
           // Hover lift effect
@@ -86,8 +102,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className
         )}
         ref={ref}
+        disabled={disabled || isLoading}
+        aria-disabled={isLoading ? "true" : undefined}
         {...props}
-      />
+      >
+        {isLoading && (
+          <Loader2
+            className={cn(
+              "h-4 w-4 animate-[spin_0.8s_ease-in-out_infinite]",
+              loadingText || children ? "mr-2" : ""
+            )}
+            aria-hidden="true"
+          />
+        )}
+        <span className="flex items-center justify-center transition-opacity duration-150 ease-in">
+          {isLoading && loadingText ? loadingText : children}
+        </span>
+      </button>
     );
   }
 );

@@ -183,8 +183,13 @@ export function AddActivityDialog({
             >
               {t("cancel")}
             </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? t("saving") : t("save")}
+            <Button
+              type="submit"
+              disabled={isSaving}
+              isLoading={isSaving}
+              loadingText={t("saving")}
+            >
+              {t("save")}
             </Button>
           </DialogFooter>
         </form>

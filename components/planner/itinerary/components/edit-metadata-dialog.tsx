@@ -247,10 +247,14 @@ export function EditMetadataDialog({
               ) : (
                 <div />
               )}
-                            <Button type="submit" variant={isShrinking ? "destructive" : "default"} disabled={isSaving || isDeleting}>
-                                {isSaving ? t("saving") : isShrinking
-                    ? t("saveAndShrink")
-                    : t("save")}
+              <Button
+                type="submit"
+                variant={isShrinking ? "destructive" : "default"}
+                disabled={isSaving || isDeleting}
+                isLoading={isSaving}
+                loadingText={t("saving")}
+              >
+                {isShrinking ? t("saveAndShrink") : t("save")}
               </Button>
             </DialogFooter>
           </form>
@@ -279,8 +283,10 @@ export function EditMetadataDialog({
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={isDeleting}
+                isLoading={isDeleting}
+                loadingText={t("deleting")}
               >
-                {isDeleting ? t("saving") : t("confirmDeleteItinerary")}
+                {t("confirmDeleteItinerary")}
               </Button>
             </DialogFooter>
           </div>
@@ -330,8 +336,10 @@ export function EditMetadataDialog({
                 variant="destructive"
                 onClick={handleConfirmShrink}
                 disabled={isSaving}
+                isLoading={isSaving}
+                loadingText={t("saving")}
               >
-                {isSaving ? t("saving") : t("confirmShrink")}
+                {t("confirmShrink")}
               </Button>
             </DialogFooter>
           </div>
