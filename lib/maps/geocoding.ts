@@ -13,18 +13,21 @@ import { getAccessToken } from "@/lib/supabase/client";
  */
 export interface PartialLocation {
   name: string;
-  lat?: number;
-  lng?: number;
+  lat?: number | null;
+  lng?: number | null;
   place_id?: string;
 }
 
 /**
  * Check if location has valid coordinates
+ * Handles null, undefined, NaN, and out-of-range values
  *
  * @param location - Location to validate
- * @returns true if coordinates are valid, false otherwise
+ * @returns true if coordinates are valid numbers within range
  */
-export function hasValidCoordinates(location: PartialLocation): boolean {
+export function hasValidCoordinates<T extends { lat?: number | null; lng?: number | null }>(
+  location: T
+): location is T & { lat: number; lng: number } {
   return (
     typeof location.lat === "number" &&
     typeof location.lng === "number" &&
@@ -107,16 +110,15 @@ export async function geocodeLocation(
 }
 
 /**
- * Ensure location has valid coordinates with fallback
- * This is the high-level function that combines validation + geocoding + fallback
+ * Ensure location has valid coordinates with fallback to null
  *
  * Strategy:
  * 1. If valid coordinates exist → return as-is
  * 2. If coordinates missing → geocode via API
- * 3. If geocoding fails → return with fallback (0, 0)
+ * 3. If geocoding fails → return with null coordinates
  *
  * @param location - Partial location that may be missing data
- * @returns Complete location with guaranteed coordinates (may use fallback)
+ * @returns Location with coordinates (may be null if unknown)
  */
 export async function ensureLocationData(
   location: PartialLocation
@@ -138,16 +140,21 @@ export async function ensureLocationData(
 
   const geocoded = await geocodeLocation(location);
   if (geocoded) {
-    return geocoded;
+    return {
+      name: geocoded.name,
+      lat: geocoded.lat ?? null,
+      lng: geocoded.lng ?? null,
+      place_id: geocoded.place_id,
+    };
   }
 
-  // 3. Fallback
+  // 3. Fallback to null (not 0,0)
   console.warn(
-    `Failed to geocode "${location.name}", using fallback coordinates`
+    `Failed to geocode "${location.name}", coordinates will be null`
   );
   return {
     name: location.name,
-    lat: 0,
-    lng: 0,
+    lat: null,
+    lng: null,
   };
 }
