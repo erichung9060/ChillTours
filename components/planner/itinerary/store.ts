@@ -274,6 +274,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       const updated = await updateItinerary(state.itinerary.id, { days });
       set({ itinerary: updated });
+      get().setHoveredActivity(activity.id);
     } catch (err) {
       console.error("Failed to add activity:", err);
       throw err;
@@ -336,6 +337,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       const updated = await updateItinerary(state.itinerary.id, { days: newDays });
       set({ itinerary: updated });
+      get().setHoveredActivity(activityId);
     } catch (err) {
       console.error("Failed to update activity:", err);
       throw err;
