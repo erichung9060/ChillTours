@@ -18,7 +18,11 @@ import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
+import {
+  createActivityFormSchema,
+  type ActivityFormValues,
+} from "@/types/forms";
+import { ensureLocationData } from "@/lib/maps/geocoding";
 
 interface EditActivityDialogProps {
   activity: Activity;
@@ -70,19 +74,24 @@ export function EditActivityDialog({
   }, [activity, isOpen, form]);
 
   const onSubmit = async (data: ActivityFormValues) => {
-    const updatedActivity: Activity = {
-      ...activity,
-      title: data.title,
-      location: {
-        ...activity.location,
-        name: data.locationName,
-      },
-      note: data.note || "",
-      time: data.time,
-      duration_minutes: data.duration,
-      url: data.url || undefined,
-    };
     try {
+      let resolvedLocation = activity.location;
+
+      if (data.locationName !== activity.location.name) {
+        resolvedLocation = await ensureLocationData({
+          name: data.locationName,
+        });
+      }
+
+      const updatedActivity: Activity = {
+        ...activity,
+        title: data.title,
+        location: resolvedLocation,
+        note: data.note || "",
+        time: data.time,
+        duration_minutes: data.duration,
+        url: data.url || undefined,
+      };
       await onSave(updatedActivity);
       onClose();
     } catch (err) {
@@ -115,9 +124,7 @@ export function EditActivityDialog({
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
               <DialogTitle>{t("title")}</DialogTitle>
-              <DialogDescription>
-                {t("description")}
-              </DialogDescription>
+              <DialogDescription>{t("description")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -244,10 +251,18 @@ export function EditActivityDialog({
             </p>
 
             <DialogFooter className="mt-6 gap-2">
-              <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
+              <Button
+                variant="outline"
+                onClick={handleBackToEdit}
+                disabled={isSaving}
+              >
                 {t("cancelDelete")}
               </Button>
-              <Button variant="destructive" onClick={handleConfirmDelete} disabled={isSaving}>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDelete}
+                disabled={isSaving}
+              >
                 {isSaving ? t("saving") : t("confirmDelete")}
               </Button>
             </DialogFooter>

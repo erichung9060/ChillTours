@@ -6,6 +6,7 @@
  */
 
 import type { Location } from "@/types/itinerary";
+import { getAccessToken } from "@/lib/supabase/client";
 
 /**
  * Partial location that may be missing coordinates
@@ -18,66 +19,13 @@ export interface PartialLocation {
 }
 
 /**
- * Geocode result from Google Maps API
- */
-interface GeocodeResult {
-  lat: number;
-  lng: number;
-  place_id: string;
-  formatted_address: string;
-}
-
-/**
- * Geocode a location using Google Maps Geocoding API
+ * Check if location has valid coordinates
  *
- * @param locationName - Name of the location to geocode
- * @returns Geocoded location with coordinates and place_id, or null if failed
+ * @param location - Location to validate
+ * @returns true if coordinates are valid, false otherwise
  */
-export async function geocodeLocation(
-  locationName: string
-): Promise<GeocodeResult | null> {
-  if (!window.google || !window.google.maps) {
-    console.warn("Google Maps API not loaded, cannot geocode:", locationName);
-    return null;
-  }
-
-  const geocoder = new window.google.maps.Geocoder();
-
-  try {
-    const result = await geocoder.geocode({ address: locationName });
-
-    if (result.results && result.results.length > 0) {
-      const place = result.results[0];
-      const location = place.geometry.location;
-
-      return {
-        lat: location.lat(),
-        lng: location.lng(),
-        place_id: place.place_id,
-        formatted_address: place.formatted_address || locationName,
-      };
-    }
-
-    console.warn("No geocoding results found for:", locationName);
-    return null;
-  } catch (error) {
-    console.error("Geocoding error for", locationName, ":", error);
-    return null;
-  }
-}
-
-/**
- * Ensure location has valid coordinates
- * If missing, attempts to geocode using Google Maps API
- *
- * @param location - Partial location that may be missing data
- * @returns Complete location with coordinates, or original if geocoding fails
- */
-export async function ensureLocationData(
-  location: PartialLocation
-): Promise<Location> {
-  // Check if location already has valid coordinates
-  const hasValidCoordinates =
+export function hasValidCoordinates(location: PartialLocation): boolean {
+  return (
     typeof location.lat === "number" &&
     typeof location.lng === "number" &&
     !isNaN(location.lat) &&
@@ -85,10 +33,96 @@ export async function ensureLocationData(
     location.lat >= -90 &&
     location.lat <= 90 &&
     location.lng >= -180 &&
-    location.lng <= 180;
+    location.lng <= 180
+  );
+}
 
-  // If we have valid coordinates, return as is (no need for place_id)
-  if (hasValidCoordinates) {
+/**
+ * Resolve location using the backend API proxy (/api/resolve-places)
+ *
+ * @param location - Name and optional coordinates of the location
+ * @returns Complete location or null if failed
+ */
+async function resolvePlaceWithAPI(
+  location: PartialLocation
+): Promise<Location | null> {
+  try {
+    const token = await getAccessToken();
+    const id = crypto.randomUUID();
+
+    const response = await fetch("/api/resolve-places", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({
+        places: [
+          {
+            id,
+            name: location.name,
+            ...(location.lat !== undefined && { lat: location.lat }),
+            ...(location.lng !== undefined && { lng: location.lng }),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("API geocoding failed with status:", response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const resolved = data.resolved?.find((r: any) => r.id === id);
+
+    if (resolved && !resolved.error) {
+      return {
+        name: resolved.name || location.name,
+        lat: resolved.lat,
+        lng: resolved.lng,
+        place_id: resolved.place_id,
+      };
+    }
+
+    console.warn("No resolved data returned for:", location.name);
+    return null;
+  } catch (error) {
+    console.error("Error calling /api/resolve-places:", error);
+    return null;
+  }
+}
+
+/**
+ * Geocode location using backend API
+ * Returns null if geocoding fails
+ *
+ * @param location - Partial location to geocode
+ * @returns Complete location with coordinates, or null if geocoding fails
+ */
+export async function geocodeLocation(
+  location: PartialLocation
+): Promise<Location | null> {
+  return resolvePlaceWithAPI(location);
+}
+
+/**
+ * Ensure location has valid coordinates with fallback
+ * This is the high-level function that combines validation + geocoding + fallback
+ *
+ * Strategy:
+ * 1. If valid coordinates exist → return as-is
+ * 2. If coordinates missing → geocode via API
+ * 3. If geocoding fails → return with fallback (0, 0)
+ *
+ * @param location - Partial location that may be missing data
+ * @returns Complete location with guaranteed coordinates (may use fallback)
+ */
+export async function ensureLocationData(
+  location: PartialLocation
+): Promise<Location> {
+  // 1. Check if already valid
+  if (hasValidCoordinates(location)) {
     return {
       name: location.name,
       lat: location.lat!,
@@ -97,56 +131,23 @@ export async function ensureLocationData(
     };
   }
 
-  // Missing coordinates, attempt to geocode
+  // 2. Attempt geocoding
   console.log(
-    `Location "${location.name}" missing coordinates, attempting to geocode...`
+    `Location "${location.name}" missing coordinates, attempting geocoding...`
   );
-  const geocoded = await geocodeLocation(location.name);
 
+  const geocoded = await geocodeLocation(location);
   if (geocoded) {
-    return {
-      name: location.name,
-      lat: geocoded.lat,
-      lng: geocoded.lng,
-      place_id: geocoded.place_id,
-    };
+    return geocoded;
   }
 
-  // Geocoding failed, return with default coordinates (0, 0)
+  // 3. Fallback
   console.warn(
-    `Failed to geocode location "${location.name}", using default coordinates`
+    `Failed to geocode "${location.name}", using fallback coordinates`
   );
   return {
     name: location.name,
     lat: 0,
     lng: 0,
   };
-}
-
-/**
- * Batch geocode multiple locations
- * Processes locations in parallel with a delay to avoid rate limiting
- *
- * @param locations - Array of partial locations
- * @param delayMs - Delay between requests in milliseconds (default: 200ms)
- * @returns Array of complete locations
- */
-export async function batchGeocodeLocations(
-  locations: PartialLocation[],
-  delayMs: number = 200
-): Promise<Location[]> {
-  const results: Location[] = [];
-
-  for (let i = 0; i < locations.length; i++) {
-    const location = locations[i];
-    const result = await ensureLocationData(location);
-    results.push(result);
-
-    // Add delay between requests to avoid rate limiting (except for last item)
-    if (i < locations.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-    }
-  }
-
-  return results;
 }
