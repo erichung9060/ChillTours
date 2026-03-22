@@ -5,14 +5,28 @@ import * as fc from "fast-check";
  */
 
 /**
+ * Arbitrary for generating nullable coordinates
+ */
+export const nullableCoordinateArb = fc.oneof(
+  fc.record({
+    lat: fc.double({ min: -90, max: 90, noNaN: true }),
+    lng: fc.double({ min: -180, max: 180, noNaN: true }),
+  }),
+  fc.constant({ lat: null, lng: null })
+);
+
+/**
  * Arbitrary for generating valid location data
  */
 export const locationArbitrary = fc.record({
   name: fc.string({ minLength: 1, maxLength: 100 }),
-  lat: fc.double({ min: -90, max: 90 }),
-  lng: fc.double({ min: -180, max: 180 }),
   place_id: fc.option(fc.string(), { nil: undefined }),
-});
+}).chain((base) =>
+  nullableCoordinateArb.map((coords) => ({
+    ...base,
+    ...coords,
+  }))
+);
 
 /**
  * Arbitrary for generating valid activity data
