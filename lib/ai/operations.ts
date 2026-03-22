@@ -207,6 +207,7 @@ async function applyAddOperation(
     name: op.activity.location.name,
     lat: op.activity.location.lat,
     lng: op.activity.location.lng,
+    place_id: op.activity.location.place_id,
   });
 
   // Create new activity with generated ID
@@ -345,6 +346,7 @@ async function applyUpdateOperation(
       name: op.changes.location.name,
       lat: op.changes.location.lat,
       lng: op.changes.location.lng,
+      place_id: op.changes.location.place_id,
     });
   }
 
