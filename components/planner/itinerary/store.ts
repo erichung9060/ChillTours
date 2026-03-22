@@ -7,6 +7,7 @@ import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
 import { calcDayCount } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
+import { ensureLocationData } from "@/lib/maps/geocoding";
 
 interface ItineraryState {
   // Data State
@@ -34,8 +35,22 @@ interface ItineraryState {
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">>) => Promise<void>;
-  addActivity: (dayNumber: number, activity: Activity, insertionIndex?: number) => Promise<void>;
-  updateActivity: (updatedActivity: Activity) => Promise<void>;
+  addActivity: (dayNumber: number, activityInput: {
+    title: string;
+    locationName: string;
+    time: string;
+    duration: number;
+    note?: string;
+    url?: string;
+  }, insertionIndex?: number) => Promise<void>;
+  updateActivity: (activityId: string, activityInput: {
+    title: string;
+    locationName: string;
+    time: string;
+    duration: number;
+    note?: string;
+    url?: string;
+  }) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
   updateDays: (newDays: Day[]) => Promise<void>;
 
@@ -216,34 +231,52 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Add Single Activity
-  addActivity: async (dayNumber, activity, insertionIndex?: number) => {
+  addActivity: async (dayNumber, activityInput, insertionIndex?: number) => {
     const state = get();
     if (!state.itinerary) return;
 
-    const days = state.itinerary.days.map((day) =>
-      day.day_number === dayNumber
-        ? {
-          ...day,
-          activities:
-            insertionIndex !== undefined &&
-              insertionIndex >= 0 &&
-              insertionIndex <= day.activities.length
-              ? [
-                ...day.activities.slice(0, insertionIndex),
-                activity,
-                ...day.activities.slice(insertionIndex),
-              ]
-              : [...day.activities, activity],
-        }
-        : day
-    );
-
-    set({ isSaving: true });
+    set({ isSaving: true, error: null });
     try {
+      // Resolve location data
+      const resolvedLocation = await ensureLocationData({
+        name: activityInput.locationName,
+      });
+
+      // Create activity object
+      const activity: Activity = {
+        id: crypto.randomUUID(),
+        title: activityInput.title,
+        location: resolvedLocation,
+        note: activityInput.note || "",
+        time: activityInput.time,
+        duration_minutes: activityInput.duration,
+        url: activityInput.url || undefined,
+        order: insertionIndex ?? 0,
+      };
+
+      const days = state.itinerary.days.map((day) =>
+        day.day_number === dayNumber
+          ? {
+            ...day,
+            activities:
+              insertionIndex !== undefined &&
+                insertionIndex >= 0 &&
+                insertionIndex <= day.activities.length
+                ? [
+                  ...day.activities.slice(0, insertionIndex),
+                  activity,
+                  ...day.activities.slice(insertionIndex),
+                ]
+                : [...day.activities, activity],
+          }
+          : day
+      );
+
       const updated = await updateItinerary(state.itinerary.id, { days });
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to add activity:", err);
+      set({ error: "Failed to add activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -251,23 +284,54 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Update Single Activity
-  updateActivity: async (updatedActivity) => {
+  updateActivity: async (activityId, activityInput) => {
     const state = get();
     if (!state.itinerary) return;
 
-    const newDays = state.itinerary.days.map((day) => ({
-      ...day,
-      activities: day.activities.map((activity) =>
-        activity.id === updatedActivity.id ? updatedActivity : activity
-      ),
-    }));
-
-    set({ isSaving: true });
+    set({ isSaving: true, error: null });
     try {
+      // Find the existing activity to get current location
+      let existingActivity: Activity | undefined;
+      for (const day of state.itinerary.days) {
+        existingActivity = day.activities.find((a) => a.id === activityId);
+        if (existingActivity) break;
+      }
+
+      if (!existingActivity) {
+        throw new Error("Activity not found");
+      }
+
+      // Resolve location only if it changed
+      let resolvedLocation = existingActivity.location;
+      if (activityInput.locationName !== existingActivity.location.name) {
+        resolvedLocation = await ensureLocationData({
+          name: activityInput.locationName,
+        });
+      }
+
+      // Create updated activity object
+      const updatedActivity: Activity = {
+        ...existingActivity,
+        title: activityInput.title,
+        location: resolvedLocation,
+        note: activityInput.note || "",
+        time: activityInput.time,
+        duration_minutes: activityInput.duration,
+        url: activityInput.url || undefined,
+      };
+
+      const newDays = state.itinerary.days.map((day) => ({
+        ...day,
+        activities: day.activities.map((activity) =>
+          activity.id === activityId ? updatedActivity : activity
+        ),
+      }));
+
       const updated = await updateItinerary(state.itinerary.id, { days: newDays });
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to update activity:", err);
+      set({ error: "Failed to update activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -279,17 +343,18 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    const newDays = state.itinerary.days.map((day) => ({
-      ...day,
-      activities: day.activities.filter((activity) => activity.id !== activityId),
-    }));
-
-    set({ isSaving: true });
+    set({ isSaving: true, error: null });
     try {
+      const newDays = state.itinerary.days.map((day) => ({
+        ...day,
+        activities: day.activities.filter((activity) => activity.id !== activityId),
+      }));
+
       const updated = await updateItinerary(state.itinerary.id, { days: newDays });
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to delete activity:", err);
+      set({ error: "Failed to delete activity. Please try again." });
       throw err;
     } finally {
       set({ isSaving: false });

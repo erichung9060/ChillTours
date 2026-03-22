@@ -22,14 +22,11 @@ import {
   createActivityFormSchema,
   type ActivityFormValues,
 } from "@/types/forms";
-import { ensureLocationData } from "@/lib/maps/geocoding";
 
 interface EditActivityDialogProps {
   activity: Activity;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (updatedActivity: Activity) => Promise<void>;
-  onDelete: (activityId: string) => Promise<void>;
 }
 
 type Step = "edit" | "confirm-delete";
@@ -38,11 +35,11 @@ export function EditActivityDialog({
   activity,
   isOpen,
   onClose,
-  onSave,
-  onDelete,
 }: EditActivityDialogProps) {
   const t = useTranslations("planner.editDialog");
   const tv = useTranslations();
+  const updateActivity = useItineraryStore((state) => state.updateActivity);
+  const deleteActivity = useItineraryStore((state) => state.deleteActivity);
   const isSaving = useItineraryStore((state) => state.isSaving);
 
   const [step, setStep] = useState<Step>("edit");
@@ -75,24 +72,7 @@ export function EditActivityDialog({
 
   const onSubmit = async (data: ActivityFormValues) => {
     try {
-      let resolvedLocation = activity.location;
-
-      if (data.locationName !== activity.location.name) {
-        resolvedLocation = await ensureLocationData({
-          name: data.locationName,
-        });
-      }
-
-      const updatedActivity: Activity = {
-        ...activity,
-        title: data.title,
-        location: resolvedLocation,
-        note: data.note || "",
-        time: data.time,
-        duration_minutes: data.duration,
-        url: data.url || undefined,
-      };
-      await onSave(updatedActivity);
+      await updateActivity(activity.id, data);
       onClose();
     } catch (err) {
       console.error("Save activity failed:", err);
@@ -105,7 +85,7 @@ export function EditActivityDialog({
 
   const handleConfirmDelete = async () => {
     try {
-      await onDelete(activity.id);
+      await deleteActivity(activity.id);
       onClose();
     } catch (err) {
       console.error("Delete activity failed:", err);

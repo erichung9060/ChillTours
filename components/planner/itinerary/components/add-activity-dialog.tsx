@@ -13,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -21,7 +20,6 @@ import {
   createActivityFormSchema,
   type ActivityFormValues,
 } from "@/types/forms";
-import { ensureLocationData } from "@/lib/maps/geocoding";
 
 interface AddActivityDialogProps {
   dayNumber: number;
@@ -38,8 +36,8 @@ export function AddActivityDialog({
 }: AddActivityDialogProps) {
   const t = useTranslations("planner.addDialog");
   const tv = useTranslations();
-  const isSaving = useItineraryStore((state) => state.isSaving);
   const addActivity = useItineraryStore((state) => state.addActivity);
+  const isSaving = useItineraryStore((state) => state.isSaving);
 
   const form = useForm<ActivityFormValues>({
     resolver: zodResolver(createActivityFormSchema((key) => tv(key))) as any,
@@ -75,21 +73,7 @@ export function AddActivityDialog({
 
   const onSubmit = async (data: ActivityFormValues) => {
     try {
-      const resolvedLocation = await ensureLocationData({
-        name: data.locationName,
-      });
-
-      const newActivity: Activity = {
-        id: crypto.randomUUID(),
-        title: data.title,
-        location: resolvedLocation,
-        note: data.note || "",
-        time: data.time,
-        duration_minutes: data.duration,
-        url: data.url || undefined,
-        order: insertionIndex,
-      };
-      await addActivity(dayNumber, newActivity, insertionIndex);
+      await addActivity(dayNumber, data, insertionIndex);
       onClose();
     } catch (err) {
       console.error("Add activity failed:", err);
