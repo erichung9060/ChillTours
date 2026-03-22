@@ -9,36 +9,40 @@
  */
 
 import type { Location } from "@/types/itinerary";
+import { hasValidCoordinates } from "@/lib/maps/geocoding";
 
 /**
  * Calculate the center point and zoom level for a set of locations
  * This is a provider-agnostic utility used by all map providers
+ * Filters out locations with invalid/null coordinates
  */
 export function calculateMapBounds(locations: Location[]): {
   center: { lat: number; lng: number };
   zoom: number;
 } {
-  if (locations.length === 0) {
+  const validLocations = locations.filter(hasValidCoordinates);
+
+  if (validLocations.length === 0) {
     return {
       center: { lat: 0, lng: 0 },
       zoom: 2,
     };
   }
 
-  if (locations.length === 1) {
+  if (validLocations.length === 1) {
     return {
-      center: { lat: locations[0].lat, lng: locations[0].lng },
+      center: { lat: validLocations[0].lat, lng: validLocations[0].lng },
       zoom: 14,
     };
   }
 
-  // Calculate bounds
-  let minLat = locations[0].lat;
-  let maxLat = locations[0].lat;
-  let minLng = locations[0].lng;
-  let maxLng = locations[0].lng;
+  // Calculate bounds using only valid locations
+  let minLat = validLocations[0].lat;
+  let maxLat = validLocations[0].lat;
+  let minLng = validLocations[0].lng;
+  let maxLng = validLocations[0].lng;
 
-  locations.forEach((loc) => {
+  validLocations.forEach((loc) => {
     minLat = Math.min(minLat, loc.lat);
     maxLat = Math.max(maxLat, loc.lat);
     minLng = Math.min(minLng, loc.lng);
