@@ -79,11 +79,6 @@ export interface MapProvider {
   };
 
   /**
-   * Geocode a location name
-   */
-  geocodeAddress(locationName: string): Promise<Location | null>;
-
-  /**
    * Get place details from a place ID
    * Returns detailed information about a specific place
    */

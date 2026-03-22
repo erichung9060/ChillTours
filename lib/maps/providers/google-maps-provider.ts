@@ -44,36 +44,6 @@ export class GoogleMapsProvider implements MapProvider {
     return calculateMapBounds(locations);
   }
 
-  async geocodeAddress(locationName: string): Promise<Location | null> {
-    if (!window.google || !window.google.maps) {
-      console.error("Google Maps API not loaded");
-      return null;
-    }
-
-    const geocoder = new window.google.maps.Geocoder();
-
-    try {
-      const result = await geocoder.geocode({ address: locationName });
-
-      if (result.results && result.results.length > 0) {
-        const place = result.results[0];
-        const location = place.geometry.location;
-
-        return {
-          name: place.formatted_address || locationName,
-          lat: location.lat(),
-          lng: location.lng(),
-          place_id: place.place_id,
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Geocoding error:", error);
-      return null;
-    }
-  }
-
   async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
     if (!window.google || !window.google.maps) {
       console.error("Google Maps API not loaded");

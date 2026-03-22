@@ -48,47 +48,6 @@ export class MapboxProvider implements MapProvider {
     return calculateMapBounds(locations);
   }
 
-  async geocodeAddress(locationName: string): Promise<Location | null> {
-    // Mapbox Geocoding API implementation
-    // Requires: NEXT_PUBLIC_MAPBOX_API_KEY environment variable
-    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
-
-    if (!apiKey) {
-      console.error("Mapbox API key not configured");
-      return null;
-    }
-
-    try {
-      const encodedLocation = encodeURIComponent(locationName);
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedLocation}.json?access_token=${apiKey}&limit=1`
-      );
-
-      if (!response.ok) {
-        throw new Error("Geocoding request failed");
-      }
-
-      const data = await response.json();
-
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
-        const [lng, lat] = feature.center;
-
-        return {
-          name: feature.place_name || locationName,
-          lat,
-          lng,
-          place_id: feature.id,
-        };
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Mapbox geocoding error:", error);
-      return null;
-    }
-  }
-
   async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
     // Mapbox Geocoding API - Retrieve a feature
     // https://docs.mapbox.com/api/search/geocoding/#retrieve-a-feature
