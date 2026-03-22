@@ -287,9 +287,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true });
-    try {
-      // Find the existing activity to get current location
       let existingActivity: Activity | undefined;
       for (const day of state.itinerary.days) {
         existingActivity = day.activities.find((a) => a.id === activityId);
@@ -300,7 +297,18 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         throw new Error("Activity not found");
       }
 
-      // Resolve location only if it changed
+    const isDirty =
+      activityInput.title !== existingActivity.title ||
+      activityInput.locationName !== existingActivity.location.name ||
+      (activityInput.note || "") !== (existingActivity.note || "") ||
+      activityInput.time !== existingActivity.time ||
+      activityInput.duration !== existingActivity.duration_minutes ||
+      (activityInput.url || "") !== (existingActivity.url || "");
+
+    if (!isDirty) return;
+
+    set({ isSaving: true });
+    try {
       let resolvedLocation = existingActivity.location;
       if (activityInput.locationName !== existingActivity.location.name) {
         resolvedLocation = await ensureLocationData({
