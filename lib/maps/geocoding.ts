@@ -43,7 +43,7 @@ export function hasValidCoordinates(location: PartialLocation): boolean {
  * @param location - Name and optional coordinates of the location
  * @returns Complete location or null if failed
  */
-async function resolvePlaceWithAPI(
+export async function resolvePlaceWithAPI(
   location: PartialLocation
 ): Promise<Location | null> {
   try {
