@@ -28,6 +28,7 @@ import {
   getMapProvider,
   getConfiguredProviderType,
 } from "@/lib/maps/provider-factory";
+import { hasValidCoordinates } from "@/lib/maps/geocoding";
 import { PIN_CONFIGS } from "@/lib/maps/pin-icons";
 import { GoogleMapRenderer } from "./map-renderers/google-map-renderer";
 import { MapboxMapRenderer } from "./map-renderers/mapbox-map-renderer";
@@ -75,20 +76,26 @@ export function MapPanel({
     [itinerary]
   );
 
-  // Get all unique locations
-  const allLocations = useMemo(
-    () => allActivities.map((a) => a.location),
+  // Filter to only activities with valid coordinates for map rendering
+  const mappableActivities = useMemo<ActivityWithDay[]>(
+    () => allActivities.filter((a) => hasValidCoordinates(a.location)),
     [allActivities]
+  );
+
+  // Get all valid locations for bounds calculation
+  const validLocations = useMemo(
+    () => mappableActivities.map((a) => a.location),
+    [mappableActivities]
   );
 
   // Calculate map bounds when itinerary changes
   useEffect(() => {
-    if (allLocations.length > 0) {
-      const bounds = mapProvider.calculateBounds(allLocations);
+    if (validLocations.length > 0) {
+      const bounds = mapProvider.calculateBounds(validLocations);
       setMapCenter(bounds.center);
       setMapZoom(bounds.zoom);
     }
-  }, [itinerary, mapProvider]);
+  }, [itinerary, mapProvider, validLocations]);
 
   // Calculate highlighted activities for highlighting and smart zoom (memoized)
   const highlightedActivities = useMemo(() => {
@@ -146,11 +153,13 @@ export function MapPanel({
 
   // Common props for all renderers
   const rendererProps = {
-    activities: allActivities,
+    activities: mappableActivities,
     mapCenter,
     mapZoom,
     selectedActivity,
-    highlightedActivities,
+    highlightedActivities: highlightedActivities.filter((a) =>
+      hasValidCoordinates(a.location)
+    ),
     onMarkerClick: handleMarkerClick,
     onInfoWindowClose: handleInfoWindowClose,
     getMarkerIcon,
