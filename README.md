@@ -212,10 +212,8 @@ _備註：每次請求的 `places` 數量必須介於 1 到 50 之間。_
 │   ├── maps/                # Google Maps integration
 │   ├── collaboration/       # Yjs collaboration
 │   └── utils/               # Utility functions
-├── python/                  # Legacy route optimization service (deprecated)
 ├── doc/                     # Technical documentation
-│   ├── route-optimization.md    # Algorithm design & benchmarks
-│   └── ORTOOLS_SPEC.md          # Original OR-Tools specification
+│   └── route-optimization.md    # Route optimization architecture & algorithm
 ├── hooks/                   # Custom React hooks
 ├── types/                   # TypeScript type definitions
 ├── test/                    # Test files and utilities
@@ -224,11 +222,6 @@ _備註：每次請求的 `places` 數量必須介於 1 到 50 之間。_
 ├── supabase/                # Supabase configuration
 │   ├── migrations/          # Database migrations
 │   └── functions/           # Edge Functions
-├── setup.bat                # Windows: set up Python venv & install dependencies
-├── run.bat                  # Windows: start Python service + Next.js
-├── run-with-supabase.bat    # Windows: start Python service + Next.js + local Supabase
-├── setup.sh                 # macOS/Linux: set up Python venv & install dependencies
-└── run.sh                   # macOS/Linux: start Python service + Next.js
 ```
 
 ## Architecture
