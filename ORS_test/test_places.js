@@ -93,54 +93,85 @@ async function orsGeocode(name) {
   };
 }
 
+// ── ORS Snap（最近道路點）─────────────────────────────────────
+async function orsSnap(lat, lng) {
+  if (!ORS_API_KEY) return null;
+  try {
+    const res = await fetch("https://api.openrouteservice.org/v2/snap", {
+      method: "POST",
+      headers: { Authorization: ORS_API_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        locations: [[lng, lat]],
+        radius: 300,
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const loc = data.locations?.[0];
+    if (!loc) return null;
+    return { lat: loc.location[1], lng: loc.location[0], name: loc.name };
+  } catch { return null; }
+}
+
 // ── 印出單筆比較 ──────────────────────────────────────────────
-function printPlaceResult(place, google, ors) {
+async function printPlaceResult(place, google, ors) {
   console.log(`\n  ${"─".repeat(58)}`);
   console.log(`  搜尋：${place.name}`);
-  console.log(`  期望：${place.expectedLat}, ${place.expectedLng}`);
 
-  const fmt = (r, label) => {
-    if (!r) { console.log(`\n  [${label}]  ✗ 無結果`); return null; }
-    const err = haversineMeters(place.expectedLat, place.expectedLng, r.lat, r.lng);
-    console.log(`\n  [${label}]  (${r.elapsed}s)`);
-    console.log(`    名稱：${r.name}`);
-    console.log(`    座標：${r.lat.toFixed(4)}, ${r.lng.toFixed(4)}  誤差 ${Math.round(err)}m`);
-    if (r.rating != null) console.log(`    評分：${r.rating} (${r.ratingsTotal} 則)`);
-    else console.log(`    評分：不支援`);
-    if (r.opening) console.log(`    開放：${r.opening.open} – ${r.opening.close}`);
-    else console.log(`    開放時間：不支援`);
-    if (r.confidence != null) console.log(`    信心度：${r.confidence}  類型：${r.layer}`);
-    return err;
-  };
-
-  const gErr = fmt(google, "Google Places");
-  const oErr = fmt(ors, "ORS Geocoding");
-
-  if (gErr != null && oErr != null) {
-    const winner = gErr < oErr ? "Google" : oErr < gErr ? "ORS" : "平手";
-    console.log(`\n  → 座標較準：${winner}（Google ${Math.round(gErr)}m vs ORS ${Math.round(oErr)}m）`);
+  if (!google) {
+    console.log(`  [Google Places]  ✗ 無結果`);
+  } else {
+    console.log(`\n  [Google Places]  (${google.elapsed}s)`);
+    console.log(`    名稱：${google.name}`);
+    console.log(`    座標：${google.lat.toFixed(5)}, ${google.lng.toFixed(5)}`);
+    if (google.rating != null) console.log(`    評分：${google.rating} (${google.ratingsTotal} 則)`);
+    if (google.opening) console.log(`    開放：${google.opening.open} – ${google.opening.close}`);
   }
+
+  if (!ors) {
+    console.log(`\n  [ORS Geocoding]  ✗ 無結果`);
+  } else {
+    const diffFromGoogle = google ? haversineMeters(google.lat, google.lng, ors.lat, ors.lng) : null;
+    console.log(`\n  [ORS Geocoding]  (${ors.elapsed}s)`);
+    console.log(`    名稱：${ors.name}`);
+    console.log(`    座標：${ors.lat.toFixed(5)}, ${ors.lng.toFixed(5)}`);
+    console.log(`    信心度：${ors.confidence}  類型：${ors.layer}`);
+    if (diffFromGoogle != null) console.log(`    距 Google：${Math.round(diffFromGoogle)}m`);
+
+    // Snap ORS 座標到最近道路
+    const snap = await orsSnap(ors.lat, ors.lng);
+    if (snap) {
+      const snapDiff = haversineMeters(ors.lat, ors.lng, snap.lat, snap.lng);
+      const snapVsGoogle = google ? haversineMeters(google.lat, google.lng, snap.lat, snap.lng) : null;
+      console.log(`\n  [ORS Snap]`);
+      console.log(`    座標：${snap.lat.toFixed(5)}, ${snap.lng.toFixed(5)}  路名：${snap.name ?? "─"}`);
+      console.log(`    ORS → Snap：${Math.round(snapDiff)}m`);
+      if (snapVsGoogle != null) console.log(`    Snap 距 Google：${Math.round(snapVsGoogle)}m`);
+    }
+
+    return diffFromGoogle;
+  }
+  return null;
 }
 
 // ── 總結 ──────────────────────────────────────────────────────
-function printSummary(results) {
-  const gErrs = results.map((r) => r.gErr).filter((v) => v != null);
-  const oErrs = results.map((r) => r.oErr).filter((v) => v != null);
-  const avg = (arr) => arr.length ? (arr.reduce((s, v) => s + v, 0) / arr.length).toFixed(0) : "N/A";
+function printSummary(diffs) {
+  const valid = diffs.filter((v) => v != null);
+  const avg = valid.length ? Math.round(valid.reduce((s, v) => s + v, 0) / valid.length) : null;
+  const max = valid.length ? Math.round(Math.max(...valid)) : null;
 
   console.log(`\n${divider()}`);
-  console.log(`  地點資料總結（${results.length} 筆）`);
+  console.log(`  總結（${diffs.length} 筆，ORS 距 Google 的距離）`);
   console.log(divider());
-  console.log(`  平均座標誤差：Google ${avg(gErrs)}m  |  ORS ${avg(oErrs)}m`);
+  console.log(`  平均差距：${avg ?? "N/A"}m`);
+  console.log(`  最大差距：${max ?? "N/A"}m`);
+  console.log(`  找不到：${diffs.filter((v) => v == null).length} 筆`);
   console.log();
-  console.log(`  ${"功能".padEnd(16)} ${"Google".padStart(8)} ${"ORS".padStart(8)}`);
-  console.log(`  ${"座標搜尋".padEnd(16)} ${"✓".padStart(8)} ${"✓".padStart(8)}`);
+  console.log(`  功能對比：`);
+  console.log(`  ${"".padEnd(16)} ${"Google".padStart(8)} ${"ORS".padStart(8)}`);
+  console.log(`  ${"座標".padEnd(16)} ${"✓".padStart(8)} ${"✓".padStart(8)}`);
+  console.log(`  ${"opening_hours".padEnd(16)} ${"✓".padStart(8)} ${"✗".padStart(8)}`);
   console.log(`  ${"評分".padEnd(16)} ${"✓".padStart(8)} ${"✗".padStart(8)}`);
-  console.log(`  ${"開放時間".padEnd(16)} ${"✓".padStart(8)} ${"✗".padStart(8)}`);
-  console.log(`  ${"中文名稱".padEnd(16)} ${"✓".padStart(8)} ${"△".padStart(8)}`);
-  console.log(`  ${"台灣資料完整度".padEnd(16)} ${"高".padStart(8)} ${"中".padStart(8)}`);
-  console.log();
-  console.log(`  結論：ORS Geocoding 可提供座標，但評分/開放時間仍需 Google Places。`);
 }
 
 // ── 主程式 ────────────────────────────────────────────────────
@@ -151,21 +182,18 @@ async function main() {
   console.log(`\n${divider()}`);
   console.log(`  地點搜尋結果`);
 
-  const summary = [];
+  const diffs = [];
   for (const place of TEST_PLACES) {
     const [google, ors] = await Promise.all([
       googleSearch(place.name),
       orsGeocode(place.name),
     ]);
-    printPlaceResult(place, google, ors);
-    summary.push({
-      gErr: google ? haversineMeters(place.expectedLat, place.expectedLng, google.lat, google.lng) : null,
-      oErr: ors ? haversineMeters(place.expectedLat, place.expectedLng, ors.lat, ors.lng) : null,
-    });
-    await new Promise((r) => setTimeout(r, 200)); // rate limit
+    const diff = await printPlaceResult(place, google, ors);
+    diffs.push(diff);
+    await new Promise((r) => setTimeout(r, 300));
   }
 
-  printSummary(summary);
+  printSummary(diffs);
   console.log();
 }
 
