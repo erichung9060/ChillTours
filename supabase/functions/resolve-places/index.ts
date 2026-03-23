@@ -61,17 +61,11 @@ const DETAILS_FIELD_MASK = [
 // Google Maps helpers
 // ──────────────────────────────────────────────
 
-interface FindPlaceResult {
-  id: string;
-  lat?: number;
-  lng?: number;
-}
-
 async function findPlace(
   name: string,
   lat?: number,
   lng?: number
-): Promise<FindPlaceResult | null> {
+): Promise<string | null> {
   if (!apiKey) {
     console.error("Missing GOOGLE_MAPS_API_KEY environment variable");
     return null;
@@ -97,7 +91,7 @@ async function findPlace(
       headers: {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": apiKey,
-        "X-Goog-FieldMask": "places.id,places.location",
+        "X-Goog-FieldMask": "places.id",
       },
       body: JSON.stringify(body),
     });
@@ -117,12 +111,7 @@ async function findPlace(
       return null;
     }
 
-    const p = places[0];
-    return {
-      id: p.id,
-      lat: p.location?.latitude,
-      lng: p.location?.longitude,
-    };
+    return places[0].id ?? null;
   } catch (err) {
     console.error(`[findPlace] Exception for '${name}':`, err);
     throw err;
@@ -211,13 +200,12 @@ async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
 async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
   const base: ResolvedPlace = { id: input.id, name: input.name };
 
-  // Step 1: Find Place → place_id + fallback coordinates
-  const found = await findPlace(input.name, input.lat, input.lng);
-  if (!found) {
+  // Step 1: Find Place → place_id only
+  const placeId = await findPlace(input.name, input.lat, input.lng);
+  if (!placeId) {
     console.warn(`[resolvePlace] no place_id found for '${input.name}'`);
     return { ...base, error: "NOT_FOUND" };
   }
-  const placeId = found.id;
 
   // Step 2: Check cache
   const cached = await checkPlaceCache(placeId);
@@ -240,14 +228,7 @@ async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
 
   if (!details) {
     console.warn(`[resolvePlace] no details found for '${input.name}'`);
-    // Fallback: use findPlace coordinates (仿 Python enrich_activity 行為)
-    return {
-      ...base,
-      place_id: placeId,
-      lat: found.lat,
-      lng: found.lng,
-      error: "DETAILS_UNAVAILABLE",
-    };
+    return { ...base, place_id: placeId, error: "DETAILS_UNAVAILABLE" };
   }
 
   // Parse all fields from the New Places API structure
@@ -281,27 +262,23 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  // Service role bypass：Next.js server-to-server 直接呼叫（跳過 gateway + JWT）
-  const serviceRoleKey = req.headers.get("x-service-role-key");
-  const isServiceCall = serviceRoleKey !== null &&
-    serviceRoleKey === Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  // API Gateway Secret Check (Request from Next.JS api)
+  const expectedSecret = Deno.env.get("API_GATEWAY_SECRET");
+  const providedSecret = req.headers.get("x-gateway-secret");
+  
+  if (providedSecret !== expectedSecret) {
+    console.warn("Blocked direct access attempt: Invalid Gateway Secret");
+    return new Response(
+      JSON.stringify({ error: "Forbidden. Direct access not allowed." }),
+      {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
 
-  if (!isServiceCall) {
-    // 前端呼叫路徑：API Gateway Secret + 使用者 JWT
-    const expectedSecret = Deno.env.get("API_GATEWAY_SECRET");
-    const providedSecret = req.headers.get("x-gateway-secret");
-
-    if (providedSecret !== expectedSecret) {
-      console.warn("Blocked direct access attempt: Invalid Gateway Secret");
-      return new Response(
-        JSON.stringify({ error: "Forbidden. Direct access not allowed." }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
+  try {
+    // Auth
     const user = await verifyUser(req);
     if (!user) {
       return new Response(
@@ -312,9 +289,6 @@ Deno.serve(async (req) => {
         }
       );
     }
-  }
-
-  try {
 
     // Parse body
     let body;
