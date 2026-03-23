@@ -22,8 +22,9 @@ export interface OptimizeRequest {
 }
 
 export interface OptimizeResult {
-  order: string[];               // activity IDs 排序後
+  order: string[];                // activity IDs 排序後
   travel_times_minutes: number[]; // 每段行駛分鐘
+  start_times: string[];          // 每個活動實際開始時間 "HH:MM"（與 order 對應）
 }
 
 export interface EnrichedActivity {
