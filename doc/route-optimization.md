@@ -9,11 +9,15 @@
 
 ```
 前端按鈕
-  ├─ 快速優化 → POST /api/optimize-route      → Python /optimize
-  └─ 完整優化 → POST /api/optimize-route-full → Python /optimize/full
-                                                  ├─ Google Places 查詢每個景點
-                                                  ├─ 更新精確座標 + 營業時間
-                                                  └─ 送進 OR-Tools（含時間窗）
+  ├─ 快速優化 → POST /api/optimize-route      → lib/route-optimization/orchestrator.ts
+  │                                               ├─ Google Distance Matrix（距離矩陣）
+  │                                               └─ ORS Vroom / Greedy fallback
+  └─ 完整優化 → POST /api/optimize-route-full → lib/route-optimization/orchestrator.ts
+                                                  ├─ resolve-places Edge Function
+                                                  │    ├─ Google Places 查詢精確座標
+                                                  │    ├─ 取得當天營業時間
+                                                  │    └─ 快取至 google_places 表
+                                                  └─ ORS Vroom（含時間窗）/ Greedy fallback
 ```
 
 ---
@@ -173,12 +177,14 @@ Layer 1 / Layer 2 都使用 `ThreadPoolExecutor` 同時跑所有策略，取 `Ob
 
 ### 完整優化額外步驟
 
-1. **Find Place API**（每景點 ~0.3s）
-2. **Place Details API**（每景點 ~0.4s，$0.05/call）
-3. **place_cache 快取**（Supabase）— 查詢過的景點不重複付費
+1. **resolve-places Edge Function**（批次最多 5 個，呼叫 Google Places New API）
+   - Find Place Text Search（每景點 ~0.3s）
+   - Place Details（每景點 ~0.4s，$0.05/call）
+   - 快取至 `google_places` 表（Supabase）— 查詢過的景點不重複付費
+2. **回傳精確座標 + 當天營業時間** → 重建距離矩陣（若座標偏移 >0.001°）
 
 ```
-總時間（無快取）≈ N × 0.7s + 0.5s + OR-Tools
+總時間（無快取）≈ N × 0.7s + 0.5s + Vroom
 N=5：5 × 0.7 + 0.5 + 0.8 ≈ 4.8s
 ```
 
