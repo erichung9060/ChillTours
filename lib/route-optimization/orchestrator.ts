@@ -23,7 +23,7 @@ export async function optimizeRoute(req: OptimizeRequest): Promise<OptimizeResul
 
   if (activities.length <= 1) {
     console.info("[optimize-route] n<=1, returning as-is");
-    return { order: activities.map((a) => a.id), travel_times_minutes: [] };
+    return { order: activities.map((a) => a.id), travel_times_minutes: [], start_times: activities.map((a) => a.time) };
   }
 
   const matrix = await buildDistanceMatrix(activities, mode);
@@ -49,6 +49,7 @@ export async function optimizeRouteFull(
     return {
       order: activities.map((a) => a.id),
       travel_times_minutes: [],
+      start_times: activities.map((a) => a.time),
       enriched_activities: enriched,
     };
   }
