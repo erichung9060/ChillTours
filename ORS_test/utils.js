@@ -31,6 +31,9 @@ loadEnv();
 
 export const ORS_API_KEY = process.env.ORS_API_KEY;
 export const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL;
+export const API_GATEWAY_SECRET = process.env.API_GATEWAY_SECRET;
+export const NEXT_APP_URL = process.env.NEXT_APP_URL ?? "http://localhost:3000";
 
 export function haversineMeters(lat1, lng1, lat2, lng2) {
   const R = 6371000;
