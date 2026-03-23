@@ -5,6 +5,7 @@
 ### 現行方案（A + C）的限制
 
 目前「完美安排」的流程：
+
 1. Gemini 生成完整行程（景點 + 餐廳一起）
 2. OR-Tools 對全天活動做 TSP，餐廳透過 soft time window（午餐 11:00-14:00，晚餐 17:30-21:00）約束時間
 
@@ -57,71 +58,71 @@ Phase 2：插入餐廳
 
 ## API 設計
 
-### 新增 Python 端點
+### 新增 Next.js API Route
 
-`POST /optimize/perfect`
+`POST /api/optimize-route-perfect`：
 
-```python
-class PerfectOptimizeRequest(BaseModel):
-    activities: List[ActivityInput]   # 只含景點（不含餐廳）
-    date: str                         # "YYYY-MM-DD"，用於判斷星期幾
-    mode: str = "driving"
-    start_time: str = "09:00"
-    end_time: str = "20:00"
+```typescript
+// Request
+{
+  activities: ActivityInput[]  // 只含景點（不含餐廳）
+  date: string                 // "YYYY-MM-DD"，用於判斷星期幾
+  mode?: string                // 預設 "driving"
+  start_time?: string          // 預設 "09:00"
+  end_time?: string            // 預設 "21:00"
+}
 
-class InsertedMeal(BaseModel):
-    type: str                         # "lunch" | "dinner"
-    insert_after_id: str              # 插入在哪個景點後面
-    search_lat: float
-    search_lng: float
-    scheduled_time: str               # 預計用餐時間 "HH:MM"
+// Response
+{
+  order: string[]              // 景點排序（不含餐廳）
+  travel_times_minutes: number[]
+  start_times: string[]
+  meal_inserts: MealInsert[]   // 告訴前端去哪裡搜尋餐廳
+}
 
-class PerfectOptimizeResponse(BaseModel):
-    order: List[str]                  # 景點排序（不含餐廳）
-    travel_times_minutes: List[int]
-    meal_inserts: List[InsertedMeal]  # 告訴前端去哪裡搜尋餐廳
+interface MealInsert {
+  type: "lunch" | "dinner"
+  insert_after_id: string      // 插入在哪個景點後面
+  search_lat: number
+  search_lng: number
+  scheduled_time: string       // 預計用餐時間 "HH:MM"
+}
+```
+
+`POST /api/places-nearby`：
+
+```typescript
+// Request
+{
+  lat: number
+  lng: number
+  type: "restaurant"
+  radius: number
+  keyword?: string             // 可選：料理類型（從 user preferences 解析）
+}
+// Response：前 5 筆，含 name, place_id, lat, lng, rating, opening_hours
 ```
 
 ### 前端處理流程
 
 ```typescript
 // autoOptimizeAllDays（完美模式）
-1. 過濾掉餐廳活動，只傳景點給 /optimize/perfect
+1. 過濾掉餐廳活動，只傳景點給 /api/optimize-route-perfect
 2. 收到 meal_inserts → 對每個 insert，呼叫 /api/places-nearby
 3. 從結果選第一個（評分最高）轉換成 Activity 物件
 4. 將餐廳插入到指定景點後面
-5. 重新計算全天時間序列
+5. 重新計算全天時間序列（使用 start_times）
 6. 存回 Supabase
 ```
 
-### 新增 Next.js API Route
+### 需新增的檔案
 
-`POST /api/optimize-route-perfect`：代理到 Python `/optimize/perfect`
-
-`POST /api/places-nearby`：
-
-```typescript
-// 呼叫 Google Places Nearby Search
-{
-  lat: number,
-  lng: number,
-  type: "restaurant",
-  radius: number,
-  keyword?: string  // 可選：料理類型
-}
-// 回傳前 5 筆，含 name, place_id, lat, lng, rating, opening_hours
-```
-
----
-
-## 需修改的檔案
-
-| 檔案 | 變更 |
+| 檔案 | 說明 |
 | ---- | ---- |
-| `python/main.py` | 新增 `PerfectOptimizeRequest/Response`、`POST /optimize/perfect` 端點 |
-| `app/api/optimize-route-perfect/route.ts` | 新增，代理到 Python |
+| `app/api/optimize-route-perfect/route.ts` | 新增，呼叫 orchestrator perfect 模式 |
 | `app/api/places-nearby/route.ts` | 新增，呼叫 Google Places Nearby Search API |
-| `components/planner/itinerary/store.ts` | `autoOptimizeAllDays` 在 perfect 模式下改用新流程 |
+| `lib/route-optimization/orchestrator.ts` | 新增 `optimizeRoutePerfect` 函式 |
+| `components/planner/itinerary/store.ts` | `autoOptimizeAllDays` 支援 perfect 模式 |
 
 ---
 
