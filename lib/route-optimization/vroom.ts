@@ -1,14 +1,8 @@
 import type { ActivityInput, OptimizeResult, TransportMode } from "./types";
+import { MEAL_WINDOWS } from "./config";
 
 const ORS_API_KEY = process.env.ORS_API_KEY;
 const ORS_URL = "https://api.openrouteservice.org/optimization";
-
-// 用餐硬性時段（與 Python _MEAL_HARD_WINDOWS 一致）
-const MEAL_WINDOWS: Record<string, { open: string; close: string }> = {
-  breakfast: { open: "07:00", close: "10:00" },
-  lunch:     { open: "11:00", close: "14:00" },
-  dinner:    { open: "17:30", close: "21:00" },
-};
 
 function timeToSeconds(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
@@ -87,7 +81,7 @@ export async function callVroom(
       const twType = act.type && MEAL_WINDOWS[act.type]
         ? `MEAL(${act.type})`
         : act.flexible === false
-        ? `FIXED(${act.time}±15min)`
+        ? `FIXED(${act.time})`
         : `HOURS(${act.opening_hours?.open}–${act.opening_hours?.close})`;
       console.info(`  Time window [${act.title}]: ${twType} priority=${priority}`);
     } else {
@@ -156,13 +150,22 @@ export async function callVroom(
       return Math.max(1, Math.round(travelSec / 60));
     });
 
+    // 活動實際開始時間 = arrival（絕對秒）+ waiting_time → "HH:MM"
+    const startTimes = steps.map((s) => {
+      const sec = s.arrival + s.waiting_time;
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    });
+
     const totalTravel = travelTimes.reduce((a, b) => a + b, 0);
     const routeCost = routes[0].cost ?? routes[0].duration ?? "?";
     console.info(`[vroom] solution found — cost=${routeCost}, total_travel=${totalTravel}min`);
     console.info(`  order: ${steps.map((s) => activities[s.id - 1].title).join(" → ")}`);
+    console.info(`  start_times: [${startTimes.join(", ")}]`);
     console.info(`  travel_times: [${travelTimes.join(", ")}] min`);
 
-    return { order, travel_times_minutes: travelTimes };
+    return { order, travel_times_minutes: travelTimes, start_times: startTimes };
   } catch (err) {
     console.warn("[vroom] exception:", err);
     return null;
