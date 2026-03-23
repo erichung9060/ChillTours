@@ -1,8 +1,15 @@
 import type { ActivityInput, OptimizeResult } from "./types";
+import { MEAL_WINDOWS } from "./config";
 
 function parseTimeToMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
+}
+
+function formatTime(mins: number): string {
+  const h = Math.floor(mins / 60).toString().padStart(2, "0");
+  const m = (mins % 60).toString().padStart(2, "0");
+  return `${h}:${m}`;
 }
 
 /**
@@ -92,10 +99,27 @@ export function greedyFallback(
     Math.max(1, matrix[from][route[k + 1]])
   );
 
+  // 依路線順序推算每個活動的實際開始時間（含用餐時段、營業時間限制）
+  const startTimes: string[] = [];
+  let t = startTimeMinutes;
+  for (let k = 0; k < route.length; k++) {
+    const act = activities[route[k]];
+    if (act.type && MEAL_WINDOWS[act.type]) {
+      t = Math.max(t, parseTimeToMinutes(MEAL_WINDOWS[act.type].open));
+    } else if (act.opening_hours) {
+      t = Math.max(t, parseTimeToMinutes(act.opening_hours.open));
+    } else if (act.flexible === false) {
+      t = parseTimeToMinutes(act.time);
+    }
+    startTimes.push(formatTime(t));
+    t += act.duration_minutes + (k < travelTimes.length ? travelTimes[k] : 0);
+  }
+
   const totalTravel = travelTimes.reduce((a, b) => a + b, 0);
   console.info(`[greedy] total_travel=${totalTravel}min`);
   console.info(`  order: ${route.map((i) => activities[i].title).join(" → ")}`);
+  console.info(`  start_times: [${startTimes.join(", ")}]`);
   console.info(`  travel_times: [${travelTimes.join(", ")}] min`);
 
-  return { order, travel_times_minutes: travelTimes };
+  return { order, travel_times_minutes: travelTimes, start_times: startTimes };
 }
