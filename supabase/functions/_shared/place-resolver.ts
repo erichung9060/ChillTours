@@ -240,6 +240,7 @@ async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
 // ──────────────────────────────────────────────
 
 async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
+  input.name = input.name.trim();
   const base: ResolvedPlace = { id: input.id, name: input.name };
 
   if (input.lat === undefined || input.lng === undefined) {
