@@ -9,11 +9,14 @@ import { Logo } from "@/components/ui/logo";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginDialog } from "@/components/auth/login-dialog";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { SubscriptionDialog } from "@/components/planner/subscription-dialog";
 
 export function Header() {
   const t = useTranslations("navigation");
+  const tSub = useTranslations("subscription");
   const { user, signOut } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [subscriptionOpen, setSubscriptionOpen] = useState(false);
 
   return (
     <>
@@ -28,6 +31,19 @@ export function Header() {
             <ThemeToggle />
             {user ? (
               <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSubscriptionOpen(true)}
+                  className="font-medium text-primary hover:bg-primary/10 transition-all hover:scale-105"
+                  aria-label="View subscription plans"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <span>💎</span>
+                    <span className="hidden sm:inline">{tSub("credits")}:</span>
+                    <span className="font-semibold">300</span>
+                  </span>
+                </Button>
                 <Link href="/itineraries">
                   <Button
                     variant="ghost"
@@ -74,6 +90,7 @@ export function Header() {
       </header>
 
       <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
+      <SubscriptionDialog open={subscriptionOpen} onOpenChange={setSubscriptionOpen} />
     </>
   );
 }
