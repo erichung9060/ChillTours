@@ -44,6 +44,33 @@ const DETAILS_FIELD_MASK = [
   "regularOpeningHours",
 ].join(",");
 
+const MAX_RETRIES = 3;
+
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function rateLimitedFetch(
+  url: string,
+  options: RequestInit,
+  retries = MAX_RETRIES
+): Promise<Response> {
+  const resp = await fetch(url, options);
+
+  if (resp.status === 429 && retries > 0) {
+    const backoff = Math.pow(2, MAX_RETRIES - retries) * 1000;
+    await delay(backoff);
+    return rateLimitedFetch(url, options, retries - 1);
+  } else if (resp.status === 429 && retries === 0) {
+    console.error(`[rateLimitedFetch] 429 Too Many Requests, retry quota exhausted for ${url}`);
+    throw new Error(
+      `Google Maps API Error: 429 Too Many Requests - retry quota exhausted for ${url}`
+    );
+  }
+
+  return resp;
+}
+
 // ──────────────────────────────────────────────
 // Google Maps helpers
 // ──────────────────────────────────────────────
@@ -73,7 +100,7 @@ async function findPlace(
   }
 
   try {
-    const resp = await fetch(url, {
+    const resp = await rateLimitedFetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -117,7 +144,7 @@ async function getPlaceDetails(
   const url = `${BASE_URL}/places/${placeId}?languageCode=zh-TW`;
 
   try {
-    const resp = await fetch(url, {
+    const resp = await rateLimitedFetch(url, {
       method: "GET",
       headers: {
         "X-Goog-Api-Key": apiKey,
