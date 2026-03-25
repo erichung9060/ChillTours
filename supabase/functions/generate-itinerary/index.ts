@@ -5,6 +5,7 @@ import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 
 import { z } from "npm:zod";
+import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
 
 const GenerateRequestSchema = z.object({
   itinerary_id: z.string().min(1, "Itinerary ID is required"),
@@ -165,6 +166,9 @@ Deno.serve(async (req) => {
           activities: object[];
         }>();
 
+        // Track async resolution tasks before saving
+        const pendingResolutions: Promise<void>[] = [];
+
         // @streamparser/json: fire onValue for each complete activity object
         // paths: ["$.itinerary.*.activities.*"] means each activity in each day
         const parser = new JSONParser({ paths: ["$.itinerary.*.activities.*"] });
@@ -193,17 +197,40 @@ Deno.serve(async (req) => {
             order: dayMap.get(day_number)?.activities.length ?? 0,
           };
 
-          // Emit immediately
-          emitSSE("activity", {
-            day_number,
-            activity: activityWithId,
-          });
-
-          // Accumulate for DB save
+          // Accumulate for DB save synchronously to maintain order
           if (!dayMap.has(day_number)) {
             dayMap.set(day_number, { day_number, activities: [] });
           }
           dayMap.get(day_number)!.activities.push(activityWithId);
+
+          // Resolve place info asynchronously before emitting SSE
+          const resolveTask = (async () => {
+            try {
+              const resolvedData = await resolvePlacesInfo([{
+                id: activityWithId.id,
+                name: activityWithId.location.name,
+              }]);
+              
+              if (resolvedData.length > 0) {
+                const resolved = resolvedData[0];
+                activityWithId.location = {
+                  ...activityWithId.location,
+                  lat: resolved.lat ?? activityWithId.location.lat,
+                  lng: resolved.lng ?? activityWithId.location.lng,
+                };
+              }
+            } catch (err) {
+              console.error("Place resolution failed for", activityWithId.location.name, err);
+            }
+            
+            // Emit SSE only after (conditional) resolution completes
+            emitSSE("activity", {
+              day_number,
+              activity: activityWithId,
+            });
+          })();
+
+          pendingResolutions.push(resolveTask);
         };
 
         try {
@@ -236,6 +263,9 @@ Deno.serve(async (req) => {
               accumulatedText = ""; // Clear buffer after writing
             }
           }
+
+          // Wait for all inline resolution tasks to complete
+          await Promise.all(pendingResolutions);
 
           // Convert map to sorted array
           const allDays = Array.from(dayMap.values()).sort((a, b) => a.day_number - b.day_number);
