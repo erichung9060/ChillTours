@@ -96,10 +96,10 @@ export function SubscriptionDialog({
                   <p className="text-3xl font-bold">
                     {t("plans.pro.pricing.monthly")}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mt-1">
                     {t("plans.pro.pricing.annual")}
                   </p>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm font-medium text-slate-600 dark:text-slate-300 mt-2">
                     {t("plans.pro.credits")}
                   </p>
                 </div>
