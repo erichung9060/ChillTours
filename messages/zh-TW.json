@@ -266,5 +266,34 @@
         "p1": "本站之信用卡收款與定期定額扣款服務，均委託台灣合法之第三方支付平台「藍新金流（NewebPay）」處理。本站伺服器不會攔截、也不會儲存您的完整信用卡號碼或授權碼。 所有交易過程均受 SSL 憑證與金流公司之高規格加密保護，保障您的財務資訊安全。"
       }
     }
+  },
+  "subscription": {
+    "title": "訂閱方案",
+    "description": "選擇適合您的方案",
+    "creditUsage": {
+      "title": "點數消耗說明",
+      "generateItinerary": "生成行程：100 點/次",
+      "chat": "聊天對話：10 點/訊息"
+    },
+    "plans": {
+      "free": {
+        "title": "免費版",
+        "credits": "300 點",
+        "price": "免費",
+        "cta": "目前方案"
+      },
+      "pro": {
+        "badge": "推薦",
+        "title": "Pro 方案",
+        "credits": "每月 1,000 點",
+        "pricing": {
+          "monthly": "NT$ 129/月",
+          "annual": "NT$ 99/月（年繳 NT$ 1,188）"
+        },
+        "cta": "升級至 Pro"
+      }
+    },
+    "comingSoon": "敬請期待！訂閱功能即將上線 🚀",
+    "credits": "點數"
   }
 }

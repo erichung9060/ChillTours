@@ -266,5 +266,34 @@
         "p1": "The Site's credit card collection and recurring billing services are processed by a legal third-party payment platform in Taiwan. The Site's servers will not intercept or store your full credit card number or authorization code. All transactions are protected by SSL certificates and high-level encryption to ensure your financial security."
       }
     }
+  },
+  "subscription": {
+    "title": "Subscription Plans",
+    "description": "Choose the plan that fits your needs",
+    "creditUsage": {
+      "title": "Credit Usage",
+      "generateItinerary": "Generate Itinerary: 100 credits",
+      "chat": "Chat Message: 10 credits"
+    },
+    "plans": {
+      "free": {
+        "title": "Free Plan",
+        "credits": "300 credits",
+        "price": "Free",
+        "cta": "Current Plan"
+      },
+      "pro": {
+        "badge": "Recommended",
+        "title": "Pro Plan",
+        "credits": "1,000 credits/month",
+        "pricing": {
+          "monthly": "NT$ 129/month",
+          "annual": "NT$ 99/month (NT$ 1,188/year)"
+        },
+        "cta": "Upgrade to Pro"
+      }
+    },
+    "comingSoon": "Coming soon! Subscription features launching shortly 🚀",
+    "credits": "Credits"
   }
 }
