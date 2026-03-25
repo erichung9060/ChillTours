@@ -84,7 +84,8 @@ async function findPlace(
     });
 
     if (!resp.ok) {
-      console.warn(`[findPlace] HTTP Error ${resp.status}: ${resp.statusText}`);
+      const errorText = await resp.text();
+      console.warn(`[findPlace] HTTP Error ${resp.status}: ${resp.statusText}`, errorText);
       throw new Error(
         `Google Maps API Error: ${resp.status} ${resp.statusText}`
       );
@@ -125,8 +126,9 @@ async function getPlaceDetails(
     });
 
     if (!resp.ok) {
+      const errorText = await resp.text();
       console.warn(
-        `[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`
+        `[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`, errorText
       );
       throw new Error(
         `Google Maps API Error: ${resp.status} ${resp.statusText}`
