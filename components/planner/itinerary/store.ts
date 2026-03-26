@@ -424,10 +424,13 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
 
       if (existingDayIdx !== -1) {
-        // Day already exists, add activity to it
+        // Day already exists, add activity to it and sort by its native order
+        const updatedActivities = [...days[existingDayIdx].activities, activity];
+        updatedActivities.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
         days[existingDayIdx] = {
           ...days[existingDayIdx],
-          activities: [...days[existingDayIdx].activities, activity],
+          activities: updatedActivities,
         };
       } else {
         // Day doesn't exist, create new day
