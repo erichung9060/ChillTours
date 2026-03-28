@@ -50,9 +50,9 @@ export function buildItineraryPrompt(
 - 每天內的活動必須依照時間先後順序排列
 - note 欄位為選填，如果沒有特別要注意的事項可以不必填寫
 - opening_hours 為選填。根據通識知識填入最常見的開放時段（HH:MM 24 小時制），例如博物館通常 09:00-17:00。戶外景點或全天開放地點可省略。此為 AI 估計值，非即時資料
-- 每天必須安排一個午餐餐廳（"type": "lunch"），時間安排在 11:00 到 14:00 之間，地點盡量靠近前後景點
-- 每天必須安排一個晚餐餐廳（"type": "dinner"），時間彈性，地點盡量靠近前後景點
-- 早餐（"type": "breakfast"）只在使用者明確要求時才加入
+- 除非使用者明確指定要去某間餐廳（例如「我想吃鼎泰豐」「一定要吃牛肉麵」），否則不要生成任何 type 為 lunch、dinner 或 breakfast 的活動。系統會在路線確定後自動根據位置推薦餐廳
+- 若使用者有指定餐廳，照常生成該餐廳活動，並設 "flexible": false
+- 早餐（"type": "breakfast"）只在使用者明確要求特定早餐地點時才加入
 - 一般景點活動請省略 type 欄位（不要輸出 type）
 - 禁止輸出 "type": "transit"
 - flexible 欄位：有固定時間的活動（票券、演出、已預約導覽）設為 false，其餘（景點、購物、博物館、餐廳）設為 true。如果不確定，省略此欄位
@@ -95,9 +95,9 @@ Requirements:
 - Activities must be in chronological order within each day
 - 'note' is optional, leave it empty if there are no special tips or reminders
 - 'opening_hours' is optional. Based on general knowledge, include typical open/close hours in HH:MM 24-hour format (e.g. museums 09:00-17:00). Omit for outdoor or 24-hour locations. This is an AI estimate, not real-time data.
-- Each day must include one lunch restaurant ("type": "lunch"), scheduled between 11:00 and 14:00, located near surrounding attractions
-- Each day must include one dinner restaurant ("type": "dinner"), with flexible timing, located near surrounding attractions
-- Breakfast ("type": "breakfast") should only be added when the user explicitly requests it
+- Do NOT generate any lunch, dinner, or breakfast activities unless the user explicitly names a specific restaurant they want to visit (e.g. "I want to eat at Din Tai Fung", "must have beef noodles"). The system will recommend nearby restaurants after the route is finalized
+- If the user specifies a restaurant, generate it normally and set "flexible": false
+- Breakfast ("type": "breakfast") should only be added when the user explicitly requests a specific breakfast spot
 - Regular sightseeing activities must omit the type field entirely (do not output type)
 - Never output "type": "transit"
 - flexible field: set to false for activities with fixed times (tickets, shows, pre-booked tours), true for everything else (sightseeing, shopping, museums, restaurants). Omit if unsure
