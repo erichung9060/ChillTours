@@ -11,6 +11,7 @@ export interface ActivityInput {
   flexible?: boolean;
   type?: "lunch" | "dinner" | "breakfast" | "transit";
   importance?: "must" | "preferred";
+  isMealPlaceholder?: boolean; // 距離矩陣全設 0，不顯示於地圖/列表
 }
 
 export interface OptimizeRequest {

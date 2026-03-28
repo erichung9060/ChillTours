@@ -53,9 +53,26 @@ export function greedyFallback(
         const travel = matrix[current][j];
         const arrive = currentTime + activities[current].duration_minutes + travel;
         let score: [number, number];
-        if (activities[j].opening_hours) {
+
+        // 用餐活動（lunch/dinner/breakfast）：用餐時段前完全不可選（not yet available）
+        if (activities[j].type && MEAL_WINDOWS[activities[j].type!]) {
+          const mw = MEAL_WINDOWS[activities[j].type!];
+          const mwOpen  = parseTimeToMinutes(mw.open);
+          const mwClose = parseTimeToMinutes(mw.close);
+          if (arrive < mwOpen || arrive > mwClose) {
+            score = [2, travel]; // 還未到 / 已錯過用餐時段 → 不選
+          } else {
+            // 在用餐時段內，考慮餐廳自身 opening_hours
+            const restaurantOpen = activities[j].opening_hours
+              ? parseTimeToMinutes(activities[j].opening_hours!.open)
+              : mwOpen;
+            const wait = Math.max(0, restaurantOpen - arrive);
+            score = [0, wait + travel];
+          }
+        } else if (activities[j].opening_hours) {
           const open  = parseTimeToMinutes(activities[j].opening_hours!.open);
-          const close = parseTimeToMinutes(activities[j].opening_hours!.close);
+          const rawClose = parseTimeToMinutes(activities[j].opening_hours!.close);
+          const close = rawClose === 0 || rawClose < open ? 24 * 60 : rawClose;
           if (arrive > close) {
             score = [2, travel]; // 已錯過窗口，最低優先
           } else {
@@ -72,7 +89,14 @@ export function greedyFallback(
       }
       const travel = matrix[current][nextNode];
       const arrive = currentTime + activities[current].duration_minutes + travel;
-      if (activities[nextNode].opening_hours) {
+      // 更新 currentTime：用餐活動等到 meal window open，其餘等到 opening_hours open
+      if (activities[nextNode].type && MEAL_WINDOWS[activities[nextNode].type!]) {
+        const mwOpen = parseTimeToMinutes(MEAL_WINDOWS[activities[nextNode].type!].open);
+        const restaurantOpen = activities[nextNode].opening_hours
+          ? parseTimeToMinutes(activities[nextNode].opening_hours!.open)
+          : mwOpen;
+        currentTime = Math.max(arrive, mwOpen, restaurantOpen);
+      } else if (activities[nextNode].opening_hours) {
         const open = parseTimeToMinutes(activities[nextNode].opening_hours!.open);
         currentTime = Math.max(arrive, open);
       } else {

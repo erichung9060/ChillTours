@@ -9,6 +9,12 @@ function timeToSeconds(hhmm: string): number {
   return (h * 60 + m) * 60;
 }
 
+/** 00:00 close = 跨日（午夜）→ 換算成 86400s（24:00）避免 Vroom invalid window */
+function safeClose(hhmm: string, openSec: number): number {
+  const sec = timeToSeconds(hhmm);
+  return sec === 0 || sec < openSec ? 86400 : sec;
+}
+
 function buildTimeWindow(act: ActivityInput): [number, number] | null {
   // 1. 用餐硬性時段，與 opening_hours 取交集
   if (act.type && MEAL_WINDOWS[act.type]) {
@@ -17,7 +23,7 @@ function buildTimeWindow(act: ActivityInput): [number, number] | null {
     let close = timeToSeconds(w.close);
     if (act.opening_hours) {
       open  = Math.max(open,  timeToSeconds(act.opening_hours.open));
-      close = Math.min(close, timeToSeconds(act.opening_hours.close));
+      close = Math.min(close, safeClose(act.opening_hours.close, open));
       if (open > close) {
         // 交集為空（餐廳不在用餐時段內）→ 退回純用餐時段
         open  = timeToSeconds(w.open);
@@ -33,7 +39,8 @@ function buildTimeWindow(act: ActivityInput): [number, number] | null {
   }
   // 3. 開放時間窗口（Vroom 會自動處理提早到的等待時間）
   if (act.opening_hours) {
-    return [timeToSeconds(act.opening_hours.open), timeToSeconds(act.opening_hours.close)];
+    const open = timeToSeconds(act.opening_hours.open);
+    return [open, safeClose(act.opening_hours.close, open)];
   }
   return null;
 }

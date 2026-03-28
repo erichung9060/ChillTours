@@ -28,6 +28,20 @@ export async function optimizeRoute(req: OptimizeRequest): Promise<OptimizeResul
 
   const matrix = await buildDistanceMatrix(activities, mode);
 
+  // 佔位符（isMealPlaceholder）距離全設 0，不影響其他活動的路線成本
+  const placeholderIndices = activities
+    .map((a, i) => (a.isMealPlaceholder ? i : -1))
+    .filter((i) => i >= 0);
+  if (placeholderIndices.length > 0) {
+    for (const pi of placeholderIndices) {
+      for (let j = 0; j < matrix.length; j++) {
+        matrix[pi][j] = 0;
+        matrix[j][pi] = 0;
+      }
+    }
+    console.info(`[meal-placeholder] Zeroed matrix rows/cols for indices: [${placeholderIndices}]`);
+  }
+
   const vroom = await callVroom(activities, matrix, mode, start_time, end_time);
   if (vroom) return vroom;
 
@@ -54,12 +68,25 @@ export async function optimizeRouteFull(
     };
   }
 
+  // 佔位符不需要 Places 豐富化
+  const toEnrich = activities.filter((a) => !a.isMealPlaceholder);
+  const placeholderIds = new Set(activities.filter((a) => a.isMealPlaceholder).map((a) => a.id));
+  if (placeholderIds.size > 0) {
+    console.info(`[meal-placeholder] Skipping enrichment for ${placeholderIds.size} placeholder(s)`);
+  }
+
   // 豐富化 + 初始距離矩陣 平行執行
   console.info("[optimize-route-full] running enrichActivities + buildDistanceMatrix in parallel");
-  const [enriched, initialMatrix] = await Promise.all([
-    enrichActivities(activities),
+  const [enrichedPartial, initialMatrix] = await Promise.all([
+    enrichActivities(toEnrich),
     buildDistanceMatrix(activities, mode),
   ]);
+
+  // 合回完整 enriched 陣列（佔位符用原始座標補位）
+  const enrichedMap = new Map(enrichedPartial.map((e) => [e.id, e]));
+  const enriched = activities.map((a) =>
+    enrichedMap.get(a.id) ?? { id: a.id, lat: a.lat, lng: a.lng }
+  );
 
   const enrichedWithPlaceId = enriched.filter((e) => e.place_id).length;
   console.info(`[optimize-route-full] enriched ${enrichedWithPlaceId}/${activities.length} activities with place data`);
@@ -84,6 +111,11 @@ export async function optimizeRouteFull(
     };
   });
 
+  // 佔位符距離全設 0
+  const fullPlaceholderIndices = activities
+    .map((a, i) => (a.isMealPlaceholder ? i : -1))
+    .filter((i) => i >= 0);
+
   // 若任何 activity 座標變動超過 0.001 度，重建距離矩陣
   const coordsChanged = activities.some((orig, i) => {
     const e = enriched[i];
@@ -97,6 +129,16 @@ export async function optimizeRouteFull(
   const matrix = coordsChanged
     ? await buildDistanceMatrix(enrichedInputs, mode)
     : initialMatrix;
+
+  if (fullPlaceholderIndices.length > 0) {
+    for (const pi of fullPlaceholderIndices) {
+      for (let j = 0; j < matrix.length; j++) {
+        matrix[pi][j] = 0;
+        matrix[j][pi] = 0;
+      }
+    }
+    console.info(`[meal-placeholder] Zeroed matrix rows/cols for indices: [${fullPlaceholderIndices}]`);
+  }
 
   const vroom = await callVroom(enrichedInputs, matrix, mode, start_time, end_time);
   if (!vroom) {
