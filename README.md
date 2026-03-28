@@ -8,7 +8,7 @@ An AI-powered travel planning web application built with Next.js 15, React, Supa
 - 🗺️ Interactive Google Maps integration
 - 💬 Conversational chat interface for itinerary refinement
 - 🛣️ Route optimization — fast (TSP) and full (with Place enrichment & time windows) per-day ordering, with configurable per-day start/end time and transport mode (driving / transit / walking / bicycling)
-- ✨ Perfect Arrangement — one-click smart planning that auto-optimizes all days after generation, respecting meal time windows and fixed-time activities
+- ✨ Perfect Arrangement — one-click smart planning that auto-optimizes all days, inserts meal placeholders, and suggests nearby restaurants via Google Places Nearby Search
 - 🤝 Real-time collaborative editing with Yjs
 - 📱 Mobile-responsive design
 - 🌓 Dark/Light theme support

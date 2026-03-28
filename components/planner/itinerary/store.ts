@@ -9,6 +9,17 @@ import { aiClient } from "@/lib/ai/client";
 import { calcDayCount, calculateDayDate } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
 import { DEFAULT_DAY_START, DEFAULT_DAY_END, MEAL_WINDOWS } from "@/lib/route-optimization/config";
+import type { RestaurantCandidate } from "@/app/api/places-nearby/route";
+
+// ── Meal Search Types ─────────────────────────────────────────
+export interface MealSuggestion {
+  dayNumber: number;
+  mealType: "lunch" | "dinner";
+  placeholderId: string;
+  restaurants: RestaurantCandidate[];
+  searchLat: number;
+  searchLng: number;
+}
 
 interface ItineraryState {
   // Data State
@@ -80,6 +91,12 @@ interface ItineraryState {
   optimizeDayFull: (dayNumber: number) => Promise<void>;
   setDayTransportMode: (dayNumber: number, mode: TransportMode) => Promise<void>;
 
+  // Meal Search (Phase B)
+  mealSuggestions: MealSuggestion[];
+  optimizeDayWithMealSearch: (dayNumber: number) => Promise<void>;
+  selectMealRestaurant: (dayNumber: number, placeholderId: string, restaurant: RestaurantCandidate) => Promise<void>;
+  dismissMealSuggestion: (placeholderId: string) => void;
+
   // Day Time Window
   setDayTimeWindow: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
   setAllDaysTimeWindow: (startTime: string, endTime: string) => Promise<void>;
@@ -105,6 +122,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   addModePlaceholder: null,
   isOptimizingDay: null,
   isOptimizingDayFull: null,
+  mealSuggestions: [],
 
   // Basic Setters
   setCrossDayDragInfo: (info) => set({ crossDayDragInfo: info }),
@@ -595,6 +613,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }
   },
 
+  // ── Phase B：Meal Placeholder Helpers ────────────────────────
+
+  // 判斷並插入用餐佔位符（不修改 store，純粹回傳加入佔位符後的陣列）
+  // 返回 [activitiesWithPlaceholders, placeholderIds]
+  // （作為 closure helper 使用，不放入 state）
+
   // Auto-optimize all days after "完美安排" generation
   autoOptimizeAllDays: async () => {
     const state = get();
@@ -604,66 +628,277 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     try {
       for (const day of state.itinerary.days) {
-        if (day.activities.length <= 1) continue;
-
-        set({ isOptimizingDay: day.day_number });
-
+        if (day.activities.length === 0) continue;
         try {
-          const response = await fetch("/api/optimize-route", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              activities: day.activities.map((a) => {
-                const mealWindow = a.type && MEAL_WINDOWS[a.type] ? MEAL_WINDOWS[a.type] : null;
-                const opening_hours = a.opening_hours ?? mealWindow ?? undefined;
-                return {
-                  id: a.id,
-                  title: a.title,
-                  lat: a.location.lat,
-                  lng: a.location.lng,
-                  duration_minutes: a.duration_minutes,
-                  time: a.time,
-                  flexible: a.flexible,
-                  ...(a.type ? { type: a.type } : {}),
-                  ...(opening_hours ? { opening_hours } : {}),
-                };
-              }),
-              mode: day.transport_mode ?? "driving",
-              start_time: day.start_time ?? DEFAULT_DAY_START,
-              end_time: day.end_time ?? DEFAULT_DAY_END,
-            }),
-          });
-
-          if (!response.ok) continue;
-
-          const { order, start_times } = await response.json() as {
-            order: string[];
-            travel_times_minutes: number[];
-            start_times: string[];
-          };
-
-          const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
-
-          const reorderedActivities = order.map((id, i) => ({
-            ...activityById[id],
-            order: i,
-            time: start_times[i] ?? activityById[id].time,
-          }));
-
-          const newDays = get().itinerary!.days.map((d) =>
-            d.day_number === day.day_number ? { ...d, activities: reorderedActivities } : d
-          );
-
-          await get().updateDays(newDays);
+          await get().optimizeDayWithMealSearch(day.day_number);
         } catch (err) {
           console.error(`Failed to auto-optimize day ${day.day_number}:`, err);
-        } finally {
-          set({ isOptimizingDay: null });
         }
       }
     } finally {
       set({ isAutoOptimizing: false, isPerfectMode: false });
     }
+  },
+
+  // ── Phase B：optimizeDayWithMealSearch ───────────────────────
+
+  optimizeDayWithMealSearch: async (dayNumber: number) => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const day = state.itinerary.days.find((d) => d.day_number === dayNumber);
+    if (!day || day.activities.length === 0) return;
+
+    const startTime = day.start_time ?? DEFAULT_DAY_START;
+    const endTime = day.end_time ?? DEFAULT_DAY_END;
+
+    // 解析時間（分鐘）
+    const parseMin = (hhmm: string) => {
+      const [h, m] = hhmm.split(":").map(Number);
+      return h * 60 + m;
+    };
+    const startMin = parseMin(startTime);
+    const endMin = parseMin(endTime);
+    const lunchOpen = parseMin(MEAL_WINDOWS.lunch.open);   // 11:00 = 660
+    const lunchClose = parseMin(MEAL_WINDOWS.lunch.close);  // 14:00 = 840
+    const dinnerOpen = parseMin(MEAL_WINDOWS.dinner.open);  // 17:30 = 1050
+    const dinnerClose = parseMin(MEAL_WINDOWS.dinner.close); // 21:00 = 1260
+
+    const hasLunch = day.activities.some((a) => a.type === "lunch");
+    const hasDinner = day.activities.some((a) => a.type === "dinner");
+
+    // 時間窗涵蓋用餐時段 → 需插入佔位符
+    const needLunch = !hasLunch && startMin < lunchClose && endMin > lunchOpen;
+    const needDinner = !hasDinner && startMin < dinnerClose && endMin > dinnerOpen;
+
+    if (!needLunch && !needDinner) {
+      console.info(`[meal-placeholder] Day ${dayNumber}: no meal placeholders needed`);
+    }
+
+    const firstAct = day.activities[0];
+    const dummyLat = firstAct?.location.lat ?? 25.0;
+    const dummyLng = firstAct?.location.lng ?? 121.5;
+
+    const placeholders: Activity[] = [];
+
+    if (needLunch) {
+      console.info(`[meal-placeholder] Day ${dayNumber}: inserting lunch placeholder (${startTime}–${endTime} spans ${MEAL_WINDOWS.lunch.open}–${MEAL_WINDOWS.lunch.close})`);
+      placeholders.push({
+        id: `meal-placeholder-lunch-day${dayNumber}`,
+        title: "午餐",
+        note: "",
+        type: "lunch",
+        duration_minutes: 90,
+        time: "12:00",
+        location: { name: "午餐", lat: dummyLat, lng: dummyLng },
+        order: 9990,
+        flexible: true,
+        opening_hours: MEAL_WINDOWS.lunch,
+      } as Activity & { isMealPlaceholder?: boolean });
+    }
+    if (needDinner) {
+      console.info(`[meal-placeholder] Day ${dayNumber}: inserting dinner placeholder (${startTime}–${endTime} spans ${MEAL_WINDOWS.dinner.open}–${MEAL_WINDOWS.dinner.close})`);
+      placeholders.push({
+        id: `meal-placeholder-dinner-day${dayNumber}`,
+        title: "晚餐",
+        note: "",
+        type: "dinner",
+        duration_minutes: 120,
+        time: "18:30",
+        location: { name: "晚餐", lat: dummyLat, lng: dummyLng },
+        order: 9991,
+        flexible: true,
+        opening_hours: MEAL_WINDOWS.dinner,
+      } as Activity & { isMealPlaceholder?: boolean });
+    }
+
+    const activitiesWithPlaceholders = [...day.activities, ...placeholders];
+    const placeholderIds = new Set(placeholders.map((p) => p.id));
+
+    console.info(`[meal-placeholder] Day ${dayNumber}: optimizing with ${placeholders.length} placeholder(s)`);
+
+    set({ isOptimizingDay: dayNumber });
+
+    try {
+      const response = await fetch("/api/optimize-route", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activities: activitiesWithPlaceholders.map((a) => {
+            const mealWindow = a.type && MEAL_WINDOWS[a.type] ? MEAL_WINDOWS[a.type] : null;
+            const opening_hours = a.opening_hours ?? mealWindow ?? undefined;
+            return {
+              id: a.id,
+              title: a.title,
+              lat: a.location.lat ?? dummyLat,
+              lng: a.location.lng ?? dummyLng,
+              duration_minutes: a.duration_minutes,
+              time: a.time,
+              flexible: a.flexible,
+              ...(a.type ? { type: a.type } : {}),
+              ...(opening_hours ? { opening_hours } : {}),
+              ...(placeholderIds.has(a.id) ? { isMealPlaceholder: true } : {}),
+            };
+          }),
+          mode: day.transport_mode ?? "driving",
+          start_time: startTime,
+          end_time: endTime,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Optimize request failed: ${response.status}`);
+
+      const { order, start_times } = await response.json() as {
+        order: string[];
+        start_times: string[];
+        travel_times_minutes: number[];
+      };
+
+      // 找出佔位符在排序後的位置，確定前後景點
+      const newMealSuggestions: MealSuggestion[] = [];
+
+      for (const placeholder of placeholders) {
+        const pidx = order.indexOf(placeholder.id);
+        if (pidx === -1) continue;
+
+        const prevId = order[pidx - 1];
+        const nextId = order[pidx + 1];
+        const actMap = Object.fromEntries(activitiesWithPlaceholders.map((a) => [a.id, a]));
+
+        const prevAct = prevId ? actMap[prevId] : null;
+        const nextAct = nextId ? actMap[nextId] : null;
+
+        const searchLat = prevAct && nextAct
+          ? ((prevAct.location.lat ?? dummyLat) + (nextAct.location.lat ?? dummyLat)) / 2
+          : (prevAct?.location.lat ?? nextAct?.location.lat ?? dummyLat);
+        const searchLng = prevAct && nextAct
+          ? ((prevAct.location.lng ?? dummyLng) + (nextAct.location.lng ?? dummyLng)) / 2
+          : (prevAct?.location.lng ?? nextAct?.location.lng ?? dummyLng);
+
+        console.info(
+          `[meal-placeholder] Day ${dayNumber}: ${placeholder.type} placeholder between ` +
+          `[${prevAct?.title ?? "起點"}] and [${nextAct?.title ?? "終點"}]`
+        );
+        console.info(`[meal-search] Fetching restaurants near (${searchLat.toFixed(4)}, ${searchLng.toFixed(4)}) radius=${placeholder.type === "lunch" ? 500 : 800}m`);
+
+        try {
+          const nearbyRes = await fetch("/api/places-nearby", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: searchLat,
+              lng: searchLng,
+              radius: placeholder.type === "lunch" ? 500 : 800,
+            }),
+          });
+          if (nearbyRes.ok) {
+            const { restaurants } = await nearbyRes.json() as { restaurants: RestaurantCandidate[] };
+            console.info(
+              `[meal-search] Found: ${restaurants.map((r) => `${r.name}(${r.rating ?? "n/a"}★)`).join(", ") || "none"}`
+            );
+            newMealSuggestions.push({
+              dayNumber,
+              mealType: placeholder.type as "lunch" | "dinner",
+              placeholderId: placeholder.id,
+              restaurants,
+              searchLat,
+              searchLng,
+            });
+          }
+        } catch (err) {
+          console.warn(`[meal-search] Nearby search failed for day ${dayNumber} ${placeholder.type}:`, err);
+        }
+      }
+
+      // 儲存排序結果（排除佔位符）
+      const activityById = Object.fromEntries(day.activities.map((a) => [a.id, a]));
+      const reorderedActivities = order
+        .filter((id) => !placeholderIds.has(id))
+        .map((id, i) => ({
+          ...activityById[id],
+          order: i,
+          time: start_times[order.indexOf(id)] ?? activityById[id].time,
+        }));
+
+      const newDays = get().itinerary!.days.map((d) =>
+        d.day_number === dayNumber ? { ...d, activities: reorderedActivities } : d
+      );
+
+      await get().updateDays(newDays);
+
+      if (newMealSuggestions.length > 0) {
+        set((s) => ({
+          mealSuggestions: [
+            ...s.mealSuggestions.filter((ms) => ms.dayNumber !== dayNumber),
+            ...newMealSuggestions,
+          ],
+        }));
+      }
+    } catch (err) {
+      console.error(`[meal-placeholder] Failed for day ${dayNumber}:`, err);
+    } finally {
+      set({ isOptimizingDay: null });
+    }
+  },
+
+  // ── Phase B：selectMealRestaurant ─────────────────────────────
+
+  selectMealRestaurant: async (dayNumber: number, placeholderId: string, restaurant: RestaurantCandidate) => {
+    const state = get();
+    if (!state.itinerary) return;
+
+    const day = state.itinerary.days.find((d) => d.day_number === dayNumber);
+    if (!day) return;
+
+    const suggestion = state.mealSuggestions.find((ms) => ms.placeholderId === placeholderId);
+    if (!suggestion) return;
+
+    console.info(`[meal-select] User selected ${restaurant.name} for day ${dayNumber} ${suggestion.mealType}, re-optimizing`);
+
+    const newActivity: Activity = {
+      id: placeholderId,
+      title: restaurant.name,
+      note: "",
+      type: suggestion.mealType,
+      duration_minutes: suggestion.mealType === "lunch" ? 90 : 120,
+      time: suggestion.mealType === "lunch" ? "12:00" : "18:30",
+      location: {
+        name: restaurant.name,
+        lat: restaurant.lat,
+        lng: restaurant.lng,
+        place_id: restaurant.place_id,
+      },
+      order: day.activities.length,
+      flexible: true,
+      ...(restaurant.opening_hours
+        ? { opening_hours: restaurant.opening_hours as Activity["opening_hours"] }
+        : { opening_hours: MEAL_WINDOWS[suggestion.mealType] }),
+    };
+
+    // 重新讀取最新 day 狀態（避免並發選擇覆蓋彼此的 updateDays）
+    const freshDay = get().itinerary!.days.find((d) => d.day_number === dayNumber);
+    if (!freshDay) return;
+    const activitiesWithMeal = [...freshDay.activities, newActivity];
+    const newDaysWithMeal = get().itinerary!.days.map((d) =>
+      d.day_number === dayNumber ? { ...d, activities: activitiesWithMeal } : d
+    );
+    await get().updateDays(newDaysWithMeal);
+
+    // 從 mealSuggestions 移除此佔位符
+    set((s) => ({
+      mealSuggestions: s.mealSuggestions.filter((ms) => ms.placeholderId !== placeholderId),
+    }));
+
+    // 第二次優化（含真實餐廳）
+    await get().optimizeDayFull(dayNumber);
+  },
+
+  // ── Phase B：dismissMealSuggestion ───────────────────────────
+
+  dismissMealSuggestion: (placeholderId: string) => {
+    set((s) => ({
+      mealSuggestions: s.mealSuggestions.filter((ms) => ms.placeholderId !== placeholderId),
+    }));
   },
 
   // Day Time Window

@@ -29,6 +29,7 @@ import {
   SingleDayView,
   SideBySideView,
   AddActivityDialog,
+  MealSuggestionPanel,
 } from "./itinerary";
 import type { ItineraryPanelProps, ViewMode } from "./itinerary";
 import { useItineraryStore } from "./itinerary/store";
@@ -268,6 +269,9 @@ export function ItineraryPanel({
           isFullscreen={isFullscreen}
           toggleFullscreen={toggleFullscreen}
         />
+
+        {/* Meal Suggestions (Phase B) */}
+        <MealSuggestionPanel />
 
         {/* Content based on view mode */}
         {viewRenderers[viewMode]()}

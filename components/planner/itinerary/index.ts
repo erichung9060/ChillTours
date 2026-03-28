@@ -17,6 +17,7 @@ export { DayActivitiesList } from "./components/day-activities-list";
 export { PanelHeader } from "./components/panel-header";
 export { ChatToggleButton } from "./components/chat-toggle-button";
 export { AddActivityDialog } from "./components/add-activity-dialog";
+export { MealSuggestionPanel } from "./components/meal-suggestion-panel";
 
 // Views
 export { ExpandableView } from "./views/expandable-view";
