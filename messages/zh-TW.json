@@ -151,6 +151,11 @@
     "activityPlaceholderCard": {
       "clickToAdd": "點擊新增"
     },
+    "mealSuggestion": {
+      "title": "第 {day} 天 {meal}推薦",
+      "hint": "選擇一間餐廳加入行程，或點 × 略過",
+      "dismiss": "略過"
+    },
     "editMetadataDialog": {
       "title": "編輯行程資訊",
       "description": "在此修改您的行程資訊。完成後請點擊儲存。",

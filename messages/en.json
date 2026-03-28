@@ -151,6 +151,11 @@
     "activityPlaceholderCard": {
       "clickToAdd": "Click to Add"
     },
+    "mealSuggestion": {
+      "title": "Day {day} {meal} Suggestions",
+      "hint": "Pick a restaurant to add it to your itinerary, or × to skip",
+      "dismiss": "Dismiss"
+    },
     "editMetadataDialog": {
       "title": "Edit Trip Details",
       "description": "Modify your trip metadata here. Click save when you're done.",
