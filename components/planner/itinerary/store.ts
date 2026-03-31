@@ -9,6 +9,8 @@ import { calcDayCount } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
 import { ensureLocationData } from "@/lib/maps/geocoding";
 
+const MAX_HISTORY_ENTRIES = 50;
+
 interface ItineraryState {
   // Data State
   itinerary: Itinerary | null;
@@ -168,7 +170,10 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       days: nextItinerary.days,
     };
 
-    const nextPast = [...state.historyPast, cloneItinerarySnapshot(currentItinerary)];
+    const nextPast = [
+      ...state.historyPast,
+      cloneItinerarySnapshot(currentItinerary),
+    ].slice(-MAX_HISTORY_ENTRIES);
 
     set({
       itinerary: nextItinerary,
