@@ -301,7 +301,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   updatePreview: (nextItinerary) => {
-    set({ previewItinerary: cloneItinerarySnapshot(nextItinerary) });
+    set({ previewItinerary: nextItinerary });
   },
 
   applyPreview: async () => {
