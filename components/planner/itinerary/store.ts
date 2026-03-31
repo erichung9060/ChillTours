@@ -70,7 +70,6 @@ interface ItineraryState {
       url?: string;
   }) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
-  updateDays: (newDays: Day[]) => Promise<void>;
 
   // Generation Actions
   startStreaming: (itineraryId: string, locale: string) => Promise<void>;
@@ -394,21 +393,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       await get().commitItineraryChange(optimisticItinerary);
     } catch (err) {
       console.error("Failed to apply AI operations:", err);
-      throw err;
-    }
-  },
-
-  // Save specific days array (e.g. from Drag & Drop)
-  updateDays: async (newDays: Day[]) => {
-    const state = get();
-    if (!state.itinerary || state.isGenerating) return;
-    try {
-      await get().commitItineraryChange({
-        ...state.itinerary,
-        days: newDays
-      });
-    } catch (err) {
-      console.error("Failed to update itinerary days:", err);
       throw err;
     }
   },
