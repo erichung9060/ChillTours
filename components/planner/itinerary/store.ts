@@ -14,6 +14,8 @@ interface ItineraryState {
   itinerary: Itinerary | null;
   isLoading: boolean;
   error: string | null;
+  historyPast: Itinerary[];
+  historyFuture: Itinerary[];
 
   // Generation State
   isGenerating: boolean;
@@ -22,8 +24,12 @@ interface ItineraryState {
   pollingIntervalId: ReturnType<typeof setInterval> | null;
 
   // Interaction State
+  previewBaseItinerary: Itinerary | null;
+  previewItinerary: Itinerary | null;
+
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
   draggingActivityId: string | null;
+
   hoveredDayNumber: number | null;
   hoveredActivityId: string | null;
 
@@ -34,6 +40,16 @@ interface ItineraryState {
 
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
+  commitItineraryChange: (nextItinerary: Itinerary) => Promise<void>;
+  undo: () => Promise<void>;
+  redo: () => Promise<void>;
+  getCanUndo: () => boolean;
+  getCanRedo: () => boolean;
+  startPreview: (baseItinerary?: Itinerary) => void;
+  updatePreview: (nextItinerary: Itinerary) => void;
+  applyPreview: () => Promise<void>;
+  discardPreview: () => void;
+  resetDragState: () => void;
   updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">>) => Promise<void>;
   addActivity: (dayNumber: number, activityInput: {
       title: string;
@@ -89,10 +105,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   itinerary: null,
   isLoading: false,
   error: null,
+  historyPast: [],
+  historyFuture: [],
   isGenerating: false,
   isSaving: false,
   generationAbortController: null,
   pollingIntervalId: null,
+  previewBaseItinerary: null,
+  previewItinerary: null,
   crossDayDragInfo: null,
   draggingActivityId: null,
   hoveredDayNumber: null,
@@ -119,7 +139,13 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const data = await loadItinerary(id);
-      set({ itinerary: data });
+      set({
+        itinerary: data,
+        historyPast: [],
+        historyFuture: [],
+        previewBaseItinerary: null,
+        previewItinerary: null,
+      });
     } catch (err) {
       console.error("Failed to load itinerary:", err);
       set({ error: "Failed to load itinerary. Please try again." });
@@ -127,6 +153,188 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       set({ isLoading: false });
     }
   },
+
+  commitItineraryChange: async (nextItinerary) => {
+    const state = get();
+    const currentItinerary = state.itinerary;
+    if (!currentItinerary) return;
+
+    const payload: Partial<Itinerary> = {
+      title: nextItinerary.title,
+      destination: nextItinerary.destination,
+      start_date: nextItinerary.start_date,
+      end_date: nextItinerary.end_date,
+      preferences: nextItinerary.preferences,
+      days: nextItinerary.days,
+    };
+
+    const nextPast = [...state.historyPast, cloneItinerarySnapshot(currentItinerary)];
+
+    set({
+      itinerary: nextItinerary,
+      historyPast: nextPast,
+      historyFuture: [],
+      isSaving: true,
+    });
+
+    try {
+      const updated = await updateItinerary(currentItinerary.id, payload);
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to commit itinerary:", err);
+      set({
+        itinerary: currentItinerary,
+        historyPast: state.historyPast,
+        historyFuture: state.historyFuture,
+      });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  undo: async () => {
+    const state = get();
+    const currentItinerary = state.itinerary;
+    const previousItinerary = state.historyPast[state.historyPast.length - 1];
+
+    if (!currentItinerary || !previousItinerary) return;
+
+    const nextPast = state.historyPast.slice(0, -1);
+    const nextFuture = [cloneItinerarySnapshot(currentItinerary), ...state.historyFuture];
+    const payload: Partial<Itinerary> = {
+      title: previousItinerary.title,
+      destination: previousItinerary.destination,
+      start_date: previousItinerary.start_date,
+      end_date: previousItinerary.end_date,
+      preferences: previousItinerary.preferences,
+      days: previousItinerary.days,
+    };
+
+    get().discardPreview();
+    get().resetDragState();
+
+    set({
+      itinerary: previousItinerary,
+      historyPast: nextPast,
+      historyFuture: nextFuture,
+      isSaving: true,
+    });
+
+    try {
+      const updated = await updateItinerary(currentItinerary.id, payload);
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to undo itinerary change:", err);
+      set({
+        itinerary: currentItinerary,
+        historyPast: state.historyPast,
+        historyFuture: state.historyFuture,
+      });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  redo: async () => {
+    const state = get();
+    const currentItinerary = state.itinerary;
+    const nextItinerary = state.historyFuture[0];
+
+    if (!currentItinerary || !nextItinerary || state.isGenerating) return;
+
+    const nextPast = [...state.historyPast, cloneItinerarySnapshot(currentItinerary)];
+    const nextFuture = state.historyFuture.slice(1);
+    const payload: Partial<Itinerary> = {
+      title: nextItinerary.title,
+      destination: nextItinerary.destination,
+      start_date: nextItinerary.start_date,
+      end_date: nextItinerary.end_date,
+      preferences: nextItinerary.preferences,
+      days: nextItinerary.days,
+    };
+
+    get().discardPreview();
+    get().resetDragState();
+
+    set({
+      itinerary: nextItinerary,
+      historyPast: nextPast,
+      historyFuture: nextFuture,
+      isSaving: true,
+    });
+
+    try {
+      const updated = await updateItinerary(currentItinerary.id, payload);
+      set({ itinerary: updated });
+    } catch (err) {
+      console.error("Failed to redo itinerary change:", err);
+      set({
+        itinerary: currentItinerary,
+        historyPast: state.historyPast,
+        historyFuture: state.historyFuture,
+      });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  getCanUndo: () => get().historyPast.length > 0,
+  getCanRedo: () => get().historyFuture.length > 0,
+
+  startPreview: (baseItinerary) => {
+    const state = get();
+    const previewBase = baseItinerary ?? state.itinerary;
+    if (!previewBase) return;
+
+    set({
+      previewBaseItinerary: cloneItinerarySnapshot(previewBase),
+      previewItinerary: cloneItinerarySnapshot(previewBase),
+    });
+  },
+
+  updatePreview: (nextItinerary) => {
+    set({ previewItinerary: cloneItinerarySnapshot(nextItinerary) });
+  },
+
+  applyPreview: async () => {
+    const state = get();
+    const previewItinerary = state.previewItinerary;
+    const previewBaseItinerary = state.previewBaseItinerary;
+
+    if (!previewItinerary || !previewBaseItinerary) {
+      get().discardPreview();
+      get().resetDragState();
+      return;
+    }
+
+    if (serializeItinerary(previewBaseItinerary) === serializeItinerary(previewItinerary)) {
+      get().discardPreview();
+      get().resetDragState();
+      return;
+    }
+
+    try {
+      await get().commitItineraryChange(previewItinerary);
+    } finally {
+      get().discardPreview();
+      get().resetDragState();
+    }
+  },
+
+  discardPreview: () =>
+    set({
+      previewBaseItinerary: null,
+      previewItinerary: null,
+    }),
+
+  resetDragState: () =>
+    set({
+      crossDayDragInfo: null,
+      draggingActivityId: null,
+    }),
 
   // Update Metadata
   updateMetadata: async (updates) => {
@@ -140,47 +348,31 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const oldDayCount = calcDayCount(currentItinerary.start_date, currentItinerary.end_date);
     const newDayCount = calcDayCount(newStart, newEnd);
 
-    // Track dirty fields
-    const dirtyPayload: Partial<Itinerary> = {};
+    const nextItinerary: Itinerary = {
+      ...currentItinerary,
+      title: updates.title ?? currentItinerary.title,
+      destination: updates.destination ?? currentItinerary.destination,
+      start_date: newStart,
+      end_date: newEnd,
+      preferences:
+        updates.preferences !== undefined
+          ? updates.preferences
+          : currentItinerary.preferences,
+      days:
+        newDayCount !== oldDayCount
+          ? adjustDays(currentItinerary.days, newDayCount)
+          : currentItinerary.days,
+    };
 
-    if (updates.title !== undefined && updates.title !== currentItinerary.title) {
-      dirtyPayload.title = updates.title;
-    }
-    if (updates.destination !== undefined && updates.destination !== currentItinerary.destination) {
-      dirtyPayload.destination = updates.destination;
-    }
-    if (updates.start_date !== undefined && updates.start_date !== currentItinerary.start_date) {
-      dirtyPayload.start_date = updates.start_date;
-    }
-    if (updates.end_date !== undefined && updates.end_date !== currentItinerary.end_date) {
-      dirtyPayload.end_date = updates.end_date;
-    }
-    if (updates.preferences !== undefined && updates.preferences !== currentItinerary.preferences) {
-      dirtyPayload.preferences = updates.preferences;
-    }
-
-    let adjustedDays: Day[] | undefined;
-
-    if (newDayCount !== oldDayCount) {
-      adjustedDays = adjustDays(currentItinerary.days, newDayCount);
-      dirtyPayload.days = adjustedDays;
-    }
-
-    // If nothing changed, do not send API request
-    if (Object.keys(dirtyPayload).length === 0) {
+    if (serializeItinerary(currentItinerary) === serializeItinerary(nextItinerary)) {
       return;
     }
 
-    set({ isSaving: true });
-
     try {
-      const updated = await updateItinerary(currentItinerary.id, dirtyPayload);
-      set({ itinerary: updated });
+      await get().commitItineraryChange(nextItinerary);
     } catch (err) {
       console.error("Failed to update itinerary metadata:", err);
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -193,24 +385,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     // 1. 本地透過 AI operations 計算出預期的 itinerary 狀態
     const optimisticItinerary = await applyOperations(currentItinerary, ops);
 
-    // 2. 樂觀更新 (Optimistic Update)：先更新 UI 讓使用者立刻看到 AI 改動結果
-    set({ itinerary: optimisticItinerary, isSaving: true });
-
     try {
-      // 3. 明確宣告 payload 傳給後端，獨立儲存 days
-      const updated = await updateItinerary(currentItinerary.id, {
-        days: optimisticItinerary.days,
-      });
-
-      // 4. Server Source of Truth: 用後端回傳的最終結果確保一致性
-      set({ itinerary: updated });
+      await get().commitItineraryChange(optimisticItinerary);
     } catch (err) {
       console.error("Failed to apply AI operations:", err);
-      // 5. 錯誤處理：如果儲存失敗，退回操作前的狀態 (Rollback)
-      set({ itinerary: currentItinerary });
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -218,15 +397,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   updateDays: async (newDays: Day[]) => {
     const state = get();
     if (!state.itinerary || state.isGenerating) return;
-    set({ isSaving: true });
     try {
-      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
-      set({ itinerary: updated });
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays
+      });
     } catch (err) {
       console.error("Failed to update itinerary days:", err);
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -235,7 +413,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true });
     try {
       // Resolve location data
       const resolvedLocation = await ensureLocationData({
@@ -272,14 +449,15 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           : day
       );
 
-      const updated = await updateItinerary(state.itinerary.id, { days });
-      set({ itinerary: updated });
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days,
+        updated_at: new Date().toISOString(),
+      });
       get().setHoveredActivity(activity.id);
     } catch (err) {
       console.error("Failed to add activity:", err);
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -308,7 +486,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     if (!isDirty) return;
 
-    set({ isSaving: true });
     try {
       let resolvedLocation = existingActivity.location;
       if (activityInput.locationName !== existingActivity.location.name) {
@@ -335,14 +512,15 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         ),
       }));
 
-      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
-      set({ itinerary: updated });
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
       get().setHoveredActivity(activityId);
     } catch (err) {
       console.error("Failed to update activity:", err);
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -351,20 +529,20 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true });
     try {
       const newDays = state.itinerary.days.map((day) => ({
         ...day,
         activities: day.activities.filter((activity) => activity.id !== activityId),
       }));
 
-      const updated = await updateItinerary(state.itinerary.id, { days: newDays });
-      set({ itinerary: updated });
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
     } catch (err) {
       console.error("Failed to delete activity:", err);
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -496,7 +674,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   // Drag & Drop Logic
   handleDragOver: (active, over, activeData, overData) => {
     const state = get();
-    if (!state.itinerary) return;
+    if (!state.previewItinerary) return;
 
     if (!over) {
       set({ crossDayDragInfo: null });
@@ -516,17 +694,20 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       over,
       activeData,
       overData,
-      state.itinerary
+      state.previewItinerary
     );
 
     if (result) {
-      set({
-        itinerary: {
-          ...result.newItinerary,
-          updated_at: new Date().toISOString(),
-        },
-        crossDayDragInfo: result.crossDayInfo,
-      });
+      get().updatePreview(result.newItinerary);
+      set({ crossDayDragInfo: result.crossDayInfo });
     }
   },
 }));
+
+function cloneItinerarySnapshot(itinerary: Itinerary): Itinerary {
+  return structuredClone(itinerary);
+}
+
+function serializeItinerary(itinerary: Itinerary): string {
+  return JSON.stringify(itinerary);
+}

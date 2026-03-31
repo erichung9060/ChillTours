@@ -46,11 +46,12 @@ export function ItineraryPanel({
   onCurrentDayChange,
 }: ItineraryPanelProps) {
   const t = useTranslations("planner");
-  // Store state - Read itinerary directly from store
-  const itinerary = useItineraryStore((state) => state.itinerary);
-  const updateDays = useItineraryStore(
-    (state) => state.updateDays
-  );
+  // Store state
+  const committedItinerary = useItineraryStore((state) => state.itinerary);
+  const previewItinerary = useItineraryStore((state) => state.previewItinerary);
+
+  const itinerary = previewItinerary ?? committedItinerary;
+
   const draggingActivityId = useItineraryStore(
     (state) => state.draggingActivityId
   );
@@ -64,6 +65,10 @@ export function ItineraryPanel({
   const handleDragOverAction = useItineraryStore(
     (state) => state.handleDragOver
   );
+  const startPreview = useItineraryStore((state) => state.startPreview);
+  const applyPreview = useItineraryStore((state) => state.applyPreview);
+  const discardPreview = useItineraryStore((state) => state.discardPreview);
+  const resetDragState = useItineraryStore((state) => state.resetDragState);
   const setHoveredDay = useItineraryStore((state) => state.setHoveredDay);
   const setHoveredActivity = useItineraryStore(
     (state) => state.setHoveredActivity
@@ -154,6 +159,7 @@ export function ItineraryPanel({
   const handleDragStart = (event: DragStartEvent) => {
     setDraggingActivityId(event.active.id as string);
     setCrossDayDragInfo(null);
+    startPreview();
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -165,17 +171,23 @@ export function ItineraryPanel({
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    setDraggingActivityId(null);
-    setCrossDayDragInfo(null);
-    const currentItinerary = useItineraryStore.getState().itinerary;
-    if (currentItinerary) {
-      try {
-        await updateDays(currentItinerary.days);
-      } catch (err) {
-        console.error("Update days failed:", err);
-        toast.error(t("errorUpdateDays"));
-      }
+    if (!event.over) {
+      discardPreview();
+      resetDragState();
+      return;
     }
+
+    try {
+      await applyPreview();
+    } catch (err) {
+      console.error("Update days failed:", err);
+      toast.error(t("errorUpdateDays"));
+    }
+  };
+
+  const handleDragCancel = () => {
+    discardPreview();
+    resetDragState();
   };
 
   // Get the active activity for drag overlay
@@ -232,6 +244,7 @@ export function ItineraryPanel({
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div className="h-full flex flex-col bg-background">
         {/* Header */}

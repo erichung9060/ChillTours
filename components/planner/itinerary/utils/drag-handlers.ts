@@ -197,8 +197,7 @@ export const calculateDragOverUpdate = (
   newItinerary: Itinerary;
   crossDayInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
 } | null => {
-  const newItinerary = { ...itinerary };
-  newItinerary.days = [...newItinerary.days];
+  const newItinerary = structuredClone(itinerary);
 
   const cloneDay = (dayIndex: number) =>
     cloneDayInItinerary(newItinerary, dayIndex);

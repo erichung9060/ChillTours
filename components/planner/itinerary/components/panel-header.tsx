@@ -12,11 +12,12 @@ import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Pencil, Maximize, Minimize, Loader2, Cloud, Plus } from "lucide-react";
+import { Pencil, Maximize, Minimize, Loader2, Cloud, Plus, Undo2, Redo2 } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
 import { useRouter } from "@/lib/i18n/navigation";
 import { deleteItinerary } from "@/lib/supabase/itineraries";
+import { toast } from "sonner";
 
 export function PanelHeader({
   itinerary,
@@ -32,6 +33,10 @@ export function PanelHeader({
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
   const isAddingActivity = useItineraryStore((state) => state.isAddingActivity);
   const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
+  const canUndo = useItineraryStore((state) => state.getCanUndo());
+  const canRedo = useItineraryStore((state) => state.getCanRedo());
+  const undo = useItineraryStore((state) => state.undo);
+  const redo = useItineraryStore((state) => state.redo);
   const router = useRouter();
 
   const handleDelete = async () => {
@@ -83,6 +88,28 @@ export function PanelHeader({
 
       {/* View Mode Controls */}
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void undo().catch(() => toast.error(t("error")))}
+          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          title="Undo"
+          disabled={!canUndo || isSaving}
+        >
+          <Undo2 className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void redo().catch(() => toast.error(t("error")))}
+          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+          title="Redo"
+          disabled={!canRedo || isSaving}
+        >
+          <Redo2 className="h-4 w-4" />
+        </Button>
+
         {/* Add Activity Button */}
         <Button
           variant={isAddingActivity ? "default" : "ghost"}
