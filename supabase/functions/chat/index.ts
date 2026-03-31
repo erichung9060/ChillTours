@@ -30,8 +30,8 @@ const ChatRequestSchema = z.object({
             note: z.string(),
             location: z.object({
               name: z.string(),
-              lat: z.number(),
-              lng: z.number(),
+              lat: z.number().nullable().optional(),
+              lng: z.number().nullable().optional(),
             }),
             duration_minutes: z.number().int().positive(),
           })
