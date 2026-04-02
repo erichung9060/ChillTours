@@ -8,6 +8,15 @@ import { describe, it, expect, vi } from "vitest";
 import { applyOperations, parseOperations } from "@/lib/ai/operations";
 import type { Itinerary } from "@/types";
 
+vi.mock("@/lib/places/place-resolver", () => ({
+  resolvePlaceDetails: vi.fn(async (loc: any) => ({
+    name: loc.name,
+    lat: 36.0,
+    lng: 140.0,
+    place_id: "mock_place_id",
+  })),
+}));
+
 // Mock itinerary for testing
 const mockItinerary: Itinerary = {
   id: "test-itinerary",
@@ -214,54 +223,7 @@ describe("Operations System", () => {
       expect(updated.location.name).toBe("Location 1");
     });
 
-    it("should update location with LLM-provided coordinates", async () => {
-      const result = await applyOperations(mockItinerary, {
-        operations: [
-          {
-            type: "UPDATE",
-            day_number: 1,
-            activity_index: 0,
-            changes: {
-              location: {
-                name: "Tokyo Tower",
-                lat: 35.6586,
-                lng: 139.7454,
-              },
-            },
-          },
-        ],
-      });
-
-      const updated = result.days[0].activities[0];
-      expect(updated.location.name).toBe("Tokyo Tower");
-      expect(updated.location.lat).toBe(35.6586);
-      expect(updated.location.lng).toBe(139.7454);
-    });
-
-    it("should geocode location when coordinates not provided by LLM", async () => {
-      // Mock global fetch for API resolving
-      const mockFetch = vi.fn();
-      global.fetch = mockFetch;
-
-      mockFetch.mockImplementationOnce(async (url, options) => {
-        const body = JSON.parse(options.body);
-        const reqId = body.places[0].id;
-        return {
-          ok: true,
-          json: async () => ({
-            resolved: [
-              {
-                id: reqId,
-                name: "Updated Location",
-                lat: 36.0,
-                lng: 140.0,
-                place_id: "new_place_id",
-              },
-            ],
-          }),
-        };
-      });
-
+    it("should resolve location through place resolver", async () => {
       const result = await applyOperations(mockItinerary, {
         operations: [
           {
@@ -271,7 +233,6 @@ describe("Operations System", () => {
             changes: {
               location: {
                 name: "Updated Location",
-                // No lat/lng provided - should trigger geocoding
               },
             },
           },
@@ -280,9 +241,10 @@ describe("Operations System", () => {
 
       const updated = result.days[0].activities[0];
       expect(updated.location.name).toBe("Updated Location");
+      // Coords come from our global mock above
       expect(updated.location.lat).toBe(36.0);
       expect(updated.location.lng).toBe(140.0);
-      expect(mockFetch).toHaveBeenCalled();
+      expect(updated.location.place_id).toBe("mock_place_id");
     });
   });
 

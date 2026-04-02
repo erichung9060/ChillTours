@@ -9,6 +9,10 @@ export const LocationSchema = z.object({
   lat: z.number().min(-90).max(90).nullable().optional(),
   lng: z.number().min(-180).max(180).nullable().optional(),
   place_id: z.string().optional(),
+  rating: z.number().min(0).max(5).nullable().optional(),
+  user_ratings_total: z.number().int().min(0).nullable().optional(),
+  opening_hours: z.record(z.string(), z.unknown()).nullable().optional(),
+  website: z.string().url().nullable().optional(),
 });
 
 export type Location = z.infer<typeof LocationSchema>;

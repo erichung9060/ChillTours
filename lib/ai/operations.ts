@@ -15,7 +15,7 @@
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import type { Itinerary, Day, Activity } from "@/types";
-import { ensureLocationData } from "@/lib/maps/geocoding";
+import { resolvePlaceDetails } from "@/lib/places/place-resolver";
 import { calculateDayDate } from "@/lib/utils/date";
 import { ensureDayExists } from "@/lib/utils/itinerary";
 
@@ -197,7 +197,7 @@ async function applyAddOperation(
   }
 
   // Ensure location has valid coordinates
-  const location = await ensureLocationData({
+  const location = await resolvePlaceDetails({
     name: op.activity.location.name,
   });
 
@@ -331,9 +331,9 @@ async function applyUpdateOperation(
 
   // Handle location change
   // LLM will only provide name (required)
-  // ensureLocationData will resolve them via API
+  // resolvePlaceDetails will resolve coordinates via API
   if (op.changes.location !== undefined) {
-    activity.location = await ensureLocationData({
+    activity.location = await resolvePlaceDetails({
       name: op.changes.location.name,
     });
   }

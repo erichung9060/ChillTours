@@ -7,7 +7,7 @@ import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
 import { calcDayCount } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
-import { ensureLocationData } from "@/lib/maps/geocoding";
+import { resolvePlaceDetails } from "@/lib/places/place-resolver";
 
 const MAX_HISTORY_ENTRIES = 50;
 
@@ -404,7 +404,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     try {
       // Resolve location data
-      const resolvedLocation = await ensureLocationData({
+      const resolvedLocation = await resolvePlaceDetails({
         name: activityInput.locationName,
       });
 
@@ -478,7 +478,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     try {
       let resolvedLocation = existingActivity.location;
       if (activityInput.locationName !== existingActivity.location.name) {
-        resolvedLocation = await ensureLocationData({
+        resolvedLocation = await resolvePlaceDetails({
           name: activityInput.locationName,
         });
       }
