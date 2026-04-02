@@ -44,9 +44,6 @@ export const AddOperationSchema = z.object({
     note: z.string().optional(),
     location: z.object({
       name: z.string(),
-      lat: z.number().nullable().optional(),
-      lng: z.number().nullable().optional(),
-      place_id: z.string().optional(),
     }),
     duration_minutes: z.number().int().positive().optional(),
     insert_at: z.number().int().min(0).optional(), // 0-based position
@@ -78,9 +75,6 @@ export const UpdateOperationSchema = z.object({
     location: z
       .object({
         name: z.string(),
-        lat: z.number().nullable().optional(),
-        lng: z.number().nullable().optional(),
-        place_id: z.string().optional(),
       })
       .optional(),
     duration_minutes: z.number().int().positive().optional(),
@@ -205,9 +199,6 @@ async function applyAddOperation(
   // Ensure location has valid coordinates
   const location = await ensureLocationData({
     name: op.activity.location.name,
-    lat: op.activity.location.lat,
-    lng: op.activity.location.lng,
-    place_id: op.activity.location.place_id,
   });
 
   // Create new activity with generated ID
@@ -302,7 +293,7 @@ function applyRemoveOperation(
 
 /**
  * Update existing activity with backend location resolution for location changes
- * Note: LLM can optionally provide coordinates; if not provided, backend API is used
+ * Note: LLM will only provide the name. The API will resolve lat/lng via the resolver
  */
 async function applyUpdateOperation(
   itinerary: Itinerary,
@@ -339,14 +330,11 @@ async function applyUpdateOperation(
     activity.duration_minutes = op.changes.duration_minutes;
 
   // Handle location change
-  // LLM can provide name (required), and optionally name/lat/lng
-  // If coordinates not provided, ensureLocationData will resolve them via API
+  // LLM will only provide name (required)
+  // ensureLocationData will resolve them via API
   if (op.changes.location !== undefined) {
     activity.location = await ensureLocationData({
       name: op.changes.location.name,
-      lat: op.changes.location.lat,
-      lng: op.changes.location.lng,
-      place_id: op.changes.location.place_id,
     });
   }
 

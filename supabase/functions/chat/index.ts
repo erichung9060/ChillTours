@@ -30,8 +30,6 @@ const ChatRequestSchema = z.object({
             note: z.string(),
             location: z.object({
               name: z.string(),
-              lat: z.number().nullable().optional(),
-              lng: z.number().nullable().optional(),
             }),
             duration_minutes: z.number().int().positive(),
           })
@@ -110,9 +108,7 @@ ITINERARY_OPERATIONS:
         "title": "Tokyo Tower",
         "note": "Best visited at sunset for great city views",
         "location": {
-          "name": "Tokyo Tower",
-          "lat": 35.6586,
-          "lng": 139.7454
+          "name": "Tokyo Tower"
         },
         "duration_minutes": 90,
         "insert_at": 2
@@ -153,7 +149,7 @@ AVAILABLE OPERATION TYPES
 
 1. ADD
 - Use when creating a completely new activity.
-- Required: type, day_number, activity (time, title, location with name/lat/lng)
+- Required: type, day_number, activity (time, title, location with name)
 - Optional: note (leave empty if no special tips), duration_minutes (default: 60), insert_at (0-based, default: append)
 
 2. REMOVE
@@ -164,7 +160,7 @@ AVAILABLE OPERATION TYPES
 3. UPDATE
 - Use when modifying an existing activity.
 - Required: type, day_number, activity_index (0-based), changes
-- Changes may include: time, title, note (leave empty if no special tips), location (partial), duration_minutes
+- Changes may include: time, title, note (leave empty if no special tips), location with name, duration_minutes
 
 4. MOVE
 - Use when relocating an existing activity to a different day.
