@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "npm:@google/generative-ai";
+import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { checkChatRateLimit } from "../_shared/rate-limit.ts";
@@ -269,55 +269,33 @@ Deno.serve(async (req) => {
 
     const { message, history, itinerary_context }: ChatRequest = parsed.data;
 
-    // Get Gemini API key from environment
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      console.error("GEMINI_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "Server configuration error" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    const ai = getAIClient();
 
-    // Initialize Gemini AI with Google Search Grounding
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const modelName = Deno.env.get("GEMINI_MODEL");
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      tools: [
-        {
-          googleSearch: {},
-        },
-      ],
-    });
-
-    // Build conversation history for Gemini
     const conversationHistory = history.map((msg) => ({
       role: msg.role === "user" ? "user" : "model",
       parts: [{ text: msg.content }],
     }));
 
-    // Start chat with history
-    const chat = model.startChat({
+    const chat = ai.chats.create({
+      model: VERTEX_CONFIG.CHAT_MODEL,
       history: conversationHistory,
+      config: {
+        tools: [{ googleSearch: {} }],
+      },
     });
 
     // Build prompt with context
     const prompt = buildChatPrompt(message, itinerary_context);
 
     // Generate response with streaming
-    const result = await chat.sendMessageStream(prompt);
+    const result = await chat.sendMessageStream({ message: prompt });
 
     // Set up streaming response
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          // Stream chunks from Gemini directly to client
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
+          for await (const chunk of result) {
+            const text = chunk.text;
             if (text) {
               controller.enqueue(new TextEncoder().encode(text));
             }

@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "npm:@google/generative-ai";
+import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { JSONParser } from "npm:@streamparser/json";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -61,23 +61,7 @@ Deno.serve(async (req) => {
 
     const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;
 
-    const modelName = Deno.env.get("GEMINI_MODEL");
-    if (!modelName) {
-      console.error("GEMINI_MODEL env var not configured");
-      return new Response(
-        JSON.stringify({ error: "Internal server error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const apiKey = Deno.env.get("GEMINI_API_KEY");
-    if (!apiKey) {
-      console.error("GEMINI_API_KEY env var not configured");
-      return new Response(
-        JSON.stringify({ error: "Internal server error" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const ai = getAIClient();
 
     const supabaseAdmin = createSupabaseAdminClient();
     const supabaseClient = createSupabaseClient(req.headers.get("Authorization")!);
@@ -140,8 +124,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: modelName });
     const prompt = buildItineraryPrompt(destination, startDate, endDate, preferences ?? undefined, locale);
 
     const stream = new ReadableStream({
@@ -248,12 +230,15 @@ Deno.serve(async (req) => {
         };
 
         try {
-          const result = await model.generateContentStream(prompt);
+          const result = await ai.models.generateContentStream({
+            model: VERTEX_CONFIG.ITINERARY_MODEL,
+            contents: prompt,
+          });
           let accumulatedText = "";
           let jsonStarted = false;
 
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
+          for await (const chunk of result) {
+            const text = chunk.text;
             if (!text) continue;
 
             accumulatedText += text;
