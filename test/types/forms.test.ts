@@ -82,22 +82,19 @@ describe("Form Schema Factories", () => {
       }
     });
 
-    it("should return translated error for invalid URL", () => {
+    it("should strip deprecated url input from parsed activity form values", () => {
       const schema = createActivityFormSchema(mockT);
       const result = schema.safeParse({
         title: "Activity",
         locationName: "Tokyo Tower",
         time: "10:00",
         duration: 60,
-        url: "not-a-url",
+        url: "https://deprecated.example.com",
       });
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        const urlError = result.error.issues.find((issue) =>
-          issue.path.includes("url")
-        );
-        expect(urlError?.message).toBe("translated-validation.invalidUrl");
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data).not.toHaveProperty("url");
       }
     });
   });

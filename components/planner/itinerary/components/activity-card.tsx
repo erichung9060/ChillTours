@@ -30,8 +30,8 @@ export function ActivityCard({
 
   const handleExternalLinkClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (activity.url) {
-      window.open(activity.url, "_blank");
+    if (activity.location.website) {
+      window.open(activity.location.website, "_blank");
     } else {
       handleNavigationConfig(e);
     }
