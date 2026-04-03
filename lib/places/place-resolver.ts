@@ -108,6 +108,7 @@ function fallback(location: PartialLocation): Location {
     name: location.name,
     lat: location.lat ?? null,
     lng: location.lng ?? null,
+    place_id: null,
     rating: null,
     user_ratings_total: null,
     opening_hours: null,
