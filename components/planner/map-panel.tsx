@@ -28,7 +28,7 @@ import {
   getMapProvider,
   getConfiguredProviderType,
 } from "@/lib/maps/provider-factory";
-import { hasValidCoordinates } from "@/lib/places/place-resolver";
+import { hasValidCoordinates } from "@/lib/utils/geo";
 import { PIN_CONFIGS } from "@/lib/maps/pin-icons";
 import { GoogleMapRenderer } from "./map-renderers/google-map-renderer";
 import { MapboxMapRenderer } from "./map-renderers/mapbox-map-renderer";
