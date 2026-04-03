@@ -59,7 +59,6 @@ interface ItineraryState {
       time: string;
       duration: number;
       note?: string;
-      url?: string;
   }, insertionIndex?: number) => Promise<void>;
   updateActivity: (activityId: string, activityInput: {
       title: string;
@@ -67,7 +66,6 @@ interface ItineraryState {
       time: string;
       duration: number;
       note?: string;
-      url?: string;
   }) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
 
@@ -422,7 +420,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         note: activityInput.note || "",
         time: activityInput.time,
         duration_minutes: activityInput.duration,
-        url: activityInput.url || undefined,
         order: insertionIndex ?? 0,
       };
 
@@ -478,8 +475,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       activityInput.locationName !== existingActivity.location.name ||
       (activityInput.note || "") !== (existingActivity.note || "") ||
       activityInput.time !== existingActivity.time ||
-      activityInput.duration !== existingActivity.duration_minutes ||
-      (activityInput.url || "") !== (existingActivity.url || "");
+      activityInput.duration !== existingActivity.duration_minutes;
 
     if (!isDirty) return;
 
@@ -500,7 +496,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         note: activityInput.note || "",
         time: activityInput.time,
         duration_minutes: activityInput.duration,
-        url: activityInput.url || undefined,
       };
 
       const newDays = state.itinerary.days.map((day) => ({

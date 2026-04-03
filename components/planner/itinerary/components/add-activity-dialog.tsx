@@ -47,7 +47,6 @@ export function AddActivityDialog({
       locationName: "",
       time: "09:00",
       duration: 60,
-      url: "",
       note: "",
     },
   });
@@ -144,19 +143,6 @@ export function AddActivityDialog({
                   helperText={form.formState.errors.duration?.message?.toString()}
                 />
               </div>
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="url" className="text-sm font-medium">
-                {t("labelUrl")}
-              </label>
-              <Input
-                id="url"
-                disabled={isSaving}
-                placeholder="https://..."
-                {...form.register("url")}
-                error={!!form.formState.errors.url}
-                helperText={form.formState.errors.url?.message?.toString()}
-              />
             </div>
             <div className="grid gap-2">
               <label htmlFor="note" className="text-sm font-medium">

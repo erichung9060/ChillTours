@@ -31,7 +31,6 @@ export const ActivitySchema = z.object({
   location: LocationSchema,
   duration_minutes: z.number().int().min(1).max(480),
   order: z.number().int().min(0),
-  url: z.string().url("Invalid URL").optional().or(z.literal("")),
 });
 
 export type Activity = z.infer<typeof ActivitySchema>;

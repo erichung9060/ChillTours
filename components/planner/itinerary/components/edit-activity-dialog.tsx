@@ -53,7 +53,6 @@ export function EditActivityDialog({
       note: activity.note || "",
       time: activity.time,
       duration: activity.duration_minutes,
-      url: activity.url || "",
     },
   });
 
@@ -68,7 +67,6 @@ export function EditActivityDialog({
         note: activity.note || "",
         time: activity.time,
         duration: activity.duration_minutes,
-        url: activity.url || "",
       });
     }
   }, [activity, isOpen, form]);
@@ -164,19 +162,6 @@ export function EditActivityDialog({
                     helperText={form.formState.errors.duration?.message?.toString()}
                   />
                 </div>
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="url" className="text-sm font-medium">
-                  {t("labelUrl")}
-                </label>
-                <Input
-                  id="url"
-                  disabled={isSaving}
-                  placeholder="https://..."
-                  {...form.register("url")}
-                  error={!!form.formState.errors.url}
-                  helperText={form.formState.errors.url?.message?.toString()}
-                />
               </div>
               <div className="grid gap-2">
                 <label htmlFor="note" className="text-sm font-medium">

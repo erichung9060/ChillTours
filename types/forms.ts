@@ -160,22 +160,6 @@ export const createActivityFormSchema = (t: TranslationFunction) =>
       .int()
       .min(1, t("validation.durationMin"))
       .max(1440, t("validation.durationMax")),
-    url: z
-      .string()
-      .refine(
-        (val) => {
-          if (!val || val === "") return true;
-          try {
-            new URL(val);
-            return true;
-          } catch {
-            return false;
-          }
-        },
-        { message: t("validation.invalidUrl") }
-      )
-      .or(z.literal(""))
-      .optional(),
     note: z.string().max(500, t("validation.noteMaxLength")).optional(),
   });
 
