@@ -21,10 +21,10 @@ export interface PartialLocation {
  * Resolve complete place details via the backend API proxy (/api/resolve-places).
  *
  * Always calls the API to ensure full Google Places data is returned.
- * Falls back to a location with null coordinates if the API fails.
+ * Falls back to a location with partial details omitted if the API fails.
  *
  * @param location - Partial location (typically just a name)
- * @returns Location with full place details (coordinates may be null if unknown)
+ * @returns Location with full place details (unknown fields are omitted)
  */
 export async function resolvePlaceDetails(
   location: PartialLocation
@@ -44,8 +44,8 @@ export async function resolvePlaceDetails(
           {
             id,
             name: location.name,
-            ...(location.lat != null && { lat: location.lat }),
-            ...(location.lng != null && { lng: location.lng }),
+            ...(location.lat !== undefined && { lat: location.lat }),
+            ...(location.lng !== undefined && { lng: location.lng }),
           },
         ],
       }),
@@ -62,13 +62,17 @@ export async function resolvePlaceDetails(
     if (resolved && !resolved.error) {
       return {
         name: resolved.name || location.name,
-        lat: resolved.lat ?? null,
-        lng: resolved.lng ?? null,
-        place_id: resolved.place_id,
-        rating: resolved.rating ?? null,
-        user_ratings_total: resolved.user_ratings_total ?? null,
-        opening_hours: resolved.opening_hours ?? null,
-        website: resolved.website ?? null,
+        ...(resolved.lat !== undefined && { lat: resolved.lat }),
+        ...(resolved.lng !== undefined && { lng: resolved.lng }),
+        ...(resolved.place_id !== undefined && { place_id: resolved.place_id }),
+        ...(resolved.rating !== undefined && { rating: resolved.rating }),
+        ...(resolved.user_ratings_total !== undefined && {
+          user_ratings_total: resolved.user_ratings_total,
+        }),
+        ...(resolved.opening_hours !== undefined && {
+          opening_hours: resolved.opening_hours,
+        }),
+        ...(resolved.website !== undefined && { website: resolved.website }),
       };
     }
 
@@ -84,12 +88,7 @@ function fallback(location: PartialLocation): Location {
   console.warn(`Failed to resolve "${location.name}", place details will be unavailable`);
   return {
     name: location.name,
-    lat: location.lat ?? null,
-    lng: location.lng ?? null,
-    place_id: null,
-    rating: null,
-    user_ratings_total: null,
-    opening_hours: null,
-    website: null,
+    ...(location.lat !== undefined && { lat: location.lat }),
+    ...(location.lng !== undefined && { lng: location.lng }),
   };
 }

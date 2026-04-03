@@ -56,17 +56,17 @@ describe("resolvePlaceDetails", () => {
     expect(result.website).toBe("https://www.tokyotower.co.jp");
   });
 
-  it("should return null coordinates when API returns HTTP error", async () => {
+  it("should omit coordinates when API returns HTTP error", async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
     const result = await resolvePlaceDetails({ name: "Unknown Place" });
 
     expect(result.name).toBe("Unknown Place");
-    expect(result.lat).toBeNull();
-    expect(result.lng).toBeNull();
+    expect(result.lat).toBeUndefined();
+    expect(result.lng).toBeUndefined();
   });
 
-  it("should return null coordinates when API returns NOT_FOUND", async () => {
+  it("should omit coordinates when API returns NOT_FOUND", async () => {
     mockFetch.mockImplementationOnce(async (_url, options) => {
       const body = JSON.parse(options.body);
       const reqId = body.places[0].id;
@@ -80,18 +80,18 @@ describe("resolvePlaceDetails", () => {
 
     const result = await resolvePlaceDetails({ name: "Nonexistent" });
 
-    expect(result.lat).toBeNull();
-    expect(result.lng).toBeNull();
+    expect(result.lat).toBeUndefined();
+    expect(result.lng).toBeUndefined();
   });
 
-  it("should return null coordinates when fetch throws", async () => {
+  it("should omit coordinates when fetch throws", async () => {
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
     const result = await resolvePlaceDetails({ name: "Offline Place" });
 
     expect(result.name).toBe("Offline Place");
-    expect(result.lat).toBeNull();
-    expect(result.lng).toBeNull();
+    expect(result.lat).toBeUndefined();
+    expect(result.lng).toBeUndefined();
   });
 
   it("should preserve existing coordinates when API returns HTTP error", async () => {

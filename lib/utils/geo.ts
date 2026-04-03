@@ -6,12 +6,12 @@
 
 /**
  * Check if location has valid coordinates
- * Handles null, undefined, NaN, and out-of-range values
+ * Handles undefined, NaN, and out-of-range values
  *
  * @param location - Location to validate
  * @returns true if coordinates are valid numbers within range
  */
-export function hasValidCoordinates<T extends { lat?: number | null; lng?: number | null }>(
+export function hasValidCoordinates<T extends { lat?: number; lng?: number }>(
   location: T
 ): location is T & { lat: number; lng: number } {
   return (

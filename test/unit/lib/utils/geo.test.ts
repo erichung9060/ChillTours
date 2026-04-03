@@ -12,12 +12,6 @@ describe("hasValidCoordinates", () => {
     expect(hasValidCoordinates({ lat: 90, lng: 180 })).toBe(true);
   });
 
-  it("should return false for null coordinates", () => {
-    expect(hasValidCoordinates({ lat: null, lng: null })).toBe(false);
-    expect(hasValidCoordinates({ lat: 25, lng: null })).toBe(false);
-    expect(hasValidCoordinates({ lat: null, lng: 121 })).toBe(false);
-  });
-
   it("should return false for undefined coordinates", () => {
     expect(hasValidCoordinates({})).toBe(false);
     expect(hasValidCoordinates({ lat: 25 })).toBe(false);

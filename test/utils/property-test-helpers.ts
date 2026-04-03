@@ -5,14 +5,14 @@ import * as fc from "fast-check";
  */
 
 /**
- * Arbitrary for generating nullable coordinates
+ * Arbitrary for generating optional coordinates
  */
-export const nullableCoordinateArb = fc.oneof(
+export const optionalCoordinateArb = fc.oneof(
   fc.record({
     lat: fc.double({ min: -90, max: 90, noNaN: true }),
     lng: fc.double({ min: -180, max: 180, noNaN: true }),
   }),
-  fc.constant({ lat: null, lng: null })
+  fc.constant({})
 );
 
 /**
@@ -22,7 +22,7 @@ export const locationArbitrary = fc.record({
   name: fc.string({ minLength: 1, maxLength: 100 }),
   place_id: fc.option(fc.string(), { nil: undefined }),
 }).chain((base) =>
-  nullableCoordinateArb.map((coords) => ({
+  optionalCoordinateArb.map((coords) => ({
     ...base,
     ...coords,
   }))

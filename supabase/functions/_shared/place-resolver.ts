@@ -16,8 +16,8 @@ export interface PlaceInput {
 
 export interface ResolvedPlace {
   id: string;
-  place_id?: string;
   name: string;
+  place_id?: string;
   lat?: number;
   lng?: number;
   rating?: number;
@@ -239,6 +239,22 @@ async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
 // Core resolve logic (per place)
 // ──────────────────────────────────────────────
 
+function normalizeCachedPlace(
+  row: Record<string, unknown>,
+  fallbackName: string
+): Omit<ResolvedPlace, "id"> {
+  return {
+    place_id: (row.place_id as string) ?? undefined,
+    name: (row.name as string) ?? fallbackName,
+    lat: (row.lat as number) ?? undefined,
+    lng: (row.lng as number) ?? undefined,
+    rating: (row.rating as number) ?? undefined,
+    user_ratings_total: (row.user_ratings_total as number) ?? undefined,
+    opening_hours: (row.opening_hours as Record<string, unknown>) ?? undefined,
+    website: (row.website as string) ?? undefined,
+  };
+}
+
 async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
   input.name = input.name.trim();
   const base: ResolvedPlace = { id: input.id, name: input.name };
@@ -248,16 +264,7 @@ async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
     if (cachedByName) {
       return {
         id: input.id,
-        place_id: (cachedByName.place_id as string) ?? undefined,
-        name: (cachedByName.name as string) ?? input.name,
-        lat: (cachedByName.lat as number) ?? undefined,
-        lng: (cachedByName.lng as number) ?? undefined,
-        rating: (cachedByName.rating as number) ?? undefined,
-        user_ratings_total:
-          (cachedByName.user_ratings_total as number) ?? undefined,
-        opening_hours:
-          (cachedByName.opening_hours as Record<string, unknown>) ?? undefined,
-        website: (cachedByName.website as string) ?? undefined,
+        ...normalizeCachedPlace(cachedByName, input.name),
       };
     }
   }
@@ -272,14 +279,8 @@ async function resolvePlace(input: PlaceInput): Promise<ResolvedPlace> {
   if (cached) {
     return {
       id: input.id,
-      place_id: placeId,
-      name: (cached.name as string) ?? input.name,
-      lat: (cached.lat as number) ?? undefined,
-      lng: (cached.lng as number) ?? undefined,
-      rating: (cached.rating as number) ?? undefined,
-      user_ratings_total: (cached.user_ratings_total as number) ?? undefined,
-      opening_hours: (cached.opening_hours as Record<string, unknown>) ?? undefined,
-      website: (cached.website as string) ?? undefined,
+      ...normalizeCachedPlace(cached, input.name),
+      place_id: placeId, // placeId from findPlace() is prior to cache
     };
   }
 

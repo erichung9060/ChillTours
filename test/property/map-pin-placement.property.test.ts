@@ -23,8 +23,6 @@ const arbitraryLocation = (): fc.Arbitrary<Location> =>
     }),
     fc.record({
       name: fc.string({ minLength: 1, maxLength: 100 }),
-      lat: fc.constant(null),
-      lng: fc.constant(null),
       place_id: fc.option(fc.string(), { nil: undefined }),
     })
   );
