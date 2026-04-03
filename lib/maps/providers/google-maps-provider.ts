@@ -4,13 +4,7 @@
  * Implements the MapProvider interface for Google Maps
  */
 
-import type { Location } from "@/types/itinerary";
-import type {
-  MapProvider,
-  MapConfig,
-  MarkerIcon,
-  PlaceDetails,
-} from "../types";
+import type { MapProvider, MapConfig, MarkerIcon } from "../types";
 import { generatePinIcon } from "../pin-icons";
 
 export class GoogleMapsProvider implements MapProvider {
@@ -33,62 +27,6 @@ export class GoogleMapsProvider implements MapProvider {
       color,
       width: size.width,
       height: size.height,
-    });
-  }
-
-  async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
-    if (!window.google || !window.google.maps) {
-      console.error("Google Maps API not loaded");
-      return null;
-    }
-
-    const service = new window.google.maps.places.PlacesService(
-      document.createElement("div")
-    );
-
-    return new Promise((resolve) => {
-      service.getDetails(
-        {
-          placeId,
-          fields: [
-            "place_id",
-            "name",
-            "geometry",
-            "photos",
-            "rating",
-            "url",
-            "formatted_phone_number",
-            "website",
-            "opening_hours",
-          ],
-        },
-        (place, status) => {
-          if (
-            status === window.google.maps.places.PlacesServiceStatus.OK &&
-            place
-          ) {
-            const details: PlaceDetails = {
-              id: place.place_id || placeId,
-              name: place.name || "",
-              location: {
-                lat: place.geometry?.location?.lat() || 0,
-                lng: place.geometry?.location?.lng() || 0,
-              },
-              rating: place.rating,
-              photos: place.photos?.map((photo) =>
-                photo.getUrl({ maxWidth: 400 })
-              ),
-              url: place.url,
-              phone: place.formatted_phone_number,
-              website: place.website,
-              openingHours: place.opening_hours?.weekday_text,
-            };
-            resolve(details);
-          } else {
-            resolve(null);
-          }
-        }
-      );
     });
   }
 }

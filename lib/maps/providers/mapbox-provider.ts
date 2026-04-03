@@ -8,13 +8,7 @@
  * - Creating a Mapbox account and getting an API key
  */
 
-import type { Location } from "@/types/itinerary";
-import type {
-  MapProvider,
-  MapConfig,
-  MarkerIcon,
-  PlaceDetails,
-} from "../types";
+import type { MapProvider, MapConfig, MarkerIcon } from "../types";
 import { generatePinIcon } from "../pin-icons";
 
 export class MapboxProvider implements MapProvider {
@@ -38,59 +32,5 @@ export class MapboxProvider implements MapProvider {
       width: size.width,
       height: size.height,
     });
-  }
-
-  async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
-    // Mapbox Geocoding API - Retrieve a feature
-    // https://docs.mapbox.com/api/search/geocoding/#retrieve-a-feature
-    const apiKey = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
-
-    if (!apiKey) {
-      console.error("Mapbox API key not configured");
-      return null;
-    }
-
-    try {
-      // Mapbox place IDs have format like "poi.123456789"
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(placeId)}.json?access_token=${apiKey}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Place details request failed");
-      }
-
-      const data = await response.json();
-
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
-        const [lng, lat] = feature.center;
-        const properties = feature.properties || {};
-
-        const details: PlaceDetails = {
-          id: feature.id,
-          name: feature.text || "",
-          location: {
-            lat,
-            lng,
-          },
-          // Mapbox doesn't provide these fields in the basic API
-          // Would need Mapbox Search Box API for richer data
-          rating: undefined,
-          photos: undefined,
-          url: undefined,
-          phone: properties.tel,
-          website: properties.website,
-          openingHours: undefined,
-        };
-
-        return details;
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Mapbox place details error:", error);
-      return null;
-    }
   }
 }

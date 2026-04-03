@@ -5,8 +5,6 @@
  * (Google Maps, Mapbox, etc.)
  */
 
-import type { Location } from "@/types/itinerary";
-
 /**
  * Map configuration
  */
@@ -69,30 +67,6 @@ export interface MapProvider {
     color: string;
     size: { width: number; height: number };
   }): MarkerIcon;
-
-  /**
-   * Get place details from a place ID
-   * Returns detailed information about a specific place
-   */
-  getPlaceDetails(placeId: string): Promise<PlaceDetails | null>;
-}
-
-/**
- * Place details (provider-agnostic)
- */
-export interface PlaceDetails {
-  id: string;
-  name: string;
-  location: {
-    lat: number;
-    lng: number;
-  };
-  rating?: number;
-  photos?: string[];
-  url?: string;
-  phone?: string;
-  website?: string;
-  openingHours?: string[];
 }
 
 /**
