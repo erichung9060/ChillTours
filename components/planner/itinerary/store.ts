@@ -178,7 +178,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       itinerary: nextItinerary,
       historyPast: nextPast,
       historyFuture: [],
-      isSaving: true,
     });
 
     try {
@@ -192,8 +191,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         historyFuture: state.historyFuture,
       });
       throw err;
-    } finally {
-      set({ isSaving: false });
     }
   },
 
@@ -320,11 +317,13 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       return;
     }
 
+    set({ isSaving: true });
     try {
       await get().commitItineraryChange(previewItinerary);
     } finally {
       get().discardPreview();
       get().resetDragState();
+      set({ isSaving: false });
     }
   },
 
@@ -372,11 +371,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       return;
     }
 
+    set({ isSaving: true });
     try {
       await get().commitItineraryChange(nextItinerary);
     } catch (err) {
       console.error("Failed to update itinerary metadata:", err);
       throw err;
+    } finally {
+      set({ isSaving: false });
     }
   },
 
@@ -389,11 +391,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     // 1. 本地透過 AI operations 計算出預期的 itinerary 狀態
     const optimisticItinerary = await applyOperations(currentItinerary, ops);
 
+    set({ isSaving: true });
     try {
       await get().commitItineraryChange(optimisticItinerary);
     } catch (err) {
       console.error("Failed to apply AI operations:", err);
       throw err;
+    } finally {
+      set({ isSaving: false });
     }
   },
 
@@ -402,6 +407,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
+    set({ isSaving: true });
     try {
       // Resolve location data
       const resolvedLocation = await resolvePlaceDetails({
@@ -447,6 +453,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } catch (err) {
       console.error("Failed to add activity:", err);
       throw err;
+    } finally {
+      set({ isSaving: false });
     }
   },
 
@@ -475,6 +483,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     if (!isDirty) return;
 
+    set({ isSaving: true });
     try {
       let resolvedLocation = existingActivity.location;
       if (activityInput.locationName !== existingActivity.location.name) {
@@ -510,6 +519,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } catch (err) {
       console.error("Failed to update activity:", err);
       throw err;
+    } finally {
+      set({ isSaving: false });
     }
   },
 
@@ -518,6 +529,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
+    set({ isSaving: true });
     try {
       const newDays = state.itinerary.days.map((day) => ({
         ...day,
@@ -532,6 +544,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } catch (err) {
       console.error("Failed to delete activity:", err);
       throw err;
+    } finally {
+      set({ isSaving: false });
     }
   },
 
