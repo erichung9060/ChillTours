@@ -178,7 +178,16 @@ Deno.serve(async (req) => {
             time: string;
             title: string;
             description: string;
-            location: { name: string; lat: number; lng: number };
+            location: {
+              name: string;
+              lat?: number;
+              lng?: number;
+              place_id?: string;
+              rating?: number;
+              user_ratings_total?: number;
+              website?: string;
+              opening_hours?: Record<string, unknown>;
+            };
             duration_minutes: number;
           };
 
@@ -214,9 +223,14 @@ Deno.serve(async (req) => {
               if (resolvedData.length > 0) {
                 const resolved = resolvedData[0];
                 activityWithId.location = {
-                  ...activityWithId.location,
-                  lat: resolved.lat ?? activityWithId.location.lat,
-                  lng: resolved.lng ?? activityWithId.location.lng,
+                  name: resolved.name || activityWithId.location.name,
+                  ...(resolved.lat !== undefined && { lat: resolved.lat }),
+                  ...(resolved.lng !== undefined && { lng: resolved.lng }),
+                  ...(resolved.place_id !== undefined && { place_id: resolved.place_id }),
+                  ...(resolved.rating !== undefined && { rating: resolved.rating }),
+                  ...(resolved.user_ratings_total !== undefined && { user_ratings_total: resolved.user_ratings_total }),
+                  ...(resolved.website !== undefined && { website: resolved.website }),
+                  ...(resolved.opening_hours !== undefined && { opening_hours: resolved.opening_hours }),
                 };
               }
             } catch (err) {
