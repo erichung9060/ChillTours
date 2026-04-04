@@ -13,6 +13,7 @@ import { ExternalLink, Pencil, MapPin, Star } from "lucide-react";
 import type { ActivityCardProps } from "../types";
 import { createNavigationLink } from "@/lib/maps/utils";
 import { EditActivityDialog } from "./edit-activity-dialog";
+import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 
 export function ActivityCard({
   activity,
@@ -21,6 +22,7 @@ export function ActivityCard({
   onMouseLeave,
 }: ActivityCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const { canEdit } = useItineraryPermission();
 
   const handleNavigationConfig = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -58,15 +60,17 @@ export function ActivityCard({
         <ExternalLink className="h-4 w-4" />
       </Button>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-50 cursor-pointer"
-        onClick={handleEditClick}
-        title="Edit Activity"
-      >
-        <Pencil className="h-4 w-4" />
-      </Button>
+      {canEdit && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute bottom-2 right-2 h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity z-50 cursor-pointer"
+          onClick={handleEditClick}
+          title="Edit Activity"
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      )}
 
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
