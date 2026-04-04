@@ -32,6 +32,7 @@ import {
   AddActivityDialog,
 } from "./itinerary";
 import type { ItineraryPanelProps, ViewMode } from "./itinerary";
+import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 import { useItineraryStore } from "./itinerary/store";
 import { useGlobalAddModeTracking } from "./itinerary/hooks/use-global-add-mode-tracking";
 import { toast } from "sonner";
@@ -46,6 +47,8 @@ export function ItineraryPanel({
   onCurrentDayChange,
 }: ItineraryPanelProps) {
   const t = useTranslations("planner");
+  const tShare = useTranslations("share");
+  const { isReadOnly } = useItineraryPermission();
   // Store state
   const committedItinerary = useItineraryStore((state) => state.itinerary);
   const previewItinerary = useItineraryStore((state) => state.previewItinerary);
@@ -255,6 +258,12 @@ export function ItineraryPanel({
           isFullscreen={isFullscreen}
           toggleFullscreen={toggleFullscreen}
         />
+
+        {isReadOnly && (
+          <div className="border-b border-amber-200 bg-amber-100 px-4 py-2 text-center text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-900/30 dark:text-amber-200">
+            {tShare("readOnlyBanner")}
+          </div>
+        )}
 
         {/* Content based on view mode */}
         {viewRenderers[viewMode]()}

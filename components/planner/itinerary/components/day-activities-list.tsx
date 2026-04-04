@@ -16,6 +16,7 @@ import { DroppableDay } from "./droppable-day";
 import { SortableActivity } from "./sortable-activity";
 import { ActivityPlaceholderCard } from "./activity-placeholder-card";
 import { useItineraryStore } from "../store";
+import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 import type { DayActivitiesListProps } from "../types";
 
 export function DayActivitiesList({
@@ -24,6 +25,7 @@ export function DayActivitiesList({
   crossDayDragInfo,
   onActivityHover,
 }: DayActivitiesListProps) {
+  const { canEdit } = useItineraryPermission();
   const activities = day.activities;
   const itemIds = useMemo(
     () => activities.map((activity) => activity.id),
@@ -37,7 +39,7 @@ export function DayActivitiesList({
   const setAddingActivityTarget = useItineraryStore((s) => s.setAddingActivityTarget);
 
   const placeholderIndex =
-    isAddMode && addModePlaceholder?.dayNumber === day.day_number
+    canEdit && isAddMode && addModePlaceholder?.dayNumber === day.day_number
       ? addModePlaceholder.insertionIndex
       : null;
 
@@ -51,7 +53,7 @@ export function DayActivitiesList({
 
   // Empty day
   if (activities.length === 0) {
-    const showPlaceholder = isAddMode && placeholderIndex !== null;
+    const showPlaceholder = canEdit && isAddMode && placeholderIndex !== null;
     return (
       <div data-day-list={day.day_number}>
         {showPlaceholder ? (
@@ -75,7 +77,7 @@ export function DayActivitiesList({
       <div data-day-list={day.day_number} className="space-y-0">
         {day.activities.map((activity, i) => (
           <Fragment key={activity.id}>
-            {isAddMode && placeholderIndex === i && (
+            {canEdit && isAddMode && placeholderIndex === i && (
               <ActivityPlaceholderCard onClick={handlePlaceholderClick} />
             )}
             <SortableActivity
@@ -88,7 +90,7 @@ export function DayActivitiesList({
             />
           </Fragment>
         ))}
-        {isAddMode && placeholderIndex === activities.length && (
+        {canEdit && isAddMode && placeholderIndex === activities.length && (
           <ActivityPlaceholderCard onClick={handlePlaceholderClick} />
         )}
       </div>

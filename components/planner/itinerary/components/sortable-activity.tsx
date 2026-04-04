@@ -9,6 +9,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ActivityCard } from "./activity-card";
+import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 import type { SortableActivityProps } from "../types";
 
 export function SortableActivity({
@@ -17,6 +18,7 @@ export function SortableActivity({
   onActivityHover,
   disableAnimation,
 }: SortableActivityProps) {
+  const { canEdit } = useItineraryPermission();
   const {
     attributes,
     listeners,
@@ -26,6 +28,7 @@ export function SortableActivity({
     isDragging,
   } = useSortable({
     id: activity.id,
+    disabled: !canEdit,
     data: {
       activity,
       dayNumber,
@@ -50,15 +53,17 @@ export function SortableActivity({
       ref={setNodeRef}
       style={style}
       data-activity-card="true"
-      {...attributes}
-      {...listeners}
+      {...(canEdit ? attributes : {})}
+      {...(canEdit ? listeners : {})}
     >
       <ActivityCard
         activity={activity}
         className={`mb-3 transition-all border-b-4 border-r-4 border-b-primary/40 border-r-primary/40 hover:border-b-primary hover:border-r-primary ${
           isDragging
             ? "shadow-2xl cursor-grabbing"
-            : "hover:shadow-md cursor-grab"
+            : canEdit
+              ? "hover:shadow-md cursor-grab"
+              : "hover:shadow-md"
           }`}
         onMouseEnter={() => onActivityHover?.(activity.id)}
         onMouseLeave={() => onActivityHover?.(null)}

@@ -30,7 +30,7 @@ export function PanelHeader({
 }: PanelHeaderProps) {
   const locale = useLocale();
   const t = useTranslations("common");
-  const { canShare } = useItineraryPermission();
+  const { canEdit, canShare } = useItineraryPermission();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSaving = useItineraryStore((state) => state.isSaving);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
@@ -58,15 +58,17 @@ export function PanelHeader({
       <div className="flex-1">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">{itinerary.title}</h1>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsEditDialogOpen(true)}
-            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-            title="Edit Trip Details"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsEditDialogOpen(true)}
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              title="Edit Trip Details"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          )}
 
           {isSaving ? (
             <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
@@ -94,7 +96,7 @@ export function PanelHeader({
           onClick={() => void undo().catch(() => toast.error(t("error")))}
           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
           title="Undo"
-          disabled={!canUndo || isSaving}
+          disabled={!canEdit || !canUndo || isSaving}
         >
           <Undo2 className="h-4 w-4" />
         </Button>
@@ -105,24 +107,26 @@ export function PanelHeader({
           onClick={() => void redo().catch(() => toast.error(t("error")))}
           className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
           title="Redo"
-          disabled={!canRedo || isSaving}
+          disabled={!canEdit || !canRedo || isSaving}
         >
           <Redo2 className="h-4 w-4" />
         </Button>
 
         {/* Add Activity Button */}
-        <Button
-          variant={isAddingActivity ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setIsAddingActivity(!isAddingActivity)}
-          className={`h-8 w-8 p-0 ${isAddingActivity
-            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-            : "text-muted-foreground hover:text-foreground"
-          }`}
-          title="Add Activity"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
+        {canEdit && (
+          <Button
+            variant={isAddingActivity ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setIsAddingActivity(!isAddingActivity)}
+            className={`h-8 w-8 p-0 ${isAddingActivity
+              ? "bg-primary text-primary-foreground hover:bg-primary/90"
+              : "text-muted-foreground hover:text-foreground"
+            }`}
+            title="Add Activity"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        )}
 
         {canShare && (
           <ShareDialog
