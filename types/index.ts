@@ -54,3 +54,18 @@ export {
   ThemeModeSchema,
   ThemePreferenceSchema,
 } from "./user";
+
+// Share types
+export type {
+  LinkAccess,
+  SharePermission,
+  EffectivePermission,
+  ItineraryShare,
+} from "./share";
+
+export {
+  LinkAccessSchema,
+  SharePermissionSchema,
+  EffectivePermissionSchema,
+  ItineraryShareSchema,
+} from "./share";
