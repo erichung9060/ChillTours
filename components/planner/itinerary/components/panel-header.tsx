@@ -6,6 +6,8 @@
 
 "use client";
 
+import { ShareDialog } from "@/components/share/share-dialog";
+import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 import { Button } from "@/components/ui/button";
 import { VIEW_MODES } from "../constants";
 import type { PanelHeaderProps } from "../types";
@@ -28,6 +30,7 @@ export function PanelHeader({
 }: PanelHeaderProps) {
   const locale = useLocale();
   const t = useTranslations("common");
+  const { canShare } = useItineraryPermission();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSaving = useItineraryStore((state) => state.isSaving);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
@@ -120,6 +123,14 @@ export function PanelHeader({
         >
           <Plus className="h-4 w-4" />
         </Button>
+
+        {canShare && (
+          <ShareDialog
+            itineraryId={itinerary.id}
+            itineraryTitle={itinerary.title}
+            linkAccess={itinerary.link_access}
+          />
+        )}
 
         {/* View Mode Selector */}
         <div className="flex gap-1 bg-muted rounded-lg p-1">
