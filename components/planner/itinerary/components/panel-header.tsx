@@ -90,27 +90,31 @@ export function PanelHeader({
 
       {/* View Mode Controls */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void undo().catch(() => toast.error(t("error")))}
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-          title="Undo"
-          disabled={!canEdit || !canUndo || isSaving}
-        >
-          <Undo2 className="h-4 w-4" />
-        </Button>
+        {canEdit && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void undo().catch(() => toast.error(t("error")))}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              title="Undo"
+              disabled={!canUndo || isSaving}
+            >
+              <Undo2 className="h-4 w-4" />
+            </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => void redo().catch(() => toast.error(t("error")))}
-          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-          title="Redo"
-          disabled={!canEdit || !canRedo || isSaving}
-        >
-          <Redo2 className="h-4 w-4" />
-        </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => void redo().catch(() => toast.error(t("error")))}
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              title="Redo"
+              disabled={!canRedo || isSaving}
+            >
+              <Redo2 className="h-4 w-4" />
+            </Button>
+          </>
+        )}
 
         {/* Add Activity Button */}
         {canEdit && (
