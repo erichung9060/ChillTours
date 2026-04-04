@@ -30,7 +30,7 @@ export function PanelHeader({
 }: PanelHeaderProps) {
   const locale = useLocale();
   const t = useTranslations("common");
-  const { canEdit, canShare } = useItineraryPermission();
+  const { canDelete, canEdit, canShare } = useItineraryPermission();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSaving = useItineraryStore((state) => state.isSaving);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
@@ -178,7 +178,7 @@ export function PanelHeader({
           isOpen={isEditDialogOpen}
           onClose={() => setIsEditDialogOpen(false)}
           onSave={(updates) => updateMetadata(updates)}
-          onDelete={handleDelete}
+          onDelete={canDelete ? handleDelete : undefined}
         />
       )}
     </div>
