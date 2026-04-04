@@ -51,15 +51,15 @@ export function PanelHeader({
   };
 
   return (
-    <div className="p-4 border-b border-border flex items-center justify-between">
+    <div className="py-2.5 px-4 border-b border-border flex items-center justify-between">
       <div className="flex-1">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">{itinerary.title}</h1>
+          <h1 className="text-lg font-semibold">{itinerary.title}</h1>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsEditDialogOpen(true)}
-            className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
             title="Edit Trip Details"
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -77,10 +77,7 @@ export function PanelHeader({
             </div>
           )}
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
-          {itinerary.destination}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-0.5">
           {formatDateDisplay(itinerary.start_date, locale)} -{" "}
           {formatDateDisplay(itinerary.end_date, locale)}
         </p>
