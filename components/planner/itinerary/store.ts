@@ -1,8 +1,10 @@
 import { create } from "zustand";
 import type { Itinerary, Activity, Day } from "@/types/itinerary";
+import type { EffectivePermission } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
+import { getEffectivePermission } from "@/lib/supabase/shares";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
 import { calcDayCount } from "@/lib/utils/date";
@@ -18,6 +20,7 @@ interface ItineraryState {
   error: string | null;
   historyPast: Itinerary[];
   historyFuture: Itinerary[];
+  permission: EffectivePermission;
 
   // Generation State
   isGenerating: boolean;
@@ -45,6 +48,9 @@ interface ItineraryState {
   commitItineraryChange: (nextItinerary: Itinerary) => Promise<void>;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
+  canEdit: () => boolean;
+  canDelete: () => boolean;
+  canShare: () => boolean;
   getCanUndo: () => boolean;
   getCanRedo: () => boolean;
   startPreview: (baseItinerary?: Itinerary) => void;
@@ -106,6 +112,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   error: null,
   historyPast: [],
   historyFuture: [],
+  permission: "none",
   isGenerating: false,
   isSaving: false,
   generationAbortController: null,
@@ -133,13 +140,35 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   setAddingActivityTarget: (target) => set({ addingActivityTarget: target }),
   setAddModePlaceholder: (placeholder) => set({ addModePlaceholder: placeholder }),
 
+  canEdit: () => {
+    const { permission } = get();
+    return permission === "owner" || permission === "edit";
+  },
+
+  canDelete: () => {
+    const { permission } = get();
+    return permission === "owner";
+  },
+
+  canShare: () => {
+    const { permission } = get();
+    return permission === "owner";
+  },
+
   // Fetch Action
   fetchItinerary: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
       const data = await loadItinerary(id);
+      const permission = await getEffectivePermission(
+        data.id,
+        data.user_id,
+        data.link_access
+      );
+
       set({
         itinerary: data,
+        permission,
         historyPast: [],
         historyFuture: [],
         previewBaseItinerary: null,
