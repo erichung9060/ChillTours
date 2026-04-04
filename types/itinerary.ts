@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LinkAccessSchema } from "./share";
 
 // ============================================================================
 // Location Types
@@ -68,6 +69,7 @@ export const ItinerarySchema = z
     preferences: z.string().max(1000, "Preferences are too long").optional(),
     status: z.enum(["draft", "generating", "completed", "failed"]).optional(),
     days: z.array(DaySchema),
+    link_access: LinkAccessSchema.default("none"),
     created_at: z.iso.datetime(),
     updated_at: z.iso.datetime(),
   })

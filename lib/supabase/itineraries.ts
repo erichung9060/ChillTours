@@ -52,6 +52,7 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     preferences: row.preferences || undefined,
     status: row.status,
     days: data?.days || [],
+    link_access: row.link_access,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
