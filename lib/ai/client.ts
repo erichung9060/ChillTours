@@ -123,6 +123,10 @@ export class AIClient {
 
     const token = await getAccessToken();
 
+    if (!token) {
+      throw new AIError("Unauthorized. Please log in to use this feature.", "UNAUTHORIZED");
+    }
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
