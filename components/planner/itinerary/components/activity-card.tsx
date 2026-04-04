@@ -133,11 +133,13 @@ export function ActivityCard({
         </div>
       </CardContent>
 
-      <EditActivityDialog
-        activity={activity}
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-      />
+      {canEdit && (
+        <EditActivityDialog
+          activity={activity}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+        />
+      )}
     </Card>
   );
 }
