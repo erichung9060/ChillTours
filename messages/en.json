@@ -203,7 +203,9 @@
     "placeholder": "Ask me anything about your trip...",
     "sendHint": "Press Enter to send, Shift+Enter for new line",
     "error": "Sorry, I encountered an error. Please try again.",
-    "errorApplyOperations": "Failed to apply AI suggestions. Please try again."
+    "errorApplyOperations": "Failed to apply AI suggestions. Please try again.",
+    "errorUnauthorized": "Please log in to chat with the AI assistant.",
+    "errorRateLimit": "You have reached your daily chat limit. Please upgrade your plan to continue."
   },
   "share": {
     "share": "Share",

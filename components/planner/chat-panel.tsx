@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useItineraryChat } from "@/hooks/use-itinerary-chat";
 import { MarkdownMessage } from "./markdown-message";
-import { aiClient } from "@/lib/ai/client";
+import { aiClient, AIError } from "@/lib/ai/client";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 import type { Itinerary } from "@/types/itinerary";
 import type { ChatMessage } from "@/types/chat";
@@ -142,10 +142,20 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         }
       } catch (error) {
         console.error("Chat error:", error);
+        
+        let errorContent = t('error');
+        if (error instanceof AIError) {
+          if (error.code === "UNAUTHORIZED") {
+            errorContent = t('errorUnauthorized');
+          } else if (error.code === "RATE_LIMIT_EXCEEDED") {
+            errorContent = t('errorRateLimit');
+          }
+        }
+        
         const errorMessage: ChatMessage = {
           id: assistantMessageId,
           role: "assistant",
-          content: t('error'),
+          content: errorContent,
           timestamp: Date.now(),
           streaming: false,
         };

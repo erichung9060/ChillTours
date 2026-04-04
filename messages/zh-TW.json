@@ -203,7 +203,9 @@
     "placeholder": "詢問關於您旅行的任何問題...",
     "sendHint": "按 Enter 傳送，Shift+Enter 換行",
     "error": "抱歉，發生錯誤。請重試。",
-    "errorApplyOperations": "套用 AI 建議失敗，請再試一次。"
+    "errorApplyOperations": "套用 AI 建議失敗，請再試一次。",
+    "errorUnauthorized": "抱歉，您必須先登入才能開始使用 AI 行程助手！",
+    "errorRateLimit": "您的對話次數已達到上限了，請升級方案再來找我吧！"
   },
   "share": {
     "share": "分享",
