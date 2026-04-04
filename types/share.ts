@@ -22,11 +22,13 @@ export type SharePermission = z.infer<typeof SharePermissionSchema>;
 
 /**
  * Effective permission a user has on an itinerary
- * Resolution order (first match wins):
+ * Resolution semantics:
  * 1. owner - User owns the itinerary
- * 2. edit/view - User has email share
- * 3. edit/view - Link access grants permission
- * 4. none - No access
+ * 2. Otherwise, evaluate all applicable non-owner access sources:
+ *    - email share permission
+ *    - link access permission
+ * 3. The highest granted permission wins: edit > view > none
+ * 4. none - No access is granted by any source
  */
 export const EffectivePermissionSchema = z.enum([
   "owner",
