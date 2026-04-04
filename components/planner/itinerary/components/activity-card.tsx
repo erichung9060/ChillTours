@@ -9,7 +9,7 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Pencil, MapPin } from "lucide-react";
+import { ExternalLink, Pencil, MapPin, Star } from "lucide-react";
 import type { ActivityCardProps } from "../types";
 import { createNavigationLink } from "@/lib/maps/utils";
 import { EditActivityDialog } from "./edit-activity-dialog";
@@ -87,6 +87,18 @@ export function ActivityCard({
               <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
               <span className="truncate">{activity.location.name}</span>
             </Button>
+
+            {typeof activity.location.rating === 'number' && (
+              <div className="flex items-center gap-1 text-[11px] mb-2 pl-1 select-none">
+                <span className="font-medium">{activity.location.rating.toFixed(1)}</span>
+                <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 -mt-[1px]" />
+                {typeof activity.location.user_ratings_total === 'number' && (
+                  <span className="text-muted-foreground ml-0.5">
+                    ({activity.location.user_ratings_total.toLocaleString()})
+                  </span>
+                )}
+              </div>
+            )}
 
             {activity.note && (
               <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
