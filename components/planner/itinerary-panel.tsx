@@ -48,7 +48,7 @@ export function ItineraryPanel({
 }: ItineraryPanelProps) {
   const t = useTranslations("planner");
   const tShare = useTranslations("share");
-  const { isReadOnly } = useItineraryPermission();
+  const { canEdit, isReadOnly } = useItineraryPermission();
   // Store state
   const committedItinerary = useItineraryStore((state) => state.itinerary);
   const previewItinerary = useItineraryStore((state) => state.previewItinerary);
@@ -278,7 +278,7 @@ export function ItineraryPanel({
       </div>
 
       {/* Add Activity Dialog */}
-      {addingActivityTarget && (
+      {canEdit && addingActivityTarget && (
         <AddActivityDialog
           isOpen={true}
           dayNumber={addingActivityTarget.dayNumber}

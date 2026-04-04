@@ -172,13 +172,15 @@ export function PanelHeader({
         </Button>
       </div>
 
-      <EditMetadataDialog
-        itinerary={itinerary}
-        isOpen={isEditDialogOpen}
-        onClose={() => setIsEditDialogOpen(false)}
-        onSave={(updates) => updateMetadata(updates)}
-        onDelete={handleDelete}
-      />
+      {canEdit && (
+        <EditMetadataDialog
+          itinerary={itinerary}
+          isOpen={isEditDialogOpen}
+          onClose={() => setIsEditDialogOpen(false)}
+          onSave={(updates) => updateMetadata(updates)}
+          onDelete={handleDelete}
+        />
+      )}
     </div>
   );
 }
