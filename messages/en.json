@@ -239,7 +239,8 @@
     "removePerson": "Remove person",
     "removeFailed": "Failed to remove access.",
     "updateFailed": "Failed to update sharing settings.",
-    "loadFailed": "Failed to load sharing settings."
+    "loadFailed": "Failed to load sharing settings.",
+    "readOnlyBanner": "You are viewing this itinerary in read-only mode."
   },
   "legal": {
     "terms": {

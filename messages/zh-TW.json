@@ -239,7 +239,8 @@
     "removePerson": "移除對象",
     "removeFailed": "移除存取權失敗。",
     "updateFailed": "更新分享設定失敗。",
-    "loadFailed": "載入分享設定失敗。"
+    "loadFailed": "載入分享設定失敗。",
+    "readOnlyBanner": "你正在以唯讀模式檢視這份行程。"
   },
   "legal": {
     "terms": {
