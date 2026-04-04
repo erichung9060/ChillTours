@@ -59,6 +59,7 @@ export interface Database {
           preferences: string | null;
           status: "draft" | "generating" | "completed" | "failed";
           data: Json | null;
+          link_access: "none" | "view" | "edit";
           created_at: string;
           updated_at: string;
         };
@@ -72,6 +73,7 @@ export interface Database {
           preferences?: string | null;
           status?: "draft" | "generating" | "completed" | "failed";
           data?: Json | null;
+          link_access?: "none" | "view" | "edit";
           created_at?: string;
           updated_at?: string;
         };
@@ -85,6 +87,7 @@ export interface Database {
           preferences?: string | null;
           status?: "draft" | "generating" | "completed" | "failed";
           data?: Json | null;
+          link_access?: "none" | "view" | "edit";
           created_at?: string;
           updated_at?: string;
         };
