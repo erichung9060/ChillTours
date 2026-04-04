@@ -27,10 +27,12 @@ const mapContainerStyle = {
 function MapContent({
   activities,
   highlightedActivities,
+  focusedActivityId,
   onMarkerClick,
   getMarkerIcon,
   selectedActivity,
   onInfoWindowClose,
+  onFocusComplete,
   locale,
 }: MapRendererProps) {
   const map = useMap();
@@ -84,11 +86,33 @@ function MapContent({
     [map]
   );
 
-  // Smart zoom when hovering over activities or selecting a day
+  // Smart zoom & focus: unified map camera effect
+  // - Focus (click): force panTo + zoom + open InfoWindow, regardless of visibility
+  // - Hover: fitBounds only when highlighted activities are outside viewport
   useEffect(() => {
-    if (!map || highlightedActivities.length === 0) return;
+    if (!map) return;
 
-    // Check if any highlighted activity is outside the visible bounds
+    // Focus takes priority — always pan and open InfoWindow
+    if (focusedActivityId) {
+      const target = activities.find(a => a.id === focusedActivityId);
+      if (!target) return;
+
+      const lat = target.location.lat as number;
+      const lng = target.location.lng as number;
+
+      map.panTo({ lat, lng });
+      map.setZoom(15);
+
+      setInfoWindowPosition({ lat, lng });
+      onMarkerClick(target);
+
+      onFocusComplete();
+      return;
+    }
+
+    // Hover smart zoom — only when some highlighted activities are off-screen
+    if (highlightedActivities.length === 0) return;
+
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
         !isLocationVisible(
@@ -97,9 +121,8 @@ function MapContent({
         )
     );
 
-    if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
+    if (!hasInvisibleActivity) return;
 
-    // Calculate bounds to include all highlighted activities
     const locations = highlightedActivities.map((a) => a.location);
 
     try {
@@ -113,21 +136,16 @@ function MapContent({
 
       map.fitBounds(bounds, 100);
 
-      // Limit max zoom for single points
       if (locations.length === 1) {
-        setTimeout(() => {
-          if (map) {
-            const currentZoom = map.getZoom();
-            if (currentZoom && currentZoom > 15) {
-              map.setZoom(15);
-            }
-          }
-        }, 100);
+        const currentZoom = map.getZoom();
+        if (currentZoom && currentZoom > 15) {
+          map.setZoom(15);
+        }
       }
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
-  }, [map, highlightedActivities, isLocationVisible]);
+  }, [map, focusedActivityId, highlightedActivities, activities, isLocationVisible, onMarkerClick]);
 
   const handleMarkerClick = useCallback(
     (activity: Activity) => {
@@ -204,8 +222,10 @@ export function GoogleMapRenderer({
   activities,
   selectedActivity,
   highlightedActivities,
+  focusedActivityId,
   onMarkerClick,
   onInfoWindowClose,
+  onFocusComplete,
   getMarkerIcon,
   locale,
 }: MapRendererProps) {
@@ -261,8 +281,10 @@ export function GoogleMapRenderer({
           activities={activities}
           selectedActivity={selectedActivity}
           highlightedActivities={highlightedActivities}
+          focusedActivityId={focusedActivityId}
           onMarkerClick={onMarkerClick}
           onInfoWindowClose={onInfoWindowClose}
+          onFocusComplete={onFocusComplete}
           getMarkerIcon={getMarkerIcon}
           locale={locale}
         />

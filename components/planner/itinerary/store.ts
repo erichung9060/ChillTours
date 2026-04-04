@@ -37,6 +37,7 @@ interface ItineraryState {
 
   hoveredDayNumber: number | null;
   hoveredActivityId: string | null;
+  focusedActivityId: string | null;
 
   // Add Activity Mode State
   isAddingActivity: boolean;
@@ -95,9 +96,10 @@ interface ItineraryState {
   ) => void;
   setDraggingActivityId: (id: string | null) => void;
 
-  // Hover State Actions
+  // Hover & Focus State Actions
   setHoveredDay: (dayNumber: number | null) => void;
   setHoveredActivity: (activityId: string | null) => void;
+  setFocusedActivity: (activityId: string | null) => void;
 
   // Add Activity Mode Actions
   setIsAddingActivity: (flag: boolean) => void;
@@ -123,6 +125,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   draggingActivityId: null,
   hoveredDayNumber: null,
   hoveredActivityId: null,
+  focusedActivityId: null,
   isAddingActivity: false,
   addingActivityTarget: null,
   addModePlaceholder: null,
@@ -132,6 +135,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   setDraggingActivityId: (id) => set({ draggingActivityId: id }),
   setHoveredDay: (dayNumber) => set({ hoveredDayNumber: dayNumber }),
   setHoveredActivity: (activityId) => set({ hoveredActivityId: activityId }),
+  setFocusedActivity: (activityId) => set({ focusedActivityId: activityId }),
   setIsAddingActivity: (flag) =>
     set({
       isAddingActivity: flag,

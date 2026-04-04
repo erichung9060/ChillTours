@@ -16,6 +16,7 @@ export function SortableActivity({
   activity,
   dayNumber,
   onActivityHover,
+  onActivityClick,
   disableAnimation,
 }: SortableActivityProps) {
   const { canEdit } = useItineraryPermission();
@@ -67,6 +68,7 @@ export function SortableActivity({
           }`}
         onMouseEnter={() => onActivityHover?.(activity.id)}
         onMouseLeave={() => onActivityHover?.(null)}
+        onClick={() => onActivityClick?.(activity.id)}
       />
     </div>
   );

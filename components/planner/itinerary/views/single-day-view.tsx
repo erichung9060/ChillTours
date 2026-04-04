@@ -22,6 +22,7 @@ export function SingleDayView({
   goToPreviousDay,
   goToNextDay,
   onActivityHover,
+  onActivityClick,
 }: SingleDayViewProps) {
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
@@ -92,6 +93,7 @@ export function SingleDayView({
           draggingActivityId={draggingActivityId}
           crossDayDragInfo={crossDayDragInfo}
           onActivityHover={onActivityHover}
+          onActivityClick={onActivityClick}
         />
       </div>
     </div>

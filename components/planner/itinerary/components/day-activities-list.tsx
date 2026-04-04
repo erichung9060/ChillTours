@@ -24,6 +24,7 @@ export function DayActivitiesList({
   draggingActivityId,
   crossDayDragInfo,
   onActivityHover,
+  onActivityClick,
 }: DayActivitiesListProps) {
   const { canEdit } = useItineraryPermission();
   const activities = day.activities;
@@ -84,6 +85,7 @@ export function DayActivitiesList({
               activity={activity}
               dayNumber={day.day_number}
               onActivityHover={onActivityHover}
+              onActivityClick={onActivityClick}
               disableAnimation={
                 crossDayDragInfo?.targetDayNumber === day.day_number
               }

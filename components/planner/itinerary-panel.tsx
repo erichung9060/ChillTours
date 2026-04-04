@@ -76,6 +76,9 @@ export function ItineraryPanel({
   const setHoveredActivity = useItineraryStore(
     (state) => state.setHoveredActivity
   );
+  const setFocusedActivity = useItineraryStore(
+    (state) => state.setFocusedActivity
+  );
   const isAddingActivity = useItineraryStore(
     (state) => state.isAddingActivity
   );
@@ -216,6 +219,7 @@ export function ItineraryPanel({
         toggleDay={toggleDay}
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
+        onActivityClick={setFocusedActivity}
       />
     ),
     "single-day": () => (
@@ -227,6 +231,7 @@ export function ItineraryPanel({
         goToPreviousDay={goToPreviousDay}
         goToNextDay={goToNextDay}
         onActivityHover={setHoveredActivity}
+        onActivityClick={setFocusedActivity}
       />
     ),
     "side-by-side": () => (
@@ -236,6 +241,7 @@ export function ItineraryPanel({
         crossDayDragInfo={crossDayDragInfo}
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
+        onActivityClick={setFocusedActivity}
       />
     ),
   };

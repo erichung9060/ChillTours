@@ -18,8 +18,10 @@ export function MapboxMapRenderer({
   activities,
   selectedActivity,
   highlightedActivities,
+  focusedActivityId,
   onMarkerClick,
   onInfoWindowClose,
+  onFocusComplete,
   getMarkerIcon,
   locale,
 }: MapRendererProps) {
@@ -111,12 +113,32 @@ export function MapboxMapRenderer({
     }
   }, []);
 
-  // Smart zoom when hovering over activities or selecting a day
+  // Smart zoom & focus: unified map camera effect
+  // - Focus (click): force flyTo + zoom + open Popup, regardless of visibility
+  // - Hover: fitBounds only when highlighted activities are outside viewport
   useEffect(() => {
-    if (!mapRef.current || !isLoaded || highlightedActivities.length === 0)
-      return;
+    if (!mapRef.current || !isLoaded) return;
 
-    // Check if any highlighted activity is outside the visible bounds
+    // Focus takes priority — always flyTo and open Popup
+    if (focusedActivityId) {
+      const target = activities.find(a => a.id === focusedActivityId);
+      if (!target) return;
+
+      mapRef.current.flyTo({
+        center: [target.location.lng as number, target.location.lat as number],
+        zoom: 15,
+        duration: 800,
+      });
+
+      onMarkerClick(target);
+
+      onFocusComplete();
+      return;
+    }
+
+    // Hover smart zoom — only when some highlighted activities are off-screen
+    if (highlightedActivities.length === 0) return;
+
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
         !isLocationVisible(
@@ -125,9 +147,8 @@ export function MapboxMapRenderer({
         )
     );
 
-    if (!hasInvisibleActivity) return; // All activities are visible, no need to zoom
+    if (!hasInvisibleActivity) return;
 
-    // Calculate bounds to include all highlighted activities
     const locations = highlightedActivities.map((a) => a.location);
 
     try {
@@ -150,7 +171,7 @@ export function MapboxMapRenderer({
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
-  }, [highlightedActivities, isLoaded, isLocationVisible]);
+  }, [focusedActivityId, highlightedActivities, isLoaded, activities, isLocationVisible, onMarkerClick]);
 
   if (loadError || !mapboxToken) {
     return (

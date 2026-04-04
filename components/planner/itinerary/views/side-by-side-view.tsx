@@ -20,6 +20,7 @@ export function SideBySideView({
   crossDayDragInfo,
   onDayHover,
   onActivityHover,
+  onActivityClick,
 }: SideBySideViewProps) {
   const locale = useLocale();
 
@@ -53,6 +54,7 @@ export function SideBySideView({
                     draggingActivityId={draggingActivityId}
                     crossDayDragInfo={crossDayDragInfo}
                     onActivityHover={onActivityHover}
+                    onActivityClick={onActivityClick}
                   />
                 </CardContent>
               </Card>

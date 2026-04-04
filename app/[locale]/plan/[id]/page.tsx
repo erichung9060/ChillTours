@@ -57,10 +57,6 @@ export default function PlanningPage() {
   const itinerary = useItineraryStore((state) => state.itinerary);
   const isLoading = useItineraryStore((state) => state.isLoading);
   const error = useItineraryStore((state) => state.error);
-  const hoveredDayNumber = useItineraryStore((state) => state.hoveredDayNumber);
-  const hoveredActivityId = useItineraryStore(
-    (state) => state.hoveredActivityId
-  );
   const isGenerating = useItineraryStore((state) => state.isGenerating);
   const startStreaming = useItineraryStore((state) => state.startStreaming);
   const startPolling = useItineraryStore((state) => state.startPolling);
@@ -347,8 +343,6 @@ export default function PlanningPage() {
             >
               <MapPanel
                 itinerary={itinerary}
-                hoveredDayNumber={hoveredDayNumber}
-                hoveredActivityId={hoveredActivityId}
                 selectedDayNumber={selectedDayNumber}
               />
             </div>

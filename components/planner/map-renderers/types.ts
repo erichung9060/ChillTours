@@ -11,8 +11,10 @@ export interface MapRendererProps {
   activities: ActivityWithDay[];
   selectedActivity: Activity | null;
   highlightedActivities: ActivityWithDay[];
+  focusedActivityId?: string | null;
   onMarkerClick: (activity: Activity) => void;
   onInfoWindowClose: () => void;
+  onFocusComplete: () => void;
   getMarkerIcon: (activity: ActivityWithDay) => PinIconResult;
   locale: string;
 }

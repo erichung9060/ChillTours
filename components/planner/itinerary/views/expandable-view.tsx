@@ -22,6 +22,7 @@ export function ExpandableView({
   toggleDay,
   onDayHover,
   onActivityHover,
+  onActivityClick,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -79,6 +80,7 @@ export function ExpandableView({
                   draggingActivityId={draggingActivityId}
                   crossDayDragInfo={crossDayDragInfo}
                   onActivityHover={onActivityHover}
+                  onActivityClick={onActivityClick}
                 />
               </CardContent>
             )}

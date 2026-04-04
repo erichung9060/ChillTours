@@ -20,6 +20,7 @@ export function ActivityCard({
   className,
   onMouseEnter,
   onMouseLeave,
+  onClick,
 }: ActivityCardProps) {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { canEdit } = useItineraryPermission();
@@ -49,6 +50,7 @@ export function ActivityCard({
       className={`group relative ${className}`}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onClick={onClick}
     >
       <Button
         variant="ghost"
