@@ -114,7 +114,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   error: null,
   historyPast: [],
   historyFuture: [],
-  permission: "none",
+  permission: "none" as EffectivePermission,
   isGenerating: false,
   isSaving: false,
   generationAbortController: null,

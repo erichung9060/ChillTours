@@ -37,6 +37,10 @@ export class ItineraryNotFoundError extends Error {
   }
 }
 
+function isNoRowError(error: any): boolean {
+  return error?.code === "PGRST116";
+}
+
 /**
  * Convert database row to Itinerary type
  */
@@ -57,6 +61,54 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
+}
+
+async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
+  const { data, error } = await (supabase
+    .rpc("get_public_itinerary", { p_id: id })
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+  if (error) {
+    if (isNoRowError(error)) {
+      throw new ItineraryNotFoundError(id);
+    }
+
+    console.error("Error loading public itinerary via RPC:", error);
+    throw new Error(`Failed to load public itinerary: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new ItineraryNotFoundError(id);
+  }
+
+  return rowToItinerary(data);
+}
+
+async function updatePublicItineraryViaRpc(
+  id: string,
+  updateData: ItineraryUpdate
+): Promise<Itinerary> {
+  const { data, error } = await (supabase
+    .rpc("update_public_itinerary", {
+      p_id: id,
+      p_updates: updateData,
+    })
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+  if (error) {
+    if (isNoRowError(error)) {
+      throw new ItineraryNotFoundError(id);
+    }
+
+    console.error("Error updating public itinerary via RPC:", error);
+    throw new Error(`Failed to update public itinerary: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new ItineraryNotFoundError(id);
+  }
+
+  return rowToItinerary(data);
 }
 
 /**
@@ -189,18 +241,10 @@ export async function loadItinerary(id: string): Promise<Itinerary> {
     .single();
 
   if (error) {
-    if (error.code === "PGRST116") {
+    if (isNoRowError(error)) {
       // Row not found or RLS policy violation. Public link access falls back to
       // the SECURITY DEFINER RPC which requires the exact itinerary UUID.
-      const { data, error } = await (supabase
-        .rpc("get_public_itinerary", { p_id: id })
-        .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
-
-      if (error || !data) {
-        throw new ItineraryNotFoundError(id);
-      }
-
-      return rowToItinerary(data);
+      return loadPublicItineraryViaRpc(id);
     }
 
     console.error("Error loading itinerary:", error);
@@ -255,19 +299,8 @@ export async function updateItinerary(
     .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
 
   if (error) {
-    if (error.code === "PGRST116") {
-      const { data: publicData, error: publicError } = await (supabase
-        .rpc("update_public_itinerary", {
-          p_id: id,
-          p_updates: updateData,
-        })
-        .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
-
-      if (publicError || !publicData) {
-        throw new ItineraryNotFoundError(id);
-      }
-
-      return rowToItinerary(publicData);
+    if (isNoRowError(error)) {
+      return updatePublicItineraryViaRpc(id, updateData);
     }
 
     console.error("Error updating itinerary:", error);
