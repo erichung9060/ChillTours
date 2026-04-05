@@ -30,10 +30,10 @@ export class FreeTierLimitError extends Error {
 /**
  * Error thrown when itinerary is not found
  */
-export class ItineraryNotFoundError extends Error {
+export class ItineraryUnavailableError extends Error {
   constructor(id: string) {
     super(`Itinerary with id ${id} not found`);
-    this.name = "ItineraryNotFoundError";
+    this.name = "ItineraryUnavailableError";
   }
 }
 
@@ -70,7 +70,7 @@ async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
 
   if (error) {
     if (isNoRowError(error)) {
-      throw new ItineraryNotFoundError(id);
+      throw new ItineraryUnavailableError(id);
     }
 
     console.error("Error loading public itinerary via RPC:", error);
@@ -78,7 +78,7 @@ async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
   }
 
   if (!data) {
-    throw new ItineraryNotFoundError(id);
+    throw new ItineraryUnavailableError(id);
   }
 
   return rowToItinerary(data);
@@ -97,7 +97,7 @@ async function updatePublicItineraryViaRpc(
 
   if (error) {
     if (isNoRowError(error)) {
-      throw new ItineraryNotFoundError(id);
+      throw new ItineraryUnavailableError(id);
     }
 
     console.error("Error updating public itinerary via RPC:", error);
@@ -105,7 +105,7 @@ async function updatePublicItineraryViaRpc(
   }
 
   if (!data) {
-    throw new ItineraryNotFoundError(id);
+    throw new ItineraryUnavailableError(id);
   }
 
   return rowToItinerary(data);
@@ -230,7 +230,7 @@ export async function saveItinerary(
  *
  * @param id - The itinerary ID
  * @returns The loaded itinerary
- * @throws ItineraryNotFoundError if itinerary doesn't exist or user doesn't have access
+ * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
  * @throws Error if load fails
  */
 export async function loadItinerary(id: string): Promise<Itinerary> {
@@ -252,7 +252,7 @@ export async function loadItinerary(id: string): Promise<Itinerary> {
   }
 
   if (!data) {
-    throw new ItineraryNotFoundError(id);
+    throw new ItineraryUnavailableError(id);
   }
 
   return rowToItinerary(data);
@@ -264,7 +264,7 @@ export async function loadItinerary(id: string): Promise<Itinerary> {
  * @param id - The itinerary ID
  * @param updates - Partial itinerary data to update
  * @returns The updated itinerary
- * @throws ItineraryNotFoundError if itinerary doesn't exist or user doesn't have access
+ * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
  * @throws Error if update fails
  */
 export async function updateItinerary(
@@ -308,7 +308,7 @@ export async function updateItinerary(
   }
 
   if (!data) {
-    throw new ItineraryNotFoundError(id);
+    throw new ItineraryUnavailableError(id);
   }
 
   return rowToItinerary(data);
@@ -320,7 +320,7 @@ export async function updateItinerary(
  * Requirements: 10.4
  *
  * @param id - The itinerary ID to delete
- * @throws ItineraryNotFoundError if itinerary doesn't exist or user doesn't have access
+ * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
  * @throws Error if delete fails
  */
 export async function deleteItinerary(id: string): Promise<void> {
@@ -328,7 +328,7 @@ export async function deleteItinerary(id: string): Promise<void> {
 
   if (error) {
     if (error.code === "PGRST116") {
-      throw new ItineraryNotFoundError(id);
+      throw new ItineraryUnavailableError(id);
     }
 
     console.error("Error deleting itinerary:", error);

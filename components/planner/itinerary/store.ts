@@ -4,7 +4,7 @@ import type { EffectivePermission } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import {
-  ItineraryNotFoundError,
+  ItineraryUnavailableError,
   loadItinerary,
   updateItinerary,
 } from "@/lib/supabase/itineraries";
@@ -187,7 +187,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to load itinerary:", err);
-      if (err instanceof ItineraryNotFoundError) {
+      if (err instanceof ItineraryUnavailableError) {
         set({ errorKind: "access", error: err.message });
       } else {
         set({

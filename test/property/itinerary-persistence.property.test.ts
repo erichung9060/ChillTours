@@ -18,7 +18,7 @@ import {
   listUserItineraries,
   getItineraryCount,
   FreeTierLimitError,
-  ItineraryNotFoundError,
+  ItineraryUnavailableError,
 } from "@/lib/supabase/itineraries";
 import { supabase } from "@/lib/supabase/client";
 import type { Itinerary } from "@/types/itinerary";
@@ -180,7 +180,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
   });
 
   // Feature: tripai-travel-planner, Property 22: Itinerary Database Persistence
-  it("should throw ItineraryNotFoundError when loading non-existent itinerary", async () => {
+  it("should throw ItineraryUnavailableError when loading non-existent itinerary", async () => {
     await fc.assert(
       fc.asyncProperty(fc.uuid(), async (nonExistentId) => {
         // Mock not found error
@@ -200,7 +200,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
 
         // Attempt to load should throw
         await expect(loadItinerary(nonExistentId)).rejects.toThrow(
-          ItineraryNotFoundError
+          ItineraryUnavailableError
         );
       }),
       { numRuns: 100 }
@@ -438,7 +438,7 @@ describe("Property 24: Itinerary Deletion", () => {
 
         // Attempting to load deleted itinerary should throw
         await expect(loadItinerary(itineraryId)).rejects.toThrow(
-          ItineraryNotFoundError
+          ItineraryUnavailableError
         );
       }),
       { numRuns: 100 }
@@ -446,7 +446,7 @@ describe("Property 24: Itinerary Deletion", () => {
   });
 
   // Feature: tripai-travel-planner, Property 24: Itinerary Deletion
-  it("should throw ItineraryNotFoundError when deleting non-existent itinerary", async () => {
+  it("should throw ItineraryUnavailableError when deleting non-existent itinerary", async () => {
     await fc.assert(
       fc.asyncProperty(fc.uuid(), async (nonExistentId) => {
         // Mock not found error on delete
@@ -465,7 +465,7 @@ describe("Property 24: Itinerary Deletion", () => {
 
         // Attempt to delete should throw
         await expect(deleteItinerary(nonExistentId)).rejects.toThrow(
-          ItineraryNotFoundError
+          ItineraryUnavailableError
         );
       }),
       { numRuns: 100 }
