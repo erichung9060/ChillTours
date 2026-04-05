@@ -54,16 +54,16 @@ export function PanelHeader({
   };
 
   return (
-    <div className="py-2.5 px-4 border-b border-border flex items-center justify-between">
-      <div className="flex-1">
+    <div className="py-2.5 px-4 border-b border-border flex items-center justify-between gap-4">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{itinerary.title}</h1>
+          <h1 className="text-lg font-semibold truncate">{itinerary.title}</h1>
           {canEdit && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setIsEditDialogOpen(true)}
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground shrink-0"
               title="Edit Trip Details"
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -71,32 +71,32 @@ export function PanelHeader({
           )}
 
           {isSaving ? (
-            <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground shrink-0">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>{t("saving")}</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground shrink-0">
               <Cloud className="h-3 w-3" />
               <span>{t("savedToCloud")}</span>
             </div>
           )}
         </div>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5 truncate shrink-0">
           {formatDateDisplay(itinerary.start_date, locale)} -{" "}
           {formatDateDisplay(itinerary.end_date, locale)}
         </p>
       </div>
 
       {/* View Mode Controls */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {canEdit && (
           <>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => void undo().catch(() => toast.error(t("error")))}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
               title="Undo"
               disabled={!canUndo || isSaving}
             >
@@ -107,7 +107,7 @@ export function PanelHeader({
               variant="ghost"
               size="sm"
               onClick={() => void redo().catch(() => toast.error(t("error")))}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground shrink-0"
               title="Redo"
               disabled={!canRedo || isSaving}
             >
@@ -122,7 +122,7 @@ export function PanelHeader({
             variant={isAddingActivity ? "default" : "ghost"}
             size="sm"
             onClick={() => setIsAddingActivity(!isAddingActivity)}
-            className={`h-8 w-8 p-0 ${isAddingActivity
+            className={`h-8 w-8 p-0 shrink-0 ${isAddingActivity
               ? "bg-primary text-primary-foreground hover:bg-primary/90"
               : "text-muted-foreground hover:text-foreground"
             }`}
@@ -141,7 +141,7 @@ export function PanelHeader({
         )}
 
         {/* View Mode Selector */}
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
+        <div className="flex gap-1 bg-muted rounded-lg p-1 shrink-0">
           {VIEW_MODES.map((mode) => (
             <Button
               key={mode.id}
@@ -161,7 +161,7 @@ export function PanelHeader({
           variant="ghost"
           size="sm"
           onClick={toggleFullscreen}
-          className="hidden md:flex h-8 w-8 p-0"
+          className="hidden md:flex h-8 w-8 p-0 shrink-0"
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
           {isFullscreen ? (

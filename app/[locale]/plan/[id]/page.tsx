@@ -21,7 +21,7 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 
 // Panel width constraints
-const MIN_ITINERARY_PANEL_WIDTH = 380;
+const MIN_ITINERARY_PANEL_WIDTH = 700;
 const MIN_MAP_PANEL_WIDTH = 300;
 const MIN_CHAT_PANEL_WIDTH = 200;
 const DAY_CARD_WIDTH = 320; // Width of each day card in side-by-side view
