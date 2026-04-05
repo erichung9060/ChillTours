@@ -47,6 +47,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       itineraries: {
         Row: {
@@ -91,6 +92,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       itinerary_shares: {
         Row: {
@@ -114,13 +116,52 @@ export interface Database {
           permission?: "view" | "edit";
           created_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_public_itinerary: {
+        Args: {
+          p_id: string;
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          title: string;
+          destination: string;
+          start_date: string;
+          end_date: string;
+          preferences: string | null;
+          status: string;
+          data: Json | null;
+          link_access: string;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
+      update_public_itinerary: {
+        Args: {
+          p_id: string;
+          p_updates: Database["public"]["Tables"]["itineraries"]["Update"];
+        };
+        Returns: {
+          id: string;
+          user_id: string;
+          title: string;
+          destination: string;
+          start_date: string;
+          end_date: string;
+          preferences: string | null;
+          status: string;
+          data: Json | null;
+          link_access: string;
+          created_at: string;
+          updated_at: string;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

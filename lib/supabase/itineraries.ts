@@ -189,8 +189,17 @@ export async function loadItinerary(id: string): Promise<Itinerary> {
 
   if (error) {
     if (error.code === "PGRST116") {
-      // Row not found or RLS policy violation
-      throw new ItineraryNotFoundError(id);
+      // Row not found or RLS policy violation. Public link access falls back to
+      // the SECURITY DEFINER RPC which requires the exact itinerary UUID.
+      const { data, error } = await (supabase
+        .rpc("get_public_itinerary", { p_id: id })
+        .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+      if (error || !data) {
+        throw new ItineraryNotFoundError(id);
+      }
+
+      return rowToItinerary(data);
     }
 
     console.error("Error loading itinerary:", error);
@@ -246,7 +255,18 @@ export async function updateItinerary(
 
   if (error) {
     if (error.code === "PGRST116") {
-      throw new ItineraryNotFoundError(id);
+      const { data: publicData, error: publicError } = await (supabase
+        .rpc("update_public_itinerary", {
+          p_id: id,
+          p_updates: updateData,
+        })
+        .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+      if (publicError || !publicData) {
+        throw new ItineraryNotFoundError(id);
+      }
+
+      return rowToItinerary(publicData);
     }
 
     console.error("Error updating itinerary:", error);
