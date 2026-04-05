@@ -229,11 +229,15 @@ export async function getEffectivePermission(
     return "owner";
   }
 
+  if (linkAccess === "edit") {
+    return "edit";
+  }
+
   // 2. Collect all possible permissions
   const permissions: EffectivePermission[] = [];
 
   // Add link access permission
-  if (linkAccess === "edit" || linkAccess === "view") {
+  if (linkAccess === "view") {
     permissions.push(linkAccess);
   }
 
