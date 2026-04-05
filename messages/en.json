@@ -114,6 +114,8 @@
   "planner": {
     "loading": "Loading your itinerary...",
     "loadError": "Failed to Load Itinerary",
+    "accessError": "Unable to Access Itinerary",
+    "accessErrorMessage": "This itinerary could not be found or you do not have access to it.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
     "editDialog": {

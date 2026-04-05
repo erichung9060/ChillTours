@@ -3,7 +3,11 @@ import type { Itinerary, Activity, Day } from "@/types/itinerary";
 import type { EffectivePermission } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
-import { loadItinerary, updateItinerary } from "@/lib/supabase/itineraries";
+import {
+  ItineraryNotFoundError,
+  loadItinerary,
+  updateItinerary,
+} from "@/lib/supabase/itineraries";
 import { getEffectivePermission } from "@/lib/supabase/shares";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
 import { aiClient } from "@/lib/ai/client";
@@ -12,11 +16,13 @@ import { adjustDays } from "@/lib/utils/itinerary";
 import { resolvePlaceDetails } from "@/lib/places/place-resolver";
 
 const MAX_HISTORY_ENTRIES = 50;
+type ItineraryErrorKind = "access" | "load" | "runtime" | null;
 
 interface ItineraryState {
   // Data State
   itinerary: Itinerary | null;
   isLoading: boolean;
+  errorKind: ItineraryErrorKind;
   error: string | null;
   historyPast: Itinerary[];
   historyFuture: Itinerary[];
@@ -111,6 +117,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   // Initial State
   itinerary: null,
   isLoading: false,
+  errorKind: null,
   error: null,
   historyPast: [],
   historyFuture: [],
@@ -161,7 +168,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
   // Fetch Action
   fetchItinerary: async (id: string) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, errorKind: null, error: null });
     try {
       const data = await loadItinerary(id);
       const permission = await getEffectivePermission(
@@ -180,7 +187,14 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to load itinerary:", err);
-      set({ error: "Failed to load itinerary. Please try again." });
+      if (err instanceof ItineraryNotFoundError) {
+        set({ errorKind: "access", error: err.message });
+      } else {
+        set({
+          errorKind: "load",
+          error: "Failed to load itinerary. Please try again."
+        });
+      }
     } finally {
       set({ isLoading: false });
     }
@@ -604,7 +618,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         // onError
         (data) => {
           console.error("Generation error from server:", data.message);
-          set({ isGenerating: false, error: data.message, generationAbortController: null });
+          set({
+            isGenerating: false,
+            errorKind: "runtime",
+            error: data.message,
+            generationAbortController: null,
+          });
         },
         controller.signal
       );
@@ -619,6 +638,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       console.error("Stream failed:", err);
       set({
         isGenerating: false,
+        errorKind: "runtime",
         error: "Generation failed. Please try again.",
         generationAbortController: null,
       });
@@ -673,7 +693,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       if (attempts > MAX_ATTEMPTS) {
         get().stopPolling();
-        set({ error: "Generation timed out. Please try again." });
+        set({ errorKind: "runtime", error: "Generation timed out. Please try again." });
         return;
       }
 
@@ -684,7 +704,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           set({ itinerary: data, isGenerating: false });
         } else if (data.status === "failed") {
           get().stopPolling();
-          set({ isGenerating: false, error: "Generation failed. Please try again." });
+          set({
+            isGenerating: false,
+            errorKind: "runtime",
+            error: "Generation failed. Please try again.",
+          });
         }
         // status === "generating" → keep polling
       } catch (err) {

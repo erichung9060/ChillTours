@@ -57,6 +57,7 @@ export default function PlanningPage() {
   const itinerary = useItineraryStore((state) => state.itinerary);
   const isLoading = useItineraryStore((state) => state.isLoading);
   const error = useItineraryStore((state) => state.error);
+  const errorKind = useItineraryStore((state) => state.errorKind);
   const isGenerating = useItineraryStore((state) => state.isGenerating);
   const startStreaming = useItineraryStore((state) => state.startStreaming);
   const startPolling = useItineraryStore((state) => state.startPolling);
@@ -238,13 +239,18 @@ export default function PlanningPage() {
   }
 
   if (error) {
+    const title =
+      errorKind === "access" ? t("accessError") : t("loadError");
+    const message =
+      errorKind === "access" ? t("accessErrorMessage") : error;
+
     return (
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
           <ErrorMessage
-            title={t("loadError")}
-            message={error}
+            title={title}
+            message={message}
             onRetry={() => fetchItinerary(itineraryId)}
           />
         </main>

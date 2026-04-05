@@ -114,6 +114,8 @@
   "planner": {
     "loading": "載入您的行程中...",
     "loadError": "載入行程失敗",
+    "accessError": "無法存取行程",
+    "accessErrorMessage": "找不到此行程，或您沒有存取權限。",
     "generating": "正在產生您的行程中...",
     "errorUpdateDays": "更新行程順序失敗，請再試一次。",
     "editDialog": {
