@@ -15,6 +15,7 @@ type Json = Database["public"]["Tables"]["itineraries"]["Row"]["data"];
 type ItineraryRow = Database["public"]["Tables"]["itineraries"]["Row"];
 type ItineraryInsert = Database["public"]["Tables"]["itineraries"]["Insert"];
 type ItineraryUpdate = Database["public"]["Tables"]["itineraries"]["Update"];
+type ItineraryStatus = Itinerary["status"];
 
 /**
  * Error thrown when free tier limit is reached
@@ -50,7 +51,7 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
     start_date: row.start_date,
     end_date: row.end_date,
     preferences: row.preferences || undefined,
-    status: row.status,
+    status: row.status as ItineraryStatus,
     days: data?.days || [],
     link_access: row.link_access,
     created_at: row.created_at,

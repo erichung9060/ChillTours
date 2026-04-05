@@ -11,7 +11,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "supabase:gen": "supabase gen types typescript --project-id rkxowkdqkplsqhxivynl > lib/supabase/database.types.ts"
   },
   "keywords": [],
   "author": "",

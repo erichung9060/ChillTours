@@ -1,170 +1,367 @@
-/**
- * Database Type Definitions
- *
- * These types are generated from the Supabase database schema.
- * They provide type safety for all database operations.
- */
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      profiles: {
+      google_places: {
         Row: {
-          id: string;
-          email: string;
-          full_name: string | null;
-          avatar_url: string | null;
-          tier: "free" | "pro";
-          credits: number;
-          created_at: string;
-          updated_at: string;
-        };
+          lat: number | null
+          lng: number | null
+          name: string | null
+          opening_hours: Json | null
+          place_id: string
+          rating: number | null
+          updated_at: string
+          user_ratings_total: number | null
+          website: string | null
+        }
         Insert: {
-          id: string;
-          email: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
-          tier?: "free" | "pro";
-          credits?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          opening_hours?: Json | null
+          place_id: string
+          rating?: number | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          website?: string | null
+        }
         Update: {
-          id?: string;
-          email?: string;
-          full_name?: string | null;
-          avatar_url?: string | null;
-          tier?: "free" | "pro";
-          credits?: number;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          lat?: number | null
+          lng?: number | null
+          name?: string | null
+          opening_hours?: Json | null
+          place_id?: string
+          rating?: number | null
+          updated_at?: string
+          user_ratings_total?: number | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       itineraries: {
         Row: {
-          id: string;
-          user_id: string;
-          title: string;
-          destination: string;
-          start_date: string;
-          end_date: string;
-          preferences: string | null;
-          status: "draft" | "generating" | "completed" | "failed";
-          data: Json | null;
-          link_access: "none" | "view" | "edit";
-          created_at: string;
-          updated_at: string;
-        };
+          created_at: string
+          data: Json | null
+          destination: string
+          end_date: string
+          id: string
+          link_access: Database["public"]["Enums"]["link_access_level"]
+          preferences: string | null
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
         Insert: {
-          id?: string;
-          user_id: string;
-          title: string;
-          destination: string;
-          start_date: string;
-          end_date: string;
-          preferences?: string | null;
-          status?: "draft" | "generating" | "completed" | "failed";
-          data?: Json | null;
-          link_access?: "none" | "view" | "edit";
-          created_at?: string;
-          updated_at?: string;
-        };
+          created_at?: string
+          data?: Json | null
+          destination: string
+          end_date: string
+          id?: string
+          link_access?: Database["public"]["Enums"]["link_access_level"]
+          preferences?: string | null
+          start_date: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
         Update: {
-          id?: string;
-          user_id?: string;
-          title?: string;
-          destination?: string;
-          start_date?: string;
-          end_date?: string;
-          preferences?: string | null;
-          status?: "draft" | "generating" | "completed" | "failed";
-          data?: Json | null;
-          link_access?: "none" | "view" | "edit";
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
+          created_at?: string
+          data?: Json | null
+          destination?: string
+          end_date?: string
+          id?: string
+          link_access?: Database["public"]["Enums"]["link_access_level"]
+          preferences?: string | null
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itineraries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       itinerary_shares: {
         Row: {
-          id: string;
-          itinerary_id: string;
-          shared_with_email: string;
-          permission: "view" | "edit";
-          created_at: string;
-        };
+          created_at: string
+          id: string
+          itinerary_id: string
+          permission: string | null
+          shared_with_email: string
+        }
         Insert: {
-          id?: string;
-          itinerary_id: string;
-          shared_with_email: string;
-          permission?: "view" | "edit";
-          created_at?: string;
-        };
+          created_at?: string
+          id?: string
+          itinerary_id: string
+          permission?: string | null
+          shared_with_email: string
+        }
         Update: {
-          id?: string;
-          itinerary_id?: string;
-          shared_with_email?: string;
-          permission?: "view" | "edit";
-          created_at?: string;
-        };
-        Relationships: [];
-      };
-    };
+          created_at?: string
+          id?: string
+          itinerary_id?: string
+          permission?: string | null
+          shared_with_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itinerary_shares_itinerary_id_fkey"
+            columns: ["itinerary_id"]
+            isOneToOne: false
+            referencedRelation: "itineraries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          credits: number | null
+          email: string
+          full_name: string | null
+          id: string
+          tier: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          credits?: number | null
+          email: string
+          full_name?: string | null
+          id: string
+          tier?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          credits?: number | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          tier?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_chat_usage: {
+        Row: {
+          chat_count: number | null
+          usage_date: string
+          user_id: string
+        }
+        Insert: {
+          chat_count?: number | null
+          usage_date?: string
+          user_id: string
+        }
+        Update: {
+          chat_count?: number | null
+          usage_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+    }
     Views: {
-      [_ in never]: never;
-    };
+      [_ in never]: never
+    }
     Functions: {
+      delete_expired_google_places: { Args: never; Returns: undefined }
       get_public_itinerary: {
-        Args: {
-          p_id: string;
-        };
+        Args: { p_id: string }
         Returns: {
-          id: string;
-          user_id: string;
-          title: string;
-          destination: string;
-          start_date: string;
-          end_date: string;
-          preferences: string | null;
-          status: string;
-          data: Json | null;
-          link_access: string;
-          created_at: string;
-          updated_at: string;
-        }[];
-      };
+          created_at: string
+          data: Json
+          destination: string
+          end_date: string
+          id: string
+          link_access: string
+          preferences: string
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+      increment_and_check_chat_limit: {
+        Args: { p_daily_limit: number; p_user_id: string }
+        Returns: boolean
+      }
+      is_itinerary_owner: { Args: { itinerary_uuid: string }; Returns: boolean }
       update_public_itinerary: {
-        Args: {
-          p_id: string;
-          p_updates: Database["public"]["Tables"]["itineraries"]["Update"];
-        };
+        Args: { p_id: string; p_updates: Json }
         Returns: {
-          id: string;
-          user_id: string;
-          title: string;
-          destination: string;
-          start_date: string;
-          end_date: string;
-          preferences: string | null;
-          status: string;
-          data: Json | null;
-          link_access: string;
-          created_at: string;
-          updated_at: string;
-        }[];
-      };
-    };
+          created_at: string
+          data: Json
+          destination: string
+          end_date: string
+          id: string
+          link_access: string
+          preferences: string
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
+    }
     Enums: {
-      [_ in never]: never;
-    };
-  };
+      link_access_level: "none" | "view" | "edit"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      link_access_level: ["none", "view", "edit"],
+    },
+  },
+} as const
