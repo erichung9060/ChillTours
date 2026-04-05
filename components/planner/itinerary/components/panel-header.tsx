@@ -14,7 +14,7 @@ import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Pencil, Maximize, Minimize, Loader2, Cloud, Plus, Undo2, Redo2 } from "lucide-react";
+import { Pencil, Maximize, Minimize, Loader2, Cloud, CloudOff, Plus, Undo2, Redo2 } from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
 import { useRouter } from "@/lib/i18n/navigation";
@@ -33,6 +33,7 @@ export function PanelHeader({
   const { canDelete, canEdit, canShare } = useItineraryPermission();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const isSaving = useItineraryStore((state) => state.isSaving);
+  const saveError = useItineraryStore((state) => state.saveError);
   const updateMetadata = useItineraryStore((state) => state.updateMetadata);
   const isAddingActivity = useItineraryStore((state) => state.isAddingActivity);
   const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
@@ -74,6 +75,11 @@ export function PanelHeader({
             <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground shrink-0">
               <Loader2 className="h-3 w-3 animate-spin" />
               <span>{t("saving")}</span>
+            </div>
+          ) : saveError ? (
+            <div className="flex items-center gap-1.5 ml-2 text-xs text-destructive shrink-0" title="Saving failed or offline">
+              <CloudOff className="h-3 w-3" />
+              <span>{t("error")}</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 ml-2 text-xs text-muted-foreground shrink-0">

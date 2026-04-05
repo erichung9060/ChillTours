@@ -31,6 +31,7 @@ interface ItineraryState {
   // Generation State
   isGenerating: boolean;
   isSaving: boolean;
+  saveError: boolean;
   generationAbortController: AbortController | null;
   pollingIntervalId: ReturnType<typeof setInterval> | null;
 
@@ -124,6 +125,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   permission: "none" as EffectivePermission,
   isGenerating: false,
   isSaving: false,
+  saveError: false,
   generationAbortController: null,
   pollingIntervalId: null,
   previewBaseItinerary: null,
@@ -265,6 +267,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       historyPast: nextPast,
       historyFuture: nextFuture,
       isSaving: true,
+      saveError: false,
     });
 
     try {
@@ -276,6 +279,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         itinerary: currentItinerary,
         historyPast: state.historyPast,
         historyFuture: state.historyFuture,
+        saveError: true,
       });
       throw err;
     } finally {
@@ -309,6 +313,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       historyPast: nextPast,
       historyFuture: nextFuture,
       isSaving: true,
+      saveError: false,
     });
 
     try {
@@ -320,6 +325,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         itinerary: currentItinerary,
         historyPast: state.historyPast,
         historyFuture: state.historyFuture,
+        saveError: true,
       });
       throw err;
     } finally {
@@ -362,9 +368,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       return;
     }
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       await get().commitItineraryChange(previewItinerary);
+    } catch (err) {
+      set({ saveError: true });
+      throw err;
     } finally {
       get().discardPreview();
       get().resetDragState();
@@ -416,11 +425,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       return;
     }
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       await get().commitItineraryChange(nextItinerary);
     } catch (err) {
       console.error("Failed to update itinerary metadata:", err);
+      set({ saveError: true });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -436,11 +446,12 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     // 1. 本地透過 AI operations 計算出預期的 itinerary 狀態
     const optimisticItinerary = await applyOperations(currentItinerary, ops);
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       await get().commitItineraryChange(optimisticItinerary);
     } catch (err) {
       console.error("Failed to apply AI operations:", err);
+      set({ saveError: true });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -452,7 +463,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       // Resolve location data
       const resolvedLocation = await resolvePlaceDetails({
@@ -496,6 +507,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       get().setHoveredActivity(activity.id);
     } catch (err) {
       console.error("Failed to add activity:", err);
+      set({ saveError: true });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -526,7 +538,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
     if (!isDirty) return;
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       let resolvedLocation = existingActivity.location;
       if (activityInput.locationName !== existingActivity.location.name) {
@@ -560,6 +572,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       get().setHoveredActivity(activityId);
     } catch (err) {
       console.error("Failed to update activity:", err);
+      set({ saveError: true });
       throw err;
     } finally {
       set({ isSaving: false });
@@ -571,7 +584,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-    set({ isSaving: true });
+    set({ isSaving: true, saveError: false });
     try {
       const newDays = state.itinerary.days.map((day) => ({
         ...day,
@@ -585,6 +598,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to delete activity:", err);
+      set({ saveError: true });
       throw err;
     } finally {
       set({ isSaving: false });
