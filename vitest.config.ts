@@ -1,6 +1,9 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 export default defineConfig({
   plugins: [react()],
@@ -23,7 +26,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./"),
-      "next/navigation": path.resolve(__dirname, "node_modules/next/dist/client/components/navigation.js"),
+      "next/navigation": require.resolve("next/navigation"),
     },
   },
 });
