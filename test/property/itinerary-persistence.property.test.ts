@@ -28,6 +28,7 @@ import { itineraryArbitrary } from "@/test/utils/property-test-helpers";
 vi.mock("@/lib/supabase/client", () => ({
   supabase: {
     from: vi.fn(),
+    rpc: vi.fn(),
     auth: {
       getUser: vi.fn(),
       getSession: vi.fn(),
@@ -38,6 +39,7 @@ vi.mock("@/lib/supabase/client", () => ({
 describe("Property 22: Itinerary Database Persistence", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(supabase.rpc).mockReset();
   });
 
   // Feature: tripai-travel-planner, Property 22: Itinerary Database Persistence
@@ -197,6 +199,15 @@ describe("Property 22: Itinerary Database Persistence", () => {
         }));
 
         vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(supabase.rpc).mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: {
+              message: "No rows found",
+              code: "PGRST116",
+            },
+          }),
+        } as any);
 
         // Attempt to load should throw
         await expect(loadItinerary(nonExistentId)).rejects.toThrow(
@@ -211,6 +222,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
 describe("Property 23: Itinerary Save-Load Round-trip", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(supabase.rpc).mockReset();
   });
 
   // Feature: tripai-travel-planner, Property 23: Itinerary Save-Load Round-trip
@@ -398,6 +410,7 @@ describe("Property 23: Itinerary Save-Load Round-trip", () => {
 describe("Property 24: Itinerary Deletion", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(supabase.rpc).mockReset();
   });
 
   // Feature: tripai-travel-planner, Property 24: Itinerary Deletion
@@ -435,6 +448,15 @@ describe("Property 24: Itinerary Deletion", () => {
         }));
 
         vi.mocked(supabase.from).mockImplementation(mockLoadFrom as any);
+        vi.mocked(supabase.rpc).mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: {
+              message: "No rows found",
+              code: "PGRST116",
+            },
+          }),
+        } as any);
 
         // Attempting to load deleted itinerary should throw
         await expect(loadItinerary(itineraryId)).rejects.toThrow(
