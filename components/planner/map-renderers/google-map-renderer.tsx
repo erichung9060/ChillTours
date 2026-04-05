@@ -17,6 +17,7 @@ import {
 import { useTheme } from "@/hooks/use-theme";
 import type { Activity } from "@/types/itinerary";
 import type { MapRendererProps } from "./types";
+import { MapInfoWindowContent } from "./map-info-window-content";
 
 const mapContainerStyle = {
   width: "100%",
@@ -196,22 +197,7 @@ function MapContent({
           position={infoWindowPosition}
           onCloseClick={handleInfoWindowCloseClick}
         >
-          <div className="p-2 max-w-xs">
-            <h3 className="font-semibold text-sm mb-1">
-              {selectedActivity.title}
-            </h3>
-            <p className="text-xs text-gray-600 mb-2">
-              {selectedActivity.time} • {selectedActivity.duration_minutes} min
-            </p>
-            <p className="text-xs text-gray-700 mb-2">
-              📍 {selectedActivity.location.name}
-            </p>
-            {selectedActivity.note && (
-              <p className="text-xs text-gray-600 line-clamp-3">
-                {selectedActivity.note}
-              </p>
-            )}
-          </div>
+          <MapInfoWindowContent activity={selectedActivity} />
         </InfoWindow>
       )}
     </>
