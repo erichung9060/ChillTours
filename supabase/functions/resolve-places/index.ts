@@ -2,6 +2,10 @@ import { z } from "npm:zod";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
+import {
+  parseJsonRequest,
+  unauthorizedResponse,
+} from "../_shared/request-guards.ts";
 
 // ──────────────────────────────────────────────
 // Request / Response schemas
@@ -36,56 +40,19 @@ Deno.serve(async (req) => {
 
   if (providedSecret !== expectedSecret) {
     console.warn("Blocked direct access attempt: Invalid Gateway Secret");
-    return new Response(
-      JSON.stringify({ error: "Unauthorized.", code: "UNAUTHORIZED" }),
-      {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return unauthorizedResponse();
   }
 
   try {
     // Auth
     const user = await verifyUser(req);
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized.", code: "UNAUTHORIZED" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return unauthorizedResponse();
     }
 
-    // Parse body
-    let body;
-    try {
-      body = await req.json();
-    } catch (_err) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request body. Expected JSON.",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    const parsed = ResolveRequestSchema.safeParse(body);
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request data",
-          details: parsed.error.issues,
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const parsed = await parseJsonRequest(req, ResolveRequestSchema);
+    if (parsed instanceof Response) {
+      return parsed;
     }
 
     const { places } = parsed.data;

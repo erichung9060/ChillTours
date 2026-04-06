@@ -3,6 +3,10 @@ import { JSONParser } from "npm:@streamparser/json";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
+import {
+  parseJsonRequest,
+  unauthorizedResponse,
+} from "../_shared/request-guards.ts";
 
 import { z } from "npm:zod";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
@@ -40,23 +44,12 @@ Deno.serve(async (req) => {
   try {
     const user = await verifyUser(req);
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized.", code: "UNAUTHORIZED" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return unauthorizedResponse();
     }
 
-    const body = await req.json();
-    const parsed = GenerateRequestSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request data",
-          details: parsed.error.issues,
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const parsed = await parseJsonRequest(req, GenerateRequestSchema);
+    if (parsed instanceof Response) {
+      return parsed;
     }
 
     const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;

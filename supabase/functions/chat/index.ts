@@ -2,6 +2,10 @@ import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { checkChatRateLimit } from "../_shared/rate-limit.ts";
+import {
+  parseJsonRequest,
+  unauthorizedResponse,
+} from "../_shared/request-guards.ts";
 import { createClient } from "npm:@supabase/supabase-js";
 import { z } from "npm:zod";
 
@@ -196,16 +200,7 @@ Deno.serve(async (req) => {
     const user = await verifyUser(req);
 
     if (!user) {
-      return new Response(
-        JSON.stringify({
-          error: "Unauthorized. Please log in to use this feature.",
-          code: "UNAUTHORIZED",
-        }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return unauthorizedResponse();
     }
 
     // Rate Limiting Check
@@ -254,17 +249,9 @@ Deno.serve(async (req) => {
     }
 
     // Parse request body
-    const body = await req.json();
-    const parsed = ChatRequestSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request data",
-          details: parsed.error.issues,
-        }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const parsed = await parseJsonRequest(req, ChatRequestSchema);
+    if (parsed instanceof Response) {
+      return parsed;
     }
 
     const { message, history, itinerary_context }: ChatRequest = parsed.data;
