@@ -14,8 +14,10 @@ const PlaceInputSchema = z.object({
   lng: z.number().optional(),
 });
 
+const MAX_RESOLVE_PLACES = 10;
+
 const ResolveRequestSchema = z.object({
-  places: z.array(PlaceInputSchema).min(1).max(50),
+  places: z.array(PlaceInputSchema).min(1).max(MAX_RESOLVE_PLACES),
 });
 
 // ──────────────────────────────────────────────
