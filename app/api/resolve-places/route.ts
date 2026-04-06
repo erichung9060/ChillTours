@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader.trim())) {
     return new Response(
       JSON.stringify({
-        error: "Unauthorized. Please log in to use this feature.",
+        error: "Unauthorized",
         code: "UNAUTHORIZED",
       }),
       {
@@ -31,13 +31,42 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await request.json();
+  const contentType = request.headers.get("content-type");
+  if (!contentType || !contentType.toLowerCase().includes("application/json")) {
+    return new Response(
+      JSON.stringify({
+        error: "Unsupported Media Type",
+        code: "UNSUPPORTED_MEDIA_TYPE",
+      }),
+      {
+        status: 415,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response(
+      JSON.stringify({
+        error: "Invalid request data",
+        code: "INVALID_REQUEST",
+      }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   const parsed = ResolveRequestSchema.safeParse(body);
   if (!parsed.success) {
     return new Response(
       JSON.stringify({
         error: "Invalid request data",
-        details: parsed.error.issues,
+        code: "INVALID_REQUEST",
       }),
       {
         status: 400,
