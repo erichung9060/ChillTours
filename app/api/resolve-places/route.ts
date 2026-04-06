@@ -18,7 +18,7 @@ const ResolveRequestSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader) {
+  if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader.trim())) {
     return new Response(
       JSON.stringify({
         error: "Unauthorized. Please log in to use this feature.",
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: authHeader,
+      Authorization: authHeader.trim(),
       ...(gatewaySecret && { "x-gateway-secret": gatewaySecret }),
     },
     body: JSON.stringify(parsed.data),

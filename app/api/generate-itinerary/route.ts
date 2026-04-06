@@ -10,7 +10,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (!authHeader) {
+  if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader.trim())) {
     return new Response(
       JSON.stringify({
         error: "Unauthorized. Please log in to generate itineraries.",
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: authHeader,
+        Authorization: authHeader.trim(),
       },
       body: JSON.stringify(body),
     }
