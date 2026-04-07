@@ -112,25 +112,6 @@ async function updatePublicItineraryViaRpc(
 }
 
 /**
- * Convert Itinerary to database insert format
- */
-function itineraryToInsert(
-  itinerary: Omit<Itinerary, "id" | "created_at" | "updated_at">
-): Database["public"]["Tables"]["itineraries"]["Insert"] {
-  return {
-    user_id: itinerary.user_id,
-    title: itinerary.title,
-    destination: itinerary.destination,
-    start_date: itinerary.start_date,
-    end_date: itinerary.end_date,
-    preferences: itinerary.preferences || null,
-    data: {
-      days: itinerary.days,
-    } as Json,
-  };
-}
-
-/**
  * Create itinerary metadata only (without days/activities)
  * Used for "metadata-first" creation flow
  *
@@ -173,47 +154,6 @@ export async function createItineraryMetadata(metadata: {
 
     console.error("Error creating itinerary metadata:", error);
     throw new Error(`Failed to create itinerary metadata: ${error.message}`);
-  }
-
-  if (!data) {
-    throw new Error("No data returned from insert operation");
-  }
-
-  return rowToItinerary(data);
-}
-
-/**
- * Save an itinerary to the database
- *
- * Requirements: 10.1, 10.2
- *
- * @param itinerary - The itinerary to save (without id, created_at, updated_at)
- * @returns The saved itinerary with generated id and timestamps
- * @throws FreeTierLimitError if user has reached free tier limit
- * @throws Error if save fails
- */
-export async function saveItinerary(
-  itinerary: Omit<Itinerary, "id" | "created_at" | "updated_at">
-): Promise<Itinerary> {
-  const insertData: ItineraryInsert = itineraryToInsert(itinerary);
-
-  const { data, error } = await (supabase
-    .from("itineraries")
-    // @ts-ignore - Supabase type inference issue with complex Json types
-    .insert(insertData)
-    .select()
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
-
-  if (error) {
-    // Check if it's a free tier limit error
-    if (
-      error.message.includes("Free tier users can only create 3 itineraries")
-    ) {
-      throw new FreeTierLimitError();
-    }
-
-    console.error("Error saving itinerary:", error);
-    throw new Error(`Failed to save itinerary: ${error.message}`);
   }
 
   if (!data) {
@@ -371,25 +311,4 @@ export async function listUserItineraries(): Promise<ItinerarySummary[]> {
   }
 
   return data || [];
-}
-
-/**
- * Get the count of itineraries for the current user
- * Useful for checking free tier limits
- *
- * Requirements: 10.2
- *
- * @returns The number of itineraries the user has
- */
-export async function getItineraryCount(): Promise<number> {
-  const { count, error } = await supabase
-    .from("itineraries")
-    .select("*", { count: "exact", head: true });
-
-  if (error) {
-    console.error("Error counting itineraries:", error);
-    throw new Error(`Failed to count itineraries: ${error.message}`);
-  }
-
-  return count || 0;
 }
