@@ -63,6 +63,41 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
   };
 }
 
+/**
+ * Load an itinerary from the database by ID
+ *
+ * Requirements: 10.3
+ *
+ * @param id - The itinerary ID
+ * @returns The loaded itinerary
+ * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
+ * @throws Error if load fails
+ */
+export async function loadItinerary(id: string): Promise<Itinerary> {
+  const { data, error } = await supabase
+    .from("itineraries")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    if (isNoRowError(error)) {
+      // Row not found or RLS policy violation. Public link access falls back to
+      // the SECURITY DEFINER RPC which requires the exact itinerary UUID.
+      return loadPublicItineraryViaRpc(id);
+    }
+
+    console.error("Error loading itinerary:", error);
+    throw new Error(`Failed to load itinerary: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new ItineraryUnavailableError(id);
+  }
+
+  return rowToItinerary(data);
+}
+
 async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
   const { data, error } = await (supabase
     .rpc("get_public_itinerary", { p_id: id })
@@ -163,40 +198,6 @@ export async function createItineraryMetadata(metadata: {
   return rowToItinerary(data);
 }
 
-/**
- * Load an itinerary from the database by ID
- *
- * Requirements: 10.3
- *
- * @param id - The itinerary ID
- * @returns The loaded itinerary
- * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
- * @throws Error if load fails
- */
-export async function loadItinerary(id: string): Promise<Itinerary> {
-  const { data, error } = await supabase
-    .from("itineraries")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  if (error) {
-    if (isNoRowError(error)) {
-      // Row not found or RLS policy violation. Public link access falls back to
-      // the SECURITY DEFINER RPC which requires the exact itinerary UUID.
-      return loadPublicItineraryViaRpc(id);
-    }
-
-    console.error("Error loading itinerary:", error);
-    throw new Error(`Failed to load itinerary: ${error.message}`);
-  }
-
-  if (!data) {
-    throw new ItineraryUnavailableError(id);
-  }
-
-  return rowToItinerary(data);
-}
 
 /**
  * Update an existing itinerary
