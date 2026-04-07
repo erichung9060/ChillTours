@@ -9,6 +9,7 @@
 
 import { supabase } from "./client";
 import type { Itinerary } from "@/types/itinerary";
+import type { AccessContext } from "@/types/share";
 import type { Database } from "./database.types";
 
 type Json = Database["public"]["Tables"]["itineraries"]["Row"]["data"];
@@ -119,33 +120,6 @@ async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
   return rowToItinerary(data);
 }
 
-async function updatePublicItineraryViaRpc(
-  id: string,
-  updateData: ItineraryUpdate
-): Promise<Itinerary> {
-  const { data, error } = await (supabase
-    .rpc("update_public_itinerary", {
-      p_id: id,
-      p_updates: updateData,
-    })
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
-
-  if (error) {
-    if (isNoRowError(error)) {
-      throw new ItineraryUnavailableError(id);
-    }
-
-    console.error("Error updating public itinerary via RPC:", error);
-    throw new Error(`Failed to update public itinerary: ${error.message}`);
-  }
-
-  if (!data) {
-    throw new ItineraryUnavailableError(id);
-  }
-
-  return rowToItinerary(data);
-}
-
 /**
  * Create itinerary metadata only (without days/activities)
  * Used for "metadata-first" creation flow
@@ -198,39 +172,31 @@ export async function createItineraryMetadata(metadata: {
   return rowToItinerary(data);
 }
 
-
-/**
- * Update an existing itinerary
- *
- * @param id - The itinerary ID
- * @param updates - Partial itinerary data to update
- * @returns The updated itinerary
- * @throws ItineraryUnavailableError if itinerary doesn't exist or user doesn't have access
- * @throws Error if update fails
- */
 export async function updateItinerary(
+  id: string,
+  updates: Partial<
+    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
+  >,
+  access: AccessContext
+): Promise<Itinerary> {
+  if (access.source === "owner" || access.source === "email_share") {
+    return updateItineraryViaRls(id, updates);
+  }
+
+  if (access.source === "link_share" && access.permission === "edit") {
+    return updateItineraryViaRpc(id, updates);
+  }
+
+  throw new Error("Current user does not have permission to save this itinerary");
+}
+
+async function updateItineraryViaRls(
   id: string,
   updates: Partial<
     Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
   >
 ): Promise<Itinerary> {
-  const updateData: ItineraryUpdate = {};
-
-  if (updates.title !== undefined) updateData.title = updates.title;
-  if (updates.destination !== undefined)
-    updateData.destination = updates.destination;
-  if (updates.start_date !== undefined)
-    updateData.start_date = updates.start_date;
-  if (updates.end_date !== undefined) updateData.end_date = updates.end_date;
-  if (updates.preferences !== undefined)
-    updateData.preferences = updates.preferences || null;
-
-  if (updates.days !== undefined) {
-    updateData.data = {
-      days: updates.days,
-    } as Json;
-  }
-
+  const updateData = buildItineraryUpdate(updates);
   const { data, error } = await (supabase
     .from("itineraries")
     // @ts-ignore - Supabase type inference issue with complex Json types
@@ -240,11 +206,7 @@ export async function updateItinerary(
     .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
 
   if (error) {
-    if (isNoRowError(error)) {
-      return updatePublicItineraryViaRpc(id, updateData);
-    }
-
-    console.error("Error updating itinerary:", error);
+    console.error("Error updating itinerary via RLS:", error);
     throw new Error(`Failed to update itinerary: ${error.message}`);
   }
 
@@ -253,6 +215,58 @@ export async function updateItinerary(
   }
 
   return rowToItinerary(data);
+}
+
+async function updateItineraryViaRpc(
+  id: string,
+  updates: Partial<
+    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
+  >
+): Promise<Itinerary> {
+  const updateData = buildItineraryUpdate(updates);
+  const { data, error } = await (supabase
+    .rpc("update_public_itinerary", {
+      p_id: id,
+      p_updates: updateData,
+    })
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+
+  if (error) {
+    console.error("Error updating public itinerary via RPC:", error);
+    throw new Error(`Failed to update public itinerary: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new ItineraryUnavailableError(id);
+  }
+
+  return rowToItinerary(data);
+}
+
+function buildItineraryUpdate(
+  updates: Partial<
+    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
+  >
+): ItineraryUpdate {
+  const updateData: ItineraryUpdate = {};
+
+  if (updates.title !== undefined) updateData.title = updates.title;
+  if (updates.destination !== undefined) {
+    updateData.destination = updates.destination;
+  }
+  if (updates.start_date !== undefined) updateData.start_date = updates.start_date;
+  if (updates.end_date !== undefined) updateData.end_date = updates.end_date;
+  if (updates.preferences !== undefined) {
+    updateData.preferences = updates.preferences || null;
+  }
+
+  if (updates.days !== undefined) {
+    updateData.data = {
+      days: updates.days,
+    } as Json;
+  }
+
+  return updateData;
 }
 
 /**

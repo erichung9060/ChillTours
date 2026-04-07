@@ -38,6 +38,19 @@ export const EffectivePermissionSchema = z.enum([
 ]);
 export type EffectivePermission = z.infer<typeof EffectivePermissionSchema>;
 
+export const AccessSourceSchema = z.enum([
+  "owner",
+  "email_share",
+  "link_share",
+]);
+export type AccessSource = z.infer<typeof AccessSourceSchema>;
+
+export const AccessContextSchema = z.object({
+  permission: EffectivePermissionSchema,
+  source: AccessSourceSchema.nullable(),
+});
+export type AccessContext = z.infer<typeof AccessContextSchema>;
+
 // ============================================================================
 // Share Record Types
 // ============================================================================

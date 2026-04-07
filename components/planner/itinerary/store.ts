@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Itinerary, Activity, Day } from "@/types/itinerary";
-import type { EffectivePermission } from "@/types/share";
+import type { AccessContext } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import {
@@ -26,7 +26,7 @@ interface ItineraryState {
   error: string | null;
   historyPast: Itinerary[];
   historyFuture: Itinerary[];
-  permission: EffectivePermission;
+  access: AccessContext;
 
   // Generation State
   isGenerating: boolean;
@@ -122,7 +122,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   error: null,
   historyPast: [],
   historyFuture: [],
-  permission: "none" as EffectivePermission,
+  access: { permission: "none", source: null },
   isGenerating: false,
   isSaving: false,
   saveError: false,
@@ -154,18 +154,18 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   setAddModePlaceholder: (placeholder) => set({ addModePlaceholder: placeholder }),
 
   canEdit: () => {
-    const { permission } = get();
-    return permission === "owner" || permission === "edit";
+    const { access } = get();
+    return access.permission === "owner" || access.permission === "edit";
   },
 
   canDelete: () => {
-    const { permission } = get();
-    return permission === "owner";
+    const { access } = get();
+    return access.permission === "owner";
   },
 
   canShare: () => {
-    const { permission } = get();
-    return permission === "owner";
+    const { access } = get();
+    return access.permission === "owner";
   },
 
   // Fetch Action
@@ -173,7 +173,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     set({ isLoading: true, errorKind: null, error: null });
     try {
       const data = await loadItinerary(id);
-      const permission = await getEffectivePermission(
+      const access = await getEffectivePermission(
         data.id,
         data.user_id,
         data.link_access
@@ -181,7 +181,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       set({
         itinerary: data,
-        permission,
+        access,
         historyPast: [],
         historyFuture: [],
         previewBaseItinerary: null,
@@ -228,7 +228,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(currentItinerary.id, payload);
+      const updated = await updateItinerary(
+        currentItinerary.id,
+        payload,
+        state.access
+      );
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to commit itinerary:", err);
@@ -271,7 +275,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(currentItinerary.id, payload);
+      const updated = await updateItinerary(
+        currentItinerary.id,
+        payload,
+        state.access
+      );
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to undo itinerary change:", err);
@@ -317,7 +325,11 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(currentItinerary.id, payload);
+      const updated = await updateItinerary(
+        currentItinerary.id,
+        payload,
+        state.access
+      );
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to redo itinerary change:", err);

@@ -14,6 +14,7 @@
 
 import { supabase } from "./client";
 import type {
+  AccessContext,
   EffectivePermission,
   ItineraryShare,
   LinkAccess,
@@ -219,29 +220,19 @@ export async function getEffectivePermission(
   itineraryId: string,
   itineraryOwnerId: string,
   linkAccess: LinkAccess
-): Promise<EffectivePermission> {
+): Promise<AccessContext> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   // 1. Check if user is owner
   if (user && user.id === itineraryOwnerId) {
-    return "owner";
+    return { permission: "owner", source: "owner" };
   }
 
-  if (linkAccess === "edit") {
-    return "edit";
-  }
-
-  // 2. Collect all possible permissions
-  const permissions: EffectivePermission[] = [];
-
-  // Add link access permission
-  if (linkAccess === "view") {
-    permissions.push(linkAccess);
-  }
-
-  // Add email share permission if exists
+  // 2. Check email-share access first so we preserve whether writes can stay
+  // on the normal RLS path instead of routing edit access through RPC.
+  let emailSharePermission: EffectivePermission | null = null;
   if (user?.email) {
     const { data: share } = await (supabase
       .from("itinerary_shares")
@@ -253,18 +244,27 @@ export async function getEffectivePermission(
       error: any;
     }>);
 
-    if (share) {
-      permissions.push(share.permission as EffectivePermission);
+    if (share?.permission === "edit" || share?.permission === "view") {
+      emailSharePermission = share.permission as EffectivePermission;
     }
   }
 
-  // 3. Return highest permission
-  if (permissions.includes("edit")) {
-    return "edit";
-  }
-  if (permissions.includes("view")) {
-    return "view";
+  // 3. Resolve the highest effective permission while preserving its source.
+  if (emailSharePermission === "edit") {
+    return { permission: "edit", source: "email_share" };
   }
 
-  return "none";
+  if (linkAccess === "edit") {
+    return { permission: "edit", source: "link_share" };
+  }
+
+  if (emailSharePermission === "view") {
+    return { permission: "view", source: "email_share" };
+  }
+
+  if (linkAccess === "view") {
+    return { permission: "view", source: "link_share" };
+  }
+
+  return { permission: "none", source: null };
 }

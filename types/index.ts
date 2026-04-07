@@ -60,6 +60,8 @@ export type {
   LinkAccess,
   SharePermission,
   EffectivePermission,
+  AccessSource,
+  AccessContext,
   ItineraryShare,
 } from "./share";
 
@@ -67,5 +69,7 @@ export {
   LinkAccessSchema,
   SharePermissionSchema,
   EffectivePermissionSchema,
+  AccessSourceSchema,
+  AccessContextSchema,
   ItineraryShareSchema,
 } from "./share";
