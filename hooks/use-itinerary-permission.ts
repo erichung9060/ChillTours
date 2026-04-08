@@ -17,7 +17,7 @@ interface UseItineraryPermissionReturn {
 }
 
 export function useItineraryPermission(): UseItineraryPermissionReturn {
-  const permission = useItineraryStore((state) => state.permission);
+  const permission = useItineraryStore((state) => state.access.permission);
   const canEditFn = useItineraryStore((state) => state.canEdit);
   const canDeleteFn = useItineraryStore((state) => state.canDelete);
   const canShareFn = useItineraryStore((state) => state.canShare);
