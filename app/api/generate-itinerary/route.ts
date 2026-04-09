@@ -15,24 +15,21 @@ export async function POST(request: NextRequest) {
     return validated;
   }
 
-  const response = await fetch(
-    `${supabaseUrl}/functions/v1/generate-itinerary`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: validated.authHeader,
-      },
-      body: JSON.stringify(validated.data),
-    }
-  );
+  const response = await fetch(`${supabaseUrl}/functions/v1/generate-itinerary`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: validated.authHeader,
+    },
+    body: JSON.stringify(validated.data),
+  });
 
   return new Response(response.body, {
     status: response.status,
     headers: {
       "Content-Type": response.headers.get("Content-Type") || "application/json",
       "Cache-Control": "no-cache",
-      "Connection": "keep-alive",
+      Connection: "keep-alive",
     },
   });
 }

@@ -76,13 +76,7 @@ A card component with header, content, and footer sections.
 **Usage:**
 
 ```tsx
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui";
 
 <Card>
   <CardHeader>
@@ -175,8 +169,7 @@ const [open, setOpen] = useState(false);
     <DialogHeader>
       <DialogTitle>Delete Itinerary</DialogTitle>
       <DialogDescription>
-        Are you sure you want to delete this itinerary? This action cannot be
-        undone.
+        Are you sure you want to delete this itinerary? This action cannot be undone.
       </DialogDescription>
     </DialogHeader>
     <DialogFooter>

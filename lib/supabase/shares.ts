@@ -70,7 +70,7 @@ function rowToShare(row: ShareRow): ItineraryShare {
 export async function createShare(
   itineraryId: string,
   email: string,
-  permission: SharePermission
+  permission: SharePermission,
 ): Promise<ItineraryShare> {
   const insertData: ShareInsert = {
     itinerary_id: itineraryId,
@@ -105,9 +105,7 @@ export async function createShare(
  * List all shares for an itinerary
  * Only the owner can see all shares (RLS enforced)
  */
-export async function listShares(
-  itineraryId: string
-): Promise<ItineraryShare[]> {
+export async function listShares(itineraryId: string): Promise<ItineraryShare[]> {
   const { data, error } = await supabase
     .from("itinerary_shares")
     .select("*")
@@ -128,7 +126,7 @@ export async function listShares(
  */
 export async function updateSharePermission(
   shareId: string,
-  permission: SharePermission
+  permission: SharePermission,
 ): Promise<ItineraryShare> {
   const updateData: ShareUpdate = { permission };
 
@@ -161,10 +159,7 @@ export async function updateSharePermission(
  * Only the owner can delete shares (RLS enforced)
  */
 export async function deleteShare(shareId: string): Promise<void> {
-  const { error } = await supabase
-    .from("itinerary_shares")
-    .delete()
-    .eq("id", shareId);
+  const { error } = await supabase.from("itinerary_shares").delete().eq("id", shareId);
 
   if (error) {
     if (error.code === "PGRST116") {
@@ -186,7 +181,7 @@ export async function deleteShare(shareId: string): Promise<void> {
  */
 export async function updateLinkAccess(
   itineraryId: string,
-  linkAccess: LinkAccess
+  linkAccess: LinkAccess,
 ): Promise<LinkAccess> {
   const updateData: ItineraryUpdate = { link_access: linkAccess };
 
@@ -219,7 +214,7 @@ export async function updateLinkAccess(
 export async function getEffectivePermission(
   itineraryId: string,
   itineraryOwnerId: string,
-  linkAccess: LinkAccess
+  linkAccess: LinkAccess,
 ): Promise<AccessContext> {
   const {
     data: { user },

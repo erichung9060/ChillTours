@@ -8,32 +8,34 @@ const ChatRequestSchema = z.object({
     z.object({
       role: z.enum(["user", "assistant"]),
       content: z.string(),
-    })
+    }),
   ),
-  itinerary_context: z.object({
-    id: z.string(),
-    title: z.string(),
-    destination: z.string(),
-    start_date: z.string(),
-    end_date: z.string(),
-    days: z.array(
-      z.object({
-        day_number: z.number().int().min(1),
-        activities: z.array(
-          z.object({
-            id: z.string(),
-            time: z.string(),
-            title: z.string(),
-            note: z.string(),
-            location: z.object({
-              name: z.string(),
+  itinerary_context: z
+    .object({
+      id: z.string(),
+      title: z.string(),
+      destination: z.string(),
+      start_date: z.string(),
+      end_date: z.string(),
+      days: z.array(
+        z.object({
+          day_number: z.number().int().min(1),
+          activities: z.array(
+            z.object({
+              id: z.string(),
+              time: z.string(),
+              title: z.string(),
+              note: z.string(),
+              location: z.object({
+                name: z.string(),
+              }),
+              duration_minutes: z.number().int().positive(),
             }),
-            duration_minutes: z.number().int().positive(),
-          })
-        ),
-      })
-    ),
-  }).optional(),
+          ),
+        }),
+      ),
+    })
+    .optional(),
 });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;

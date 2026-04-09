@@ -25,27 +25,23 @@ function parseItinerary(aiResponse: string): Itinerary | null {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 7);
 
-    const days: Day[] = (parsed.days || []).map(
-      (day: any, dayIndex: number) => ({
-        day_number: day.day_number || dayIndex + 1,
-        activities: (day.activities || []).map(
-          (activity: any, actIndex: number) => ({
-            id: activity.id || crypto.randomUUID(),
-            time: activity.time || "09:00",
-            title: activity.title || "Untitled Activity",
-            note: activity.note || "",
-            location: {
-              name: activity.location?.name || "Unknown Location",
-              lat: activity.location?.lat || 0,
-              lng: activity.location?.lng || 0,
-              place_id: activity.location?.place_id,
-            },
-            duration_minutes: activity.duration_minutes || 120,
-            order: actIndex,
-          })
-        ),
-      })
-    );
+    const days: Day[] = (parsed.days || []).map((day: any, dayIndex: number) => ({
+      day_number: day.day_number || dayIndex + 1,
+      activities: (day.activities || []).map((activity: any, actIndex: number) => ({
+        id: activity.id || crypto.randomUUID(),
+        time: activity.time || "09:00",
+        title: activity.title || "Untitled Activity",
+        note: activity.note || "",
+        location: {
+          name: activity.location?.name || "Unknown Location",
+          lat: activity.location?.lat || 0,
+          lng: activity.location?.lng || 0,
+          place_id: activity.location?.place_id,
+        },
+        duration_minutes: activity.duration_minutes || 120,
+        order: actIndex,
+      })),
+    }));
 
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + days.length - 1);
@@ -76,7 +72,7 @@ function addDays(date: Date, days: number): string {
 function generateAIResponse(
   destination: string,
   numDays: number,
-  activitiesPerDay: number
+  activitiesPerDay: number,
 ): string {
   const days = Array.from({ length: numDays }, (_, dayIndex) => ({
     day_number: dayIndex + 1,
@@ -111,11 +107,7 @@ describe("Itinerary Parsing Completeness Properties", () => {
         fc.integer({ min: 1, max: 5 }),
         async (destination, numDays, activitiesPerDay) => {
           // Generate valid AI response
-          const aiResponse = generateAIResponse(
-            destination,
-            numDays,
-            activitiesPerDay
-          );
+          const aiResponse = generateAIResponse(destination, numDays, activitiesPerDay);
 
           // Parse the response
           const itinerary = parseItinerary(aiResponse);
@@ -135,9 +127,9 @@ describe("Itinerary Parsing Completeness Properties", () => {
               expect(day.activities.length).toBe(activitiesPerDay);
             });
           }
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
@@ -170,27 +162,24 @@ describe("Itinerary Parsing Completeness Properties", () => {
               });
             });
           }
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
   test("Property 8.2: Parsing should handle markdown-wrapped JSON", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc
-          .string({ minLength: 1, maxLength: 50 })
-          .filter((s) => s.trim().length > 0),
+        fc.string({ minLength: 1, maxLength: 50 }).filter((s) => s.trim().length > 0),
         fc.constantFrom(
           { prefix: "```json\n", suffix: "\n```" },
           { prefix: "```\n", suffix: "\n```" },
-          { prefix: "", suffix: "" }
+          { prefix: "", suffix: "" },
         ),
         async (destination, wrapping) => {
           const baseResponse = generateAIResponse(destination, 2, 2);
-          const wrappedResponse =
-            wrapping.prefix + baseResponse + wrapping.suffix;
+          const wrappedResponse = wrapping.prefix + baseResponse + wrapping.suffix;
 
           const itinerary = parseItinerary(wrappedResponse);
 
@@ -201,41 +190,33 @@ describe("Itinerary Parsing Completeness Properties", () => {
             expect(itinerary.destination).toBe(destination);
             expect(itinerary.days.length).toBe(2);
           }
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
   test("Property 8.3: Parsing should preserve location coordinates", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        fc.string({ minLength: 1, maxLength: 50 }),
-        async (destination) => {
-          const aiResponse = generateAIResponse(destination, 2, 2);
-          const originalData = JSON.parse(aiResponse);
-          const itinerary = parseItinerary(aiResponse);
+      fc.asyncProperty(fc.string({ minLength: 1, maxLength: 50 }), async (destination) => {
+        const aiResponse = generateAIResponse(destination, 2, 2);
+        const originalData = JSON.parse(aiResponse);
+        const itinerary = parseItinerary(aiResponse);
 
-          expect(itinerary).not.toBeNull();
+        expect(itinerary).not.toBeNull();
 
-          if (itinerary) {
-            // Property: GPS coordinates should be preserved
-            itinerary.days.forEach((day, dayIndex) => {
-              day.activities.forEach((activity, actIndex) => {
-                const originalActivity =
-                  originalData.days[dayIndex].activities[actIndex];
-                expect(activity.location.lat).toBe(
-                  originalActivity.location.lat
-                );
-                expect(activity.location.lng).toBe(
-                  originalActivity.location.lng
-                );
-              });
+        if (itinerary) {
+          // Property: GPS coordinates should be preserved
+          itinerary.days.forEach((day, dayIndex) => {
+            day.activities.forEach((activity, actIndex) => {
+              const originalActivity = originalData.days[dayIndex].activities[actIndex];
+              expect(activity.location.lat).toBe(originalActivity.location.lat);
+              expect(activity.location.lng).toBe(originalActivity.location.lng);
             });
-          }
+          });
         }
-      ),
-      { numRuns: 20 }
+      }),
+      { numRuns: 20 },
     );
   });
 });

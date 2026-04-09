@@ -143,9 +143,9 @@ describe("Property 36: Streaming Completion Marking", () => {
 
           // Property 4: Message should have streaming flag set to false
           expect(message?.streaming).toBe(false);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -180,9 +180,9 @@ describe("Property 36: Streaming Completion Marking", () => {
           // Property: Content should remain unchanged
           const message = handler.getMessage(messageId);
           expect(message?.content).toBe(chunks.join(""));
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -208,8 +208,7 @@ describe("Property 36: Streaming Completion Marking", () => {
             handler.appendChunk(messageId, chunk);
           }
 
-          const contentBeforeCompletion =
-            handler.getMessage(messageId)?.content;
+          const contentBeforeCompletion = handler.getMessage(messageId)?.content;
 
           // Complete streaming
           handler.completeStreaming(messageId);
@@ -223,9 +222,9 @@ describe("Property 36: Streaming Completion Marking", () => {
           const message = handler.getMessage(messageId);
           expect(message?.content).toBe(contentBeforeCompletion);
           expect(message?.streaming).toBe(false);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -253,7 +252,7 @@ describe("Property 36: Streaming Completion Marking", () => {
         expect(message?.content).toBe("");
         expect(message?.streaming).toBe(false);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -266,12 +265,12 @@ describe("Property 36: Streaming Completion Marking", () => {
           fc.array(fc.string({ minLength: 1, maxLength: 20 }), {
             minLength: 1,
             maxLength: 5,
-          })
+          }),
         ),
         async (messageIds, chunksArray) => {
           // Ensure we have chunks for each message
           const normalizedChunks = messageIds.map(
-            (_, i) => chunksArray[i % chunksArray.length] || ["default"]
+            (_, i) => chunksArray[i % chunksArray.length] || ["default"],
           );
 
           // Start streaming for all messages
@@ -313,9 +312,9 @@ describe("Property 36: Streaming Completion Marking", () => {
             expect(handler.isStreaming(id)).toBe(false);
             expect(handler.hasTypingIndicator(id)).toBe(false);
           });
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 
@@ -353,9 +352,9 @@ describe("Property 36: Streaming Completion Marking", () => {
 
           // Property: Only streaming flag should change
           expect(finalMessage?.streaming).toBe(false);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

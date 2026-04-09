@@ -61,6 +61,4 @@ export const StreamingResponseSchema = z.object({
 });
 
 export type StreamingResponse = z.infer<typeof StreamingResponseSchema>;
-export type StreamingResponseMetadata = z.infer<
-  typeof StreamingResponseMetadataSchema
->;
+export type StreamingResponseMetadata = z.infer<typeof StreamingResponseMetadataSchema>;

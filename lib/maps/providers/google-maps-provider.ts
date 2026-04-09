@@ -16,10 +16,7 @@ export class GoogleMapsProvider implements MapProvider {
     return Promise.resolve();
   }
 
-  createMarkerIcon(config: {
-    color: string;
-    size: { width: number; height: number };
-  }): MarkerIcon {
+  createMarkerIcon(config: { color: string; size: { width: number; height: number } }): MarkerIcon {
     const { color, size } = config;
 
     // Use the unified pin icon generator

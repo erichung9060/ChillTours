@@ -8,9 +8,7 @@ export function MapInfoWindowContent({ activity }: { activity: Activity }) {
     <div className="p-2 max-w-xs text-black font-medium">
       {/* Order and Title */}
       <h3 className="font-bold text-sm mb-1.5 flex items-start gap-1.5 leading-snug">
-        <span className="shrink-0">
-          {activity.order + 1}.
-        </span>
+        <span className="shrink-0">{activity.order + 1}.</span>
         <span className="line-clamp-2">{activity.title}</span>
       </h3>
 
@@ -57,9 +55,7 @@ export function MapInfoWindowContent({ activity }: { activity: Activity }) {
       {/* Notes */}
       {activity.note && (
         <div className="mt-2 pt-2 border-t border-slate-900/20">
-          <p className="text-[11px] leading-relaxed line-clamp-3">
-            {activity.note}
-          </p>
+          <p className="text-[11px] leading-relaxed line-clamp-3">{activity.note}</p>
         </div>
       )}
     </div>

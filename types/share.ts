@@ -30,19 +30,10 @@ export type SharePermission = z.infer<typeof SharePermissionSchema>;
  * 3. The highest granted permission wins: edit > view > none
  * 4. none - No access is granted by any source
  */
-export const EffectivePermissionSchema = z.enum([
-  "owner",
-  "edit",
-  "view",
-  "none",
-]);
+export const EffectivePermissionSchema = z.enum(["owner", "edit", "view", "none"]);
 export type EffectivePermission = z.infer<typeof EffectivePermissionSchema>;
 
-export const AccessSourceSchema = z.enum([
-  "owner",
-  "email_share",
-  "link_share",
-]);
+export const AccessSourceSchema = z.enum(["owner", "email_share", "link_share"]);
 export type AccessSource = z.infer<typeof AccessSourceSchema>;
 
 export const AccessContextSchema = z.object({

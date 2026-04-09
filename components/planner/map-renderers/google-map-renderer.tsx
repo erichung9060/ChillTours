@@ -7,13 +7,7 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import {
-  APIProvider,
-  Map,
-  AdvancedMarker,
-  InfoWindow,
-  useMap,
-} from "@vis.gl/react-google-maps";
+import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import { useTheme } from "@/hooks/use-theme";
 import type { Activity } from "@/types/itinerary";
 import type { MapRendererProps } from "./types";
@@ -73,18 +67,13 @@ function MapContent({
         const ne = bounds.getNorthEast();
         const sw = bounds.getSouthWest();
 
-        return (
-          lat >= sw.lat() &&
-          lat <= ne.lat() &&
-          lng >= sw.lng() &&
-          lng <= ne.lng()
-        );
+        return lat >= sw.lat() && lat <= ne.lat() && lng >= sw.lng() && lng <= ne.lng();
       } catch (error) {
         console.error("Error checking location visibility:", error);
         return true;
       }
     },
-    [map]
+    [map],
   );
 
   // Smart zoom & focus: unified map camera effect
@@ -95,7 +84,7 @@ function MapContent({
 
     // Focus takes priority — always pan and open InfoWindow
     if (focusedActivityId) {
-      const target = activities.find(a => a.id === focusedActivityId);
+      const target = activities.find((a) => a.id === focusedActivityId);
       if (!target) return;
 
       const lat = target.location.lat as number;
@@ -116,10 +105,7 @@ function MapContent({
 
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
-        !isLocationVisible(
-          activity.location.lat as number,
-          activity.location.lng as number
-        )
+        !isLocationVisible(activity.location.lat as number, activity.location.lng as number),
     );
 
     if (!hasInvisibleActivity) return;
@@ -156,7 +142,7 @@ function MapContent({
       });
       onMarkerClick(activity);
     },
-    [onMarkerClick]
+    [onMarkerClick],
   );
 
   const handleInfoWindowCloseClick = useCallback(() => {
@@ -193,10 +179,7 @@ function MapContent({
 
       {/* Info window for selected activity */}
       {selectedActivity && infoWindowPosition && (
-        <InfoWindow
-          position={infoWindowPosition}
-          onCloseClick={handleInfoWindowCloseClick}
-        >
+        <InfoWindow position={infoWindowPosition} onCloseClick={handleInfoWindowCloseClick}>
           <MapInfoWindowContent activity={selectedActivity} />
         </InfoWindow>
       )}
@@ -244,9 +227,7 @@ export function GoogleMapRenderer({
             </svg>
           </div>
           <h3 className="text-lg font-semibold mb-2">Map Error</h3>
-          <p className="text-sm text-muted-foreground">
-            Google Maps API key not configured
-          </p>
+          <p className="text-sm text-muted-foreground">Google Maps API key not configured</p>
         </div>
       </div>
     );

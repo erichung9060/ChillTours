@@ -34,9 +34,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
           <DialogTitle className="text-center text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
             {t("dialogTitle")}
           </DialogTitle>
-          <DialogDescription className="text-center">
-            {t("dialogDescription")}
-          </DialogDescription>
+          <DialogDescription className="text-center">{t("dialogDescription")}</DialogDescription>
         </DialogHeader>
 
         <div className="mt-6">

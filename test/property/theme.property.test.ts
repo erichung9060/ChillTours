@@ -30,7 +30,7 @@ describe("Theme System Property Tests", () => {
         // Verify the theme was persisted correctly
         expect(storedTheme).toBe(themeMode);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -49,21 +49,16 @@ describe("Theme System Property Tests", () => {
           // Verify the last theme is persisted
           const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
           expect(storedTheme).toBe(lastTheme);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
   it("Property 5 (Edge Case): Theme storage handles invalid values gracefully", async () => {
     await fc.assert(
       fc.asyncProperty(
-        fc
-          .string()
-          .filter(
-            (s) =>
-              s.length > 0 && !["light", "dark", "system"].includes(s)
-          ),
+        fc.string().filter((s) => s.length > 0 && !["light", "dark", "system"].includes(s)),
         async (invalidTheme) => {
           // Store invalid theme
           localStorage.setItem(THEME_STORAGE_KEY, invalidTheme);
@@ -73,9 +68,9 @@ describe("Theme System Property Tests", () => {
 
           // Should still be stored (validation happens in the provider)
           expect(storedTheme).toBe(invalidTheme);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -93,9 +88,9 @@ describe("Theme System Property Tests", () => {
           // Verify it's still the same
           const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
           expect(storedTheme).toBe(themeMode);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

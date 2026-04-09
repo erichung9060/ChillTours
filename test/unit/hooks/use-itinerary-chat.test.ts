@@ -180,9 +180,7 @@ describe("useItineraryChat", () => {
   });
 
   it("should handle localStorage errors gracefully", () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     // Mock localStorage.setItem to throw an error
     const originalSetItem = localStorage.setItem;
@@ -228,7 +226,7 @@ describe("useItineraryChat", () => {
           content: "Message 1",
           timestamp: Date.now(),
         },
-      ])
+      ]),
     );
 
     // Add messages for itinerary 2
@@ -241,7 +239,7 @@ describe("useItineraryChat", () => {
           content: "Message 2",
           timestamp: Date.now(),
         },
-      ])
+      ]),
     );
 
     const { result, rerender } = renderHook(({ id }) => useItineraryChat(id), {

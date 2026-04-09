@@ -32,7 +32,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 error,
               "dark:hover:border-destructive/70": error,
             },
-            className
+            className,
           )}
           ref={ref}
           {...props}
@@ -41,7 +41,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <p
             className={cn(
               "mt-1.5 text-sm transition-colors duration-200",
-              error ? "text-destructive" : "text-muted-foreground"
+              error ? "text-destructive" : "text-muted-foreground",
             )}
           >
             {helperText}
@@ -49,7 +49,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Input.displayName = "Input";

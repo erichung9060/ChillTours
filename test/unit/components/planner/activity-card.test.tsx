@@ -53,7 +53,7 @@ describe("ActivityCard", () => {
             name: "City Museum",
           },
         }}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByTitle("Open Website"));

@@ -3,13 +3,7 @@ import { cn } from "@/lib/utils/cn";
 import { Loader2 } from "lucide-react";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?:
-    | "default"
-    | "primary"
-    | "secondary"
-    | "destructive"
-    | "outline"
-    | "ghost";
+  variant?: "default" | "primary" | "secondary" | "destructive" | "outline" | "ghost";
   size?: "default" | "sm" | "lg" | "icon";
   isLoading?: boolean;
   loadingText?: string;
@@ -27,7 +21,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       disabled,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <button
@@ -63,16 +57,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700":
               variant === "primary",
 
-            "bg-secondary text-secondary-foreground hover:bg-secondary/80":
-              variant === "secondary",
-            "dark:bg-secondary/80 dark:hover:bg-secondary":
-              variant === "secondary",
+            "bg-secondary text-secondary-foreground hover:bg-secondary/80": variant === "secondary",
+            "dark:bg-secondary/80 dark:hover:bg-secondary": variant === "secondary",
             "dark:hover:shadow-md": variant === "secondary",
 
             "bg-gradient-to-br from-destructive to-destructive/80 text-destructive-foreground":
               variant === "destructive",
-            "hover:from-destructive/90 hover:to-destructive/70":
-              variant === "destructive",
+            "hover:from-destructive/90 hover:to-destructive/70": variant === "destructive",
             // Light mode - subtle shadows
             "shadow-md shadow-destructive/[0.15] hover:shadow-lg hover:shadow-destructive/[0.2]":
               variant === "destructive",
@@ -84,13 +75,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               variant === "outline",
             "dark:border-border/50 dark:hover:border-border dark:hover:bg-accent/50":
               variant === "outline",
-            "dark:hover:shadow-md dark:hover:shadow-primary/10":
-              variant === "outline",
+            "dark:hover:shadow-md dark:hover:shadow-primary/10": variant === "outline",
 
             "hover:bg-accent hover:text-accent-foreground text-muted-foreground":
               variant === "ghost",
-            "dark:hover:bg-accent/50 dark:text-foreground":
-              variant === "ghost",
+            "dark:hover:bg-accent/50 dark:text-foreground": variant === "ghost",
           },
           // Size styles
           {
@@ -99,7 +88,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "h-11 rounded-lg px-8 text-base": size === "lg",
             "h-10 w-10": size === "icon",
           },
-          className
+          className,
         )}
         ref={ref}
         disabled={disabled || isLoading}
@@ -110,7 +99,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <Loader2
             className={cn(
               "h-4 w-4 animate-[spin_0.8s_ease-in-out_infinite]",
-              loadingText || children ? "mr-2" : ""
+              loadingText || children ? "mr-2" : "",
             )}
             aria-hidden="true"
           />
@@ -120,7 +109,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         </span>
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

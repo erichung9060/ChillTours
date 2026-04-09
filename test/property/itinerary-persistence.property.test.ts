@@ -84,7 +84,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
         // Verify database was called with correct ID
         expect(supabase.from).toHaveBeenCalledWith("itineraries");
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -117,11 +117,9 @@ describe("Property 22: Itinerary Database Persistence", () => {
         } as any);
 
         // Attempt to load should throw
-        await expect(loadItinerary(nonExistentId)).rejects.toThrow(
-          ItineraryUnavailableError
-        );
+        await expect(loadItinerary(nonExistentId)).rejects.toThrow(ItineraryUnavailableError);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });
@@ -178,11 +176,9 @@ describe("Property 24: Itinerary Deletion", () => {
         } as any);
 
         // Attempting to load deleted itinerary should throw
-        await expect(loadItinerary(itineraryId)).rejects.toThrow(
-          ItineraryUnavailableError
-        );
+        await expect(loadItinerary(itineraryId)).rejects.toThrow(ItineraryUnavailableError);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -205,11 +201,9 @@ describe("Property 24: Itinerary Deletion", () => {
         vi.mocked(supabase.from).mockImplementation(mockFrom as any);
 
         // Attempt to delete should throw
-        await expect(deleteItinerary(nonExistentId)).rejects.toThrow(
-          ItineraryUnavailableError
-        );
+        await expect(deleteItinerary(nonExistentId)).rejects.toThrow(ItineraryUnavailableError);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -240,9 +234,7 @@ describe("Property 24: Itinerary Deletion", () => {
           await deleteItinerary(itineraryToDelete.id);
 
           // Mock list operation (should not include deleted)
-          const remainingItineraries = itineraries.filter(
-            (_, i) => i !== deleteIndex
-          );
+          const remainingItineraries = itineraries.filter((_, i) => i !== deleteIndex);
           const mockListFrom = vi.fn(() => ({
             select: vi.fn().mockReturnThis(),
             order: vi.fn().mockResolvedValue({
@@ -265,13 +257,11 @@ describe("Property 24: Itinerary Deletion", () => {
           const list = await listUserItineraries();
 
           // Verify deleted itinerary is not in list
-          expect(
-            list.find((it) => it.id === itineraryToDelete.id)
-          ).toBeUndefined();
+          expect(list.find((it) => it.id === itineraryToDelete.id)).toBeUndefined();
           expect(list.length).toBe(remainingItineraries.length);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

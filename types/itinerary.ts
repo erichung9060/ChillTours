@@ -24,9 +24,7 @@ export type Location = z.infer<typeof LocationSchema>;
 
 export const ActivitySchema = z.object({
   id: z.uuid(),
-  time: z
-    .string()
-    .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
+  time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format"),
   title: z.string().min(1, "Activity title is required").max(100),
   note: z.string().max(500),
   location: LocationSchema,
@@ -60,12 +58,8 @@ export const ItinerarySchema = z
     user_id: z.uuid(),
     title: z.string().min(1, "Title is required").max(100),
     destination: z.string().min(1, "Destination is required").max(100),
-    start_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format"),
-    end_date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format"),
+    start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Start date must be in YYYY-MM-DD format"),
+    end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "End date must be in YYYY-MM-DD format"),
     preferences: z.string().max(1000, "Preferences are too long").optional(),
     status: z.enum(["draft", "generating", "completed", "failed"]).optional(),
     days: z.array(DaySchema),

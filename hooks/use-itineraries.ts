@@ -8,10 +8,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  listUserItineraries,
-  type ItinerarySummary,
-} from "@/lib/supabase/itineraries";
+import { listUserItineraries, type ItinerarySummary } from "@/lib/supabase/itineraries";
 
 export interface UseItinerariesReturn {
   itineraries: ItinerarySummary[];
@@ -53,7 +50,7 @@ export function useItineraries(): UseItinerariesReturn {
       setError(
         err instanceof Error
           ? err
-          : new Error("An unknown error occurred while fetching itineraries")
+          : new Error("An unknown error occurred while fetching itineraries"),
       );
     } finally {
       setLoading(false);

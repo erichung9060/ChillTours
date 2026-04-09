@@ -31,7 +31,7 @@ describe("Theme System Integration Tests", () => {
     render(
       <ThemeProvider>
         <ThemeDisplay />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     expect(screen.getByTestId("theme").textContent).toBe("system");
@@ -43,7 +43,7 @@ describe("Theme System Integration Tests", () => {
     render(
       <ThemeProvider>
         <ThemeDisplay />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     waitFor(() => {
@@ -56,7 +56,7 @@ describe("Theme System Integration Tests", () => {
       <ThemeProvider>
         <ThemeDisplay />
         <ThemeToggle />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     const toggleButton = screen.getByRole("button");
@@ -79,7 +79,7 @@ describe("Theme System Integration Tests", () => {
       <ThemeProvider>
         <ThemeDisplay />
         <ThemeToggle />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     const toggleButton = screen.getByRole("button");
@@ -99,7 +99,7 @@ describe("Theme System Integration Tests", () => {
       <ThemeProvider>
         <ThemeDisplay />
         <ThemeToggle />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     const toggleButton = screen.getByRole("button");
@@ -135,7 +135,7 @@ describe("Theme System Integration Tests", () => {
     render(
       <ThemeProvider>
         <ThemeDisplay />
-      </ThemeProvider>
+      </ThemeProvider>,
     );
 
     // Should fall back to system theme

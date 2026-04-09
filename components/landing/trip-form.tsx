@@ -69,9 +69,7 @@ export function TripForm() {
       router.push(`/plan/${itinerary.id}`);
     } catch (error) {
       console.error("Error creating itinerary:", error);
-      setGeneralError(
-        error instanceof Error ? error.message : t("createError")
-      );
+      setGeneralError(error instanceof Error ? error.message : t("createError"));
       setIsLoading(false);
     }
   };
@@ -120,13 +118,13 @@ export function TripForm() {
                   name="dates"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                      <DateRangePicker
-                        startDate={field.value?.from}
-                        endDate={field.value?.to}
-                        onChange={(start, end) => {
-                          field.onChange({ from: start, to: end });
-                        }}
-                        error={!!fieldState.error}
+                    <DateRangePicker
+                      startDate={field.value?.from}
+                      endDate={field.value?.to}
+                      onChange={(start, end) => {
+                        field.onChange({ from: start, to: end });
+                      }}
+                      error={!!fieldState.error}
                       helperText={fieldState.error?.message}
                     />
                   )}

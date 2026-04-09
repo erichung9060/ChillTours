@@ -38,10 +38,8 @@ interface ChatPanelProps {
 
 export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   const locale = useLocale();
-  const t = useTranslations('chat');
-  const { messages, addMessage, clearMessages } = useItineraryChat(
-    itinerary.id
-  );
+  const t = useTranslations("chat");
+  const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
   const applyOperations = useItineraryStore((state) => state.applyOperations);
 
   const [input, setInput] = useState("");
@@ -117,7 +115,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             };
             // Update the message in localStorage
             addMessage(updatedMessage);
-          }
+          },
         );
 
         // Mark message as complete (Requirement 18.3)
@@ -142,16 +140,16 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         }
       } catch (error) {
         console.error("Chat error:", error);
-        
-        let errorContent = t('error');
+
+        let errorContent = t("error");
         if (error instanceof AIError) {
           if (error.code === "UNAUTHORIZED") {
-            errorContent = t('errorUnauthorized');
+            errorContent = t("errorUnauthorized");
           } else if (error.code === "RATE_LIMIT_EXCEEDED") {
-            errorContent = t('errorRateLimit');
+            errorContent = t("errorRateLimit");
           }
         }
-        
+
         const errorMessage: ChatMessage = {
           id: assistantMessageId,
           role: "assistant",
@@ -164,7 +162,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         setIsStreaming(false);
       }
     },
-    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations]
+    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations],
   );
 
   return (
@@ -186,14 +184,14 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-          <h2 className="font-semibold">{t('title')}</h2>
+          <h2 className="font-semibold">{t("title")}</h2>
         </div>
         <div className="flex items-center gap-2">
           {/* Delete chat history button */}
           {messages.length > 0 && (
             <button
               onClick={() => {
-                if (confirm(t('deleteConfirm'))) {
+                if (confirm(t("deleteConfirm"))) {
                   clearMessages();
                 }
               }}
@@ -262,10 +260,8 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 </svg>
               </div>
-              <h3 className="font-medium mb-2">{t('emptyTitle')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('emptyDescription')}
-              </p>
+              <h3 className="font-medium mb-2">{t("emptyTitle")}</h3>
+              <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
             </div>
           </div>
         ) : (
@@ -286,13 +282,13 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
                   {message.role === "assistant" ? (
                     <MarkdownMessage content={message.content} />
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">
-                      {message.content}
-                    </p>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   )}
                   {/* Show streaming indicator for streaming messages (Requirement 18.2) */}
                   {message.streaming && (
-                    <div className={`flex items-center gap-1.5 ${message.content ? 'mt-3 mb-1' : 'h-6'}`}>
+                    <div
+                      className={`flex items-center gap-1.5 ${message.content ? "mt-3 mb-1" : "h-6"}`}
+                    >
                       <span
                         className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high inline-block"
                         style={{ animationDelay: "0ms" }}
@@ -331,7 +327,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={t('placeholder')}
+            placeholder={t("placeholder")}
             disabled={isStreaming}
             className="min-h-[60px] max-h-[120px] resize-none"
             onCompositionStart={() => setIsComposing(true)}
@@ -383,9 +379,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             )}
           </Button>
         </form>
-        <p className="text-xs text-muted-foreground mt-2">
-          {t('sendHint')}
-        </p>
+        <p className="text-xs text-muted-foreground mt-2">{t("sendHint")}</p>
       </div>
     </div>
   );

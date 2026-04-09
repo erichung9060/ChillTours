@@ -31,10 +31,7 @@ export function ItineraryCard({ itinerary, onClick }: ItineraryCardProps) {
   const endDate = formatDateDisplay(itinerary.end_date, locale);
 
   return (
-    <Card
-      className="cursor-pointer"
-      onClick={handleClick}
-    >
+    <Card className="cursor-pointer" onClick={handleClick}>
       <CardHeader>
         <CardTitle className="text-xl">{itinerary.title}</CardTitle>
       </CardHeader>

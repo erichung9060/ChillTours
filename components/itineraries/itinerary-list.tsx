@@ -22,11 +22,7 @@ export function ItineraryList({ itineraries, onCardClick }: ItineraryListProps) 
   return (
     <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
       {itineraries.map((itinerary) => (
-        <ItineraryCard
-          key={itinerary.id}
-          itinerary={itinerary}
-          onClick={onCardClick}
-        />
+        <ItineraryCard key={itinerary.id} itinerary={itinerary} onClick={onCardClick} />
       ))}
     </div>
   );

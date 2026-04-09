@@ -36,11 +36,14 @@ const calculateInitialItineraryWidth = (numDays: number): number => {
 
   const windowWidth = window.innerWidth;
   const minMapWidth = Math.max(windowWidth * 0.25, MIN_MAP_PANEL_WIDTH);
-  const maxItineraryWidth = Math.max(MIN_ITINERARY_PANEL_WIDTH, windowWidth - minMapWidth - (MIN_CHAT_PANEL_WIDTH / 2)); // Leave some space for chat if needed
+  const maxItineraryWidth = Math.max(
+    MIN_ITINERARY_PANEL_WIDTH,
+    windowWidth - minMapWidth - MIN_CHAT_PANEL_WIDTH / 2,
+  ); // Leave some space for chat if needed
 
   const neededWidth = Math.max(
     MIN_ITINERARY_PANEL_WIDTH,
-    numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING
+    numDays * DAY_CARD_WIDTH + (numDays - 1) * DAY_CARD_GAP + PANEL_PADDING,
   );
 
   return Math.min(neededWidth, maxItineraryWidth);
@@ -66,9 +69,9 @@ export default function PlanningPage() {
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
-  const [viewMode, setViewMode] = useState<
-    "expandable" | "single-day" | "side-by-side"
-  >("side-by-side");
+  const [viewMode, setViewMode] = useState<"expandable" | "single-day" | "side-by-side">(
+    "side-by-side",
+  );
   const [currentDayIndex, setCurrentDayIndex] = useState(0);
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
@@ -77,9 +80,7 @@ export default function PlanningPage() {
 
   // Derived state for selected day in single-day view
   const selectedDayNumber =
-    viewMode === "single-day" && itinerary
-      ? itinerary.days[currentDayIndex]?.day_number
-      : null;
+    viewMode === "single-day" && itinerary ? itinerary.days[currentDayIndex]?.day_number : null;
 
   // Reset currentDayIndex when switching to single-day mode or when itinerary changes
   useEffect(() => {
@@ -99,9 +100,7 @@ export default function PlanningPage() {
   // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
   useEffect(() => {
     if (itinerary) {
-      const initialWidth = calculateInitialItineraryWidth(
-        itinerary.days.length
-      );
+      const initialWidth = calculateInitialItineraryWidth(itinerary.days.length);
       setItineraryPanelWidth(initialWidth);
     }
   }, [itinerary?.days.length]); // Only recalculate when days count changes
@@ -145,16 +144,15 @@ export default function PlanningPage() {
         // Try to keep chat width, reduce itinerary width
         const newItineraryWidth = Math.max(
           MIN_ITINERARY_PANEL_WIDTH,
-          windowWidth - chatPanelWidth - MIN_MAP_PANEL_WIDTH
+          windowWidth - chatPanelWidth - MIN_MAP_PANEL_WIDTH,
         );
         setItineraryPanelWidth(newItineraryWidth);
 
         // If itinerary is at min and still exceeds, reduce chat width
         if (newItineraryWidth + chatPanelWidth > availableWidthForAll) {
-          setChatPanelWidth(Math.max(
-            MIN_CHAT_PANEL_WIDTH,
-            windowWidth - newItineraryWidth - MIN_MAP_PANEL_WIDTH
-          ));
+          setChatPanelWidth(
+            Math.max(MIN_CHAT_PANEL_WIDTH, windowWidth - newItineraryWidth - MIN_MAP_PANEL_WIDTH),
+          );
         }
       }
     }
@@ -195,10 +193,7 @@ export default function PlanningPage() {
         const maxChatWidth = windowWidth - itineraryPanelWidth - MIN_MAP_PANEL_WIDTH;
 
         // Enforce minimum chat width, minimum itinerary width, and minimum map width
-        if (
-          newChatWidth >= MIN_CHAT_PANEL_WIDTH &&
-          e.clientX >= MIN_ITINERARY_PANEL_WIDTH
-        ) {
+        if (newChatWidth >= MIN_CHAT_PANEL_WIDTH && e.clientX >= MIN_ITINERARY_PANEL_WIDTH) {
           setChatPanelWidth(Math.min(newChatWidth, maxChatWidth));
         }
       }
@@ -239,10 +234,8 @@ export default function PlanningPage() {
   }
 
   if (error) {
-    const title =
-      errorKind === "access" ? t("accessError") : t("loadError");
-    const message =
-      errorKind === "access" ? t("accessErrorMessage") : error;
+    const title = errorKind === "access" ? t("accessError") : t("loadError");
+    const message = errorKind === "access" ? t("accessErrorMessage") : error;
 
     return (
       <>
@@ -305,9 +298,7 @@ export default function PlanningPage() {
           {/* Itinerary Panel (Requirement 4.2) - Resizable */}
           <div
             className={`hidden md:block border-r border-border overflow-y-auto relative ${!isMapVisible ? "flex-1" : ""}`}
-            style={
-              isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined
-            }
+            style={isMapVisible ? { width: `${itineraryPanelWidth}px` } : undefined}
           >
             <ItineraryPanel
               onFullscreenChange={handleFullscreenChange}
@@ -347,10 +338,7 @@ export default function PlanningPage() {
               className="hidden md:flex flex-1 relative bg-muted/20"
               style={{ minWidth: `${MIN_MAP_PANEL_WIDTH}px` }}
             >
-              <MapPanel
-                itinerary={itinerary}
-                selectedDayNumber={selectedDayNumber}
-              />
+              <MapPanel itinerary={itinerary} selectedDayNumber={selectedDayNumber} />
             </div>
           )}
 

@@ -12,7 +12,7 @@
  * @returns true if coordinates are valid numbers within range
  */
 export function hasValidCoordinates<T extends { lat?: number; lng?: number }>(
-  location: T
+  location: T,
 ): location is T & { lat: number; lng: number } {
   return (
     typeof location.lat === "number" &&

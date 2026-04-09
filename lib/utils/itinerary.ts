@@ -12,16 +12,16 @@ import { calculateDayDate } from "@/lib/utils/date";
  * @returns A new days array with the correct length
  */
 export function adjustDays(days: Day[], newDayCount: number): Day[] {
-    const sorted = [...days].sort((a, b) => a.day_number - b.day_number);
-    if (newDayCount > sorted.length) {
-        // Append blank days
-        for (let n = sorted.length + 1; n <= newDayCount; n++) {
-            sorted.push({ day_number: n, activities: [] });
-        }
-        return sorted;
+  const sorted = [...days].sort((a, b) => a.day_number - b.day_number);
+  if (newDayCount > sorted.length) {
+    // Append blank days
+    for (let n = sorted.length + 1; n <= newDayCount; n++) {
+      sorted.push({ day_number: n, activities: [] });
     }
-    // Trim excess days
-    return sorted.filter((d) => d.day_number <= newDayCount);
+    return sorted;
+  }
+  // Trim excess days
+  return sorted.filter((d) => d.day_number <= newDayCount);
 }
 
 /**
@@ -35,12 +35,8 @@ export function adjustDays(days: Day[], newDayCount: number): Day[] {
  * @param dayNumber - The day number that must exist
  */
 export function ensureDayExists(itinerary: Itinerary, dayNumber: number): void {
-    if (dayNumber <= itinerary.days.length) return;
+  if (dayNumber <= itinerary.days.length) return;
 
-    itinerary.days = adjustDays(itinerary.days, dayNumber);
-    itinerary.end_date = calculateDayDate(
-        itinerary.start_date,
-        itinerary.days.length,
-    );
+  itinerary.days = adjustDays(itinerary.days, dayNumber);
+  itinerary.end_date = calculateDayDate(itinerary.start_date, itinerary.days.length);
 }
-

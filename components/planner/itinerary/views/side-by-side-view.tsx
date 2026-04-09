@@ -30,7 +30,7 @@ export function SideBySideView({
         {itinerary.days.map((day) => {
           const formattedDate = formatDayHeader(
             calculateDayDate(itinerary.start_date, day.day_number),
-            locale
+            locale,
           );
 
           return (
@@ -41,12 +41,8 @@ export function SideBySideView({
                   onMouseEnter={() => onDayHover?.(day.day_number)}
                   onMouseLeave={() => onDayHover?.(null)}
                 >
-                  <CardTitle className="text-base font-semibold">
-                    Day {day.day_number}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {formattedDate}
-                  </p>
+                  <CardTitle className="text-base font-semibold">Day {day.day_number}</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">{formattedDate}</p>
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
                   <DayActivitiesList

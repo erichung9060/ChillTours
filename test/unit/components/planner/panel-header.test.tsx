@@ -34,8 +34,7 @@ vi.mock("@/hooks/use-itinerary-permission", () => ({
 }));
 
 vi.mock("@/components/planner/itinerary/store", () => ({
-  useItineraryStore: (selector: (state: typeof storeState) => unknown) =>
-    selector(storeState),
+  useItineraryStore: (selector: (state: typeof storeState) => unknown) => selector(storeState),
 }));
 
 vi.mock("@/components/share/share-dialog", () => ({
@@ -44,15 +43,12 @@ vi.mock("@/components/share/share-dialog", () => ({
   ),
 }));
 
-vi.mock(
-  "@/components/planner/itinerary/components/edit-metadata-dialog",
-  () => ({
-    EditMetadataDialog: (props: unknown) => {
-      editMetadataDialogSpy(props);
-      return <div data-testid="edit-metadata-dialog" />;
-    },
-  })
-);
+vi.mock("@/components/planner/itinerary/components/edit-metadata-dialog", () => ({
+  EditMetadataDialog: (props: unknown) => {
+    editMetadataDialogSpy(props);
+    return <div data-testid="edit-metadata-dialog" />;
+  },
+}));
 
 vi.mock("@/lib/supabase/itineraries", () => ({
   deleteItinerary: vi.fn(),
@@ -93,7 +89,7 @@ describe("PanelHeader", () => {
         setViewMode={vi.fn()}
         isFullscreen={false}
         toggleFullscreen={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.queryByTitle("Edit Trip Details")).not.toBeInTheDocument();
@@ -109,7 +105,7 @@ describe("PanelHeader", () => {
         setViewMode={vi.fn()}
         isFullscreen={false}
         toggleFullscreen={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByTestId("share-dialog")).toHaveTextContent("Taipei Weekend");
@@ -127,7 +123,7 @@ describe("PanelHeader", () => {
         setViewMode={vi.fn()}
         isFullscreen={false}
         toggleFullscreen={vi.fn()}
-      />
+      />,
     );
 
     expect(screen.getByTestId("edit-metadata-dialog")).toBeInTheDocument();

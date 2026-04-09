@@ -76,15 +76,11 @@ export function DateRangePicker({
   }, [isOpen]);
 
   const nextMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
-    );
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
   const prevMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
-    );
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
   const getDaysInMonth = (year: number, month: number) => {
@@ -134,11 +130,7 @@ export function DateRangePicker({
   };
 
   const renderMonth = (offset: number) => {
-    const monthDate = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + offset,
-      1
-    );
+    const monthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
     const daysInMonth = getDaysInMonth(year, month);
@@ -184,16 +176,14 @@ export function DateRangePicker({
             "h-10 w-10 text-sm flex items-center justify-center relative z-10",
             "hover:bg-[hsl(var(--primary))]/20 transition-colors rounded-full",
             isSelected &&
-            "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
-            isRange &&
-            !isSelected &&
-            "bg-[hsl(var(--primary))]/10 rounded-none",
+              "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
+            isRange && !isSelected && "bg-[hsl(var(--primary))]/10 rounded-none",
             isStart && isRange && "rounded-l-full rounded-r-none",
-            isEnd && isRange && "rounded-r-full rounded-l-none"
+            isEnd && isRange && "rounded-r-full rounded-l-none",
           )}
         >
           {d}
-        </button>
+        </button>,
       );
     }
 
@@ -224,9 +214,7 @@ export function DateRangePicker({
 
   const duration =
     startDate && endDate
-      ? Math.ceil(
-        (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
-      ) + 1
+      ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
       : 0;
 
   return (
@@ -240,7 +228,7 @@ export function DateRangePicker({
         className={cn(
           "w-[300px] justify-start text-left font-normal",
           !startDate && "text-[hsl(var(--muted-foreground))]",
-          error && "border-destructive dark:border-destructive hover:border-destructive"
+          error && "border-destructive dark:border-destructive hover:border-destructive",
         )}
       >
         <span className="mr-2">📅</span>
@@ -254,7 +242,7 @@ export function DateRangePicker({
       <p
         className={cn(
           "mt-1.5 text-sm transition-colors duration-200 text-destructive",
-          !helperText && "invisible"
+          !helperText && "invisible",
         )}
       >
         {helperText ?? "\u00A0"}
@@ -305,12 +293,10 @@ export function DateRangePicker({
               </Button>
             </div>
 
-            <div className="border-b md:border-b-0 md:border-r">
-              {renderMonth(0)}
-            </div>
+            <div className="border-b md:border-b-0 md:border-r">{renderMonth(0)}</div>
             <div className="hidden md:block">{renderMonth(1)}</div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );

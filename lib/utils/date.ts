@@ -22,7 +22,7 @@
  * parseLocalDate("2026-03-02") // → local 2026-03-02 00:00:00
  */
 export function parseLocalDate(dateStr: string): Date {
-    return new Date(dateStr + "T00:00:00");
+  return new Date(dateStr + "T00:00:00");
 }
 
 /**
@@ -36,10 +36,10 @@ export function parseLocalDate(dateStr: string): Date {
  * formatLocalDate(new Date(2026, 2, 2)) // → "2026-03-02"
  */
 export function formatLocalDate(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -55,11 +55,11 @@ export function formatLocalDate(date: Date): string {
  * formatDateDisplay("2026-03-02", "zh-TW") // → "2026/3/2"
  */
 export function formatDateDisplay(dateStr: string, locale: string): string {
-    return parseLocalDate(dateStr).toLocaleDateString(locale, {
-        year: "numeric",
-        month: locale === "zh-TW" ? "numeric" : "short",
-        day: "numeric",
-    });
+  return parseLocalDate(dateStr).toLocaleDateString(locale, {
+    year: "numeric",
+    month: locale === "zh-TW" ? "numeric" : "short",
+    day: "numeric",
+  });
 }
 
 /**
@@ -75,13 +75,13 @@ export function formatDateDisplay(dateStr: string, locale: string): string {
  * formatDayHeader("2026-03-02", "zh-TW") // → "星期一, 3月2日"
  */
 export function formatDayHeader(dateStr: string, locale: string): string {
-    const date = parseLocalDate(dateStr);
-    const weekday = date.toLocaleDateString(locale, { weekday: "long" });
-    const monthDay = date.toLocaleDateString(locale, {
-        month: locale === "zh-TW" ? "numeric" : "short",
-        day: "numeric",
-    });
-    return `${weekday}, ${monthDay}`;
+  const date = parseLocalDate(dateStr);
+  const weekday = date.toLocaleDateString(locale, { weekday: "long" });
+  const monthDay = date.toLocaleDateString(locale, {
+    month: locale === "zh-TW" ? "numeric" : "short",
+    day: "numeric",
+  });
+  return `${weekday}, ${monthDay}`;
 }
 
 /**
@@ -92,10 +92,10 @@ export function formatDayHeader(dateStr: string, locale: string): string {
  * @returns Number of days (inclusive), e.g. "2026-03-01" → "2026-03-03" = 3
  */
 export function calcDayCount(startDate: string, endDate: string): number {
-    const msPerDay = 86_400_000;
-    const start = parseLocalDate(startDate).getTime();
-    const end = parseLocalDate(endDate).getTime();
-    return Math.round((end - start) / msPerDay) + 1;
+  const msPerDay = 86_400_000;
+  const start = parseLocalDate(startDate).getTime();
+  const end = parseLocalDate(endDate).getTime();
+  return Math.round((end - start) / msPerDay) + 1;
 }
 
 /**
@@ -110,7 +110,7 @@ export function calcDayCount(startDate: string, endDate: string): number {
  * calculateDayDate("2026-03-15", 3) // "2026-03-17"
  */
 export function calculateDayDate(startDate: string, dayNumber: number): string {
-    const date = parseLocalDate(startDate);
-    date.setDate(date.getDate() + (dayNumber - 1));
-    return formatLocalDate(date);
+  const date = parseLocalDate(startDate);
+  date.setDate(date.getDate() + (dayNumber - 1));
+  return formatLocalDate(date);
 }

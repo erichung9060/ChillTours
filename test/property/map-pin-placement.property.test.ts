@@ -24,22 +24,14 @@ const arbitraryLocation = (): fc.Arbitrary<Location> =>
     fc.record({
       name: fc.string({ minLength: 1, maxLength: 100 }),
       place_id: fc.option(fc.string(), { nil: undefined }),
-    })
+    }),
   );
 
 // Arbitrary for Activity
 const arbitraryActivity = (): fc.Arbitrary<Activity> =>
   fc.record({
     id: fc.uuid(),
-    time: fc.constantFrom(
-      "09:00",
-      "10:30",
-      "12:00",
-      "14:30",
-      "16:00",
-      "18:30",
-      "20:00"
-    ),
+    time: fc.constantFrom("09:00", "10:30", "12:00", "14:30", "16:00", "18:30", "20:00"),
     title: fc.string({ minLength: 1, maxLength: 100 }),
     note: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
@@ -96,24 +88,20 @@ describe("Map Pin Placement Property Tests", () => {
     fc.assert(
       fc.property(arbitraryItinerary(), (itinerary) => {
         // Count total activities across all days
-        const totalActivities = itinerary.days.reduce(
-          (sum, day) => sum + day.activities.length,
-          0
-        );
+        const totalActivities = itinerary.days.reduce((sum, day) => sum + day.activities.length, 0);
 
         // Collect all activities with their locations
         const allActivities = itinerary.days.flatMap((day) =>
           day.activities.map((activity) => ({
             ...activity,
             dayNumber: day.day_number,
-          }))
+          })),
         );
 
         // Filter valid activities for map rendering
         const validActivities = allActivities.filter(
           (activity) =>
-            typeof activity.location.lat === "number" &&
-            typeof activity.location.lng === "number"
+            typeof activity.location.lat === "number" && typeof activity.location.lng === "number",
         );
 
         // Verify each valid activity has proper coordinates
@@ -129,7 +117,7 @@ describe("Map Pin Placement Property Tests", () => {
         // Property: Total activities across days should equal flattened activity count
         return totalActivities === allActivities.length;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -142,8 +130,7 @@ describe("Map Pin Placement Property Tests", () => {
         // Filter valid activities for map rendering
         const validActivities = allActivities.filter(
           (activity) =>
-            typeof activity.location.lat === "number" &&
-            typeof activity.location.lng === "number"
+            typeof activity.location.lat === "number" && typeof activity.location.lng === "number",
         );
 
         // For each valid activity, verify its location has valid coordinates
@@ -168,7 +155,7 @@ describe("Map Pin Placement Property Tests", () => {
           return true;
         });
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -181,7 +168,7 @@ describe("Map Pin Placement Property Tests", () => {
             id: activity.id,
             dayNumber: day.day_number,
             location: activity.location,
-          }))
+          })),
         );
 
         // Verify each activity has a unique ID
@@ -191,7 +178,7 @@ describe("Map Pin Placement Property Tests", () => {
         // Property: Each activity should have a unique ID for pin correspondence
         return activityIds.length === uniqueIds.size;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -215,7 +202,7 @@ describe("Map Pin Placement Property Tests", () => {
 
     const totalActivities = emptyItinerary.days.reduce(
       (sum, day) => sum + day.activities.length,
-      0
+      0,
     );
 
     // Property: Empty itinerary should have 0 pins
@@ -224,36 +211,30 @@ describe("Map Pin Placement Property Tests", () => {
 
   it("should handle itineraries with many activities", () => {
     fc.assert(
-      fc.property(
-        fc.array(arbitraryDay(), { minLength: 5, maxLength: 14 }),
-        (days) => {
-          const itinerary: Itinerary = {
-            id: crypto.randomUUID(),
-            user_id: crypto.randomUUID(),
-            title: "Long Trip",
-            destination: "Multiple Cities",
-            start_date: "2026-01-01",
-            end_date: "2026-01-14",
-            days: days.map((day, index) => ({
-              ...day,
-              day_number: index + 1,
-            })),
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
+      fc.property(fc.array(arbitraryDay(), { minLength: 5, maxLength: 14 }), (days) => {
+        const itinerary: Itinerary = {
+          id: crypto.randomUUID(),
+          user_id: crypto.randomUUID(),
+          title: "Long Trip",
+          destination: "Multiple Cities",
+          start_date: "2026-01-01",
+          end_date: "2026-01-14",
+          days: days.map((day, index) => ({
+            ...day,
+            day_number: index + 1,
+          })),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
 
-          const totalActivities = itinerary.days.reduce(
-            (sum, day) => sum + day.activities.length,
-            0
-          );
+        const totalActivities = itinerary.days.reduce((sum, day) => sum + day.activities.length, 0);
 
-          const allActivities = itinerary.days.flatMap((day) => day.activities);
+        const allActivities = itinerary.days.flatMap((day) => day.activities);
 
-          // Property: Total count should match flattened array length
-          return allActivities.length === totalActivities;
-        }
-      ),
-      { numRuns: 100 }
+        // Property: Total count should match flattened array length
+        return allActivities.length === totalActivities;
+      }),
+      { numRuns: 100 },
     );
   });
 });

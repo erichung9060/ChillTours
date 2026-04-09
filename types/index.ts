@@ -3,20 +3,9 @@
 // ============================================================================
 
 // Itinerary types
-export type {
-  Location,
-  Activity,
-  ActivityWithDay,
-  Day,
-  Itinerary,
-} from "./itinerary";
+export type { Location, Activity, ActivityWithDay, Day, Itinerary } from "./itinerary";
 
-export {
-  LocationSchema,
-  ActivitySchema,
-  DaySchema,
-  ItinerarySchema,
-} from "./itinerary";
+export { LocationSchema, ActivitySchema, DaySchema, ItinerarySchema } from "./itinerary";
 
 // Chat types
 export type {
@@ -40,20 +29,12 @@ export type {
   CollaborationSessionConfig,
 } from "./collaboration";
 
-export {
-  UserPresenceSchema,
-  CollaborationSessionConfigSchema,
-} from "./collaboration";
+export { UserPresenceSchema, CollaborationSessionConfigSchema } from "./collaboration";
 
 // User types
 export type { UserTier, UserProfile, ThemeMode, ThemePreference } from "./user";
 
-export {
-  UserTierSchema,
-  UserProfileSchema,
-  ThemeModeSchema,
-  ThemePreferenceSchema,
-} from "./user";
+export { UserTierSchema, UserProfileSchema, ThemeModeSchema, ThemePreferenceSchema } from "./user";
 
 // Share types
 export type {

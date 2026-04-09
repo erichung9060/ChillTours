@@ -77,13 +77,11 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
 
         // Handle quota exceeded error
         if (error instanceof Error && error.name === "QuotaExceededError") {
-          console.warn(
-            "LocalStorage quota exceeded. Consider clearing old chat histories."
-          );
+          console.warn("LocalStorage quota exceeded. Consider clearing old chat histories.");
         }
       }
     },
-    [itineraryId]
+    [itineraryId],
   );
 
   /**
@@ -112,7 +110,7 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
         return updated;
       });
     },
-    [saveToStorage]
+    [saveToStorage],
   );
 
   /**

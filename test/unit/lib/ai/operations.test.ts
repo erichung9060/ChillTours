@@ -159,9 +159,7 @@ describe("Operations System", () => {
       });
 
       expect(result.days[2].activities).toHaveLength(1);
-      expect(result.days[2].activities[0].title).toBe(
-        "First Activity on Day 3"
-      );
+      expect(result.days[2].activities[0].title).toBe("First Activity on Day 3");
     });
   });
 
@@ -491,9 +489,7 @@ describe("Operations System", () => {
     });
 
     it("should return null for missing operations array", () => {
-      const result = parseOperations(
-        JSON.stringify({ someOtherField: "Test" })
-      );
+      const result = parseOperations(JSON.stringify({ someOtherField: "Test" }));
       expect(result).toBeNull();
     });
   });
@@ -545,7 +541,7 @@ describe("Operations System", () => {
 
       expect(result.updated_at).not.toBe(mockItinerary.updated_at);
       expect(new Date(result.updated_at).getTime()).toBeGreaterThan(
-        new Date(mockItinerary.updated_at).getTime()
+        new Date(mockItinerary.updated_at).getTime(),
       );
     });
   });

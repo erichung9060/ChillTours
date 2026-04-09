@@ -32,7 +32,7 @@ export function ExpandableView({
         const isExpanded = expandedDays.has(day.day_number);
         const formattedDate = formatDayHeader(
           calculateDayDate(itinerary.start_date, day.day_number),
-          locale
+          locale,
         );
 
         return (
@@ -45,12 +45,8 @@ export function ExpandableView({
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-base font-semibold">
-                    Day {day.day_number}
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {formattedDate}
-                  </p>
+                  <CardTitle className="text-base font-semibold">Day {day.day_number}</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">{formattedDate}</p>
                   <p className="text-xs text-muted-foreground mt-1">
                     {day.activities.length}{" "}
                     {day.activities.length === 1 ? "activity" : "activities"}

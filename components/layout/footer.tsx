@@ -9,24 +9,15 @@ export function Footer() {
       <div className="container mx-auto px-4 flex flex-col items-center justify-center space-y-4">
         <p>{t("footer")}</p>
         <div className="flex items-center justify-center space-x-4 text-xs">
-          <Link
-            href="/terms"
-            className="hover:text-foreground transition-colors"
-          >
+          <Link href="/terms" className="hover:text-foreground transition-colors">
             {t("links.terms")}
           </Link>
           <span className="text-muted-foreground/30">•</span>
-          <Link
-            href="/refund"
-            className="hover:text-foreground transition-colors"
-          >
+          <Link href="/refund" className="hover:text-foreground transition-colors">
             {t("links.refund")}
           </Link>
           <span className="text-muted-foreground/30">•</span>
-          <Link
-            href="/privacy"
-            className="hover:text-foreground transition-colors"
-          >
+          <Link href="/privacy" className="hover:text-foreground transition-colors">
             {t("links.privacy")}
           </Link>
         </div>

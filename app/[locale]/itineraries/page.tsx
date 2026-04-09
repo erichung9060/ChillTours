@@ -25,12 +25,7 @@ export default function ItinerariesPage() {
   const t = useTranslations("itineraries");
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const {
-    itineraries,
-    loading: dataLoading,
-    error,
-    refetch,
-  } = useItineraries();
+  const { itineraries, loading: dataLoading, error, refetch } = useItineraries();
 
   // Authentication check and redirect
   useEffect(() => {
@@ -66,9 +61,7 @@ export default function ItinerariesPage() {
       <main className="flex-1 pt-24 pb-16 px-4 w-full max-w-[1600px] mx-auto">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              {t("title")}
-            </h1>
+            <h1 className="text-3xl font-bold text-foreground mb-2">{t("title")}</h1>
             <p className="text-muted-foreground">{t("subtitle")}</p>
           </div>
 
@@ -88,11 +81,7 @@ export default function ItinerariesPage() {
 
         {/* Error state */}
         {error && (
-          <ErrorMessage
-            title={t("loadError")}
-            message={t("loadErrorMessage")}
-            onRetry={refetch}
-          />
+          <ErrorMessage title={t("loadError")} message={t("loadErrorMessage")} onRetry={refetch} />
         )}
 
         {/* Content - only show when not loading and no error */}
@@ -101,10 +90,7 @@ export default function ItinerariesPage() {
             {itineraries.length === 0 ? (
               <EmptyState onCreateClick={handleCreateClick} />
             ) : (
-              <ItineraryList
-                itineraries={itineraries}
-                onCardClick={handleCardClick}
-              />
+              <ItineraryList itineraries={itineraries} onCardClick={handleCardClick} />
             )}
           </>
         )}

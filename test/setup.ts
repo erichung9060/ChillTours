@@ -19,10 +19,10 @@ beforeAll(() => {
       matches: false,
       media: query,
       onchange: null,
-      addListener: () => { }, // deprecated
-      removeListener: () => { }, // deprecated
-      addEventListener: () => { },
-      removeEventListener: () => { },
+      addListener: () => {}, // deprecated
+      removeListener: () => {}, // deprecated
+      addEventListener: () => {},
+      removeEventListener: () => {},
       dispatchEvent: () => true,
     }),
   });

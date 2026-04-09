@@ -11,24 +11,19 @@
 
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
-import {
-  itineraryArbitrary,
-  activityArbitrary,
-} from "@/test/utils/property-test-helpers";
+import { itineraryArbitrary, activityArbitrary } from "@/test/utils/property-test-helpers";
 import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
 
 describe("Itinerary-Map Synchronization Property Tests", () => {
   /**
    * Helper to extract all activities with day numbers from an itinerary
    */
-  const extractActivitiesWithDay = (
-    itinerary: Itinerary
-  ): ActivityWithDay[] => {
+  const extractActivitiesWithDay = (itinerary: Itinerary): ActivityWithDay[] => {
     return itinerary.days.flatMap((day) =>
       day.activities.map((activity) => ({
         ...activity,
         dayNumber: day.day_number,
-      }))
+      })),
     );
   };
 
@@ -36,9 +31,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
    * Helper to verify pin-activity correspondence
    * Only counts activities with valid locations (no NaN values)
    */
-  const verifyPinActivityCorrespondence = (
-    activities: ActivityWithDay[]
-  ): boolean => {
+  const verifyPinActivityCorrespondence = (activities: ActivityWithDay[]): boolean => {
     // Filter to only valid activities (no NaN coordinates)
     const validActivities = activities.filter((activity) => {
       const { lat, lng } = activity.location;
@@ -73,76 +66,65 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
         // Filter to valid activities only
         const validActivities = allActivities.filter(
-          (a) =>
-            Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
         );
 
         // Property: All valid activities should pass correspondence check
         return verifyPinActivityCorrespondence(validActivities);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
   it("Property 15 (Adding): Pin count increases when adding valid activities", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        itineraryArbitrary,
-        activityArbitrary,
-        async (itinerary, newActivity) => {
-          fc.pre(itinerary.days.length > 0);
+      fc.asyncProperty(itineraryArbitrary, activityArbitrary, async (itinerary, newActivity) => {
+        fc.pre(itinerary.days.length > 0);
 
-          const activitiesBefore = extractActivitiesWithDay(itinerary);
-          const validBefore = activitiesBefore.filter(
-            (a) =>
-              Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
-          );
+        const activitiesBefore = extractActivitiesWithDay(itinerary);
+        const validBefore = activitiesBefore.filter(
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
+        );
 
-          // Ensure new activity has valid location
-          const validNewActivity = {
-            ...newActivity,
-            id: crypto.randomUUID(), // Ensure unique ID
-            location: {
-              ...newActivity.location,
-              lat: Number.isFinite(newActivity.location.lat)
-                ? newActivity.location.lat
-                : 0,
-              lng: Number.isFinite(newActivity.location.lng)
-                ? newActivity.location.lng
-                : 0,
-            },
-          };
+        // Ensure new activity has valid location
+        const validNewActivity = {
+          ...newActivity,
+          id: crypto.randomUUID(), // Ensure unique ID
+          location: {
+            ...newActivity.location,
+            lat: Number.isFinite(newActivity.location.lat) ? newActivity.location.lat : 0,
+            lng: Number.isFinite(newActivity.location.lng) ? newActivity.location.lng : 0,
+          },
+        };
 
-          // Add activity to first day
-          const modifiedItinerary: Itinerary = {
-            ...itinerary,
-            days: itinerary.days.map((day, index) =>
-              index === 0
-                ? {
+        // Add activity to first day
+        const modifiedItinerary: Itinerary = {
+          ...itinerary,
+          days: itinerary.days.map((day, index) =>
+            index === 0
+              ? {
                   ...day,
                   activities: [
                     ...day.activities,
                     { ...validNewActivity, order: day.activities.length },
                   ],
                 }
-                : day
-            ),
-          };
+              : day,
+          ),
+        };
 
-          const activitiesAfter = extractActivitiesWithDay(modifiedItinerary);
-          const validAfter = activitiesAfter.filter(
-            (a) =>
-              Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
-          );
+        const activitiesAfter = extractActivitiesWithDay(modifiedItinerary);
+        const validAfter = activitiesAfter.filter(
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
+        );
 
-          // Property: Valid activity count should increase by 1
-          expect(validAfter.length).toBe(validBefore.length + 1);
+        // Property: Valid activity count should increase by 1
+        expect(validAfter.length).toBe(validBefore.length + 1);
 
-          // Property: Pin correspondence should be maintained
-          return verifyPinActivityCorrespondence(validAfter);
-        }
-      ),
-      { numRuns: 100 }
+        // Property: Pin correspondence should be maintained
+        return verifyPinActivityCorrespondence(validAfter);
+      }),
+      { numRuns: 100 },
     );
   });
 
@@ -151,8 +133,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
       fc.asyncProperty(itineraryArbitrary, async (itinerary) => {
         const activitiesBefore = extractActivitiesWithDay(itinerary);
         const validBefore = activitiesBefore.filter(
-          (a) =>
-            Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
         );
 
         fc.pre(validBefore.length > 0);
@@ -166,9 +147,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
           ...itinerary,
           days: itinerary.days.map((day) => {
             if (!removed) {
-              const activityIndex = day.activities.findIndex(
-                (a) => a.id === activityToRemove.id
-              );
+              const activityIndex = day.activities.findIndex((a) => a.id === activityToRemove.id);
               if (activityIndex >= 0) {
                 removed = true;
                 return {
@@ -185,8 +164,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
         const activitiesAfter = extractActivitiesWithDay(modifiedItinerary);
         const validAfter = activitiesAfter.filter(
-          (a) =>
-            Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
         );
 
         // Property: Valid activity count should decrease by 1
@@ -195,7 +173,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
         // Property: Pin correspondence should be maintained
         return verifyPinActivityCorrespondence(validAfter);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -208,8 +186,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
         async (itinerary, newLat, newLng) => {
           const activitiesBefore = extractActivitiesWithDay(itinerary);
           const validBefore = activitiesBefore.filter(
-            (a) =>
-              Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+            (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
           );
 
           fc.pre(validBefore.length > 0);
@@ -222,9 +199,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
             ...itinerary,
             days: itinerary.days.map((day) => {
               if (!updated) {
-                const activityIndex = day.activities.findIndex(
-                  (a) => a.id === activityToUpdate.id
-                );
+                const activityIndex = day.activities.findIndex((a) => a.id === activityToUpdate.id);
                 if (activityIndex >= 0) {
                   updated = true;
                   return {
@@ -232,14 +207,14 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
                     activities: day.activities.map((a, idx) =>
                       idx === activityIndex
                         ? {
-                          ...a,
-                          location: {
-                            ...a.location,
-                            lat: newLat,
-                            lng: newLng,
-                          },
-                        }
-                        : a
+                            ...a,
+                            location: {
+                              ...a.location,
+                              lat: newLat,
+                              lng: newLng,
+                            },
+                          }
+                        : a,
                     ),
                   };
                 }
@@ -250,17 +225,14 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
           const activitiesAfter = extractActivitiesWithDay(modifiedItinerary);
           const validAfter = activitiesAfter.filter(
-            (a) =>
-              Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+            (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
           );
 
           // Property: Valid activity count should remain the same
           expect(validAfter.length).toBe(validBefore.length);
 
           // Property: Updated activity should have new coordinates
-          const updatedActivity = validAfter.find(
-            (a) => a.id === activityToUpdate.id
-          );
+          const updatedActivity = validAfter.find((a) => a.id === activityToUpdate.id);
           expect(updatedActivity).toBeDefined();
 
           if (updatedActivity) {
@@ -270,9 +242,9 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
           // Property: Pin correspondence should be maintained
           return verifyPinActivityCorrespondence(validAfter);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -281,17 +253,14 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
       fc.asyncProperty(itineraryArbitrary, async (itinerary) => {
         const activities = extractActivitiesWithDay(itinerary);
         const validActivities = activities.filter(
-          (a) =>
-            Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
         );
 
         // Property: All valid activity IDs should be present (may have duplicates from generator)
         // We just verify that each activity has an ID
-        return validActivities.every(
-          (a) => typeof a.id === "string" && a.id.length > 0
-        );
+        return validActivities.every((a) => typeof a.id === "string" && a.id.length > 0);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -339,7 +308,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
         return activities1.length === activities2.length;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -350,8 +319,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
 
         // Property: All activities with finite coordinates should be within valid ranges
         const activitiesWithCoords = activities.filter(
-          (a) =>
-            Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng)
+          (a) => Number.isFinite(a.location.lat) && Number.isFinite(a.location.lng),
         );
 
         return activitiesWithCoords.every((activity) => {
@@ -359,7 +327,7 @@ describe("Itinerary-Map Synchronization Property Tests", () => {
           return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
         });
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

@@ -4,7 +4,7 @@ const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
 export interface PlaceInput {
@@ -53,7 +53,7 @@ function delay(ms: number) {
 async function rateLimitedFetch(
   url: string,
   options: RequestInit,
-  retries = MAX_RETRIES
+  retries = MAX_RETRIES,
 ): Promise<Response> {
   const resp = await fetch(url, options);
 
@@ -64,7 +64,7 @@ async function rateLimitedFetch(
   } else if (resp.status === 429 && retries === 0) {
     console.error(`[rateLimitedFetch] 429 Too Many Requests, retry quota exhausted for ${url}`);
     throw new Error(
-      `Google Maps API Error: 429 Too Many Requests - retry quota exhausted for ${url}`
+      `Google Maps API Error: 429 Too Many Requests - retry quota exhausted for ${url}`,
     );
   }
 
@@ -75,11 +75,7 @@ async function rateLimitedFetch(
 // Google Maps helpers
 // ──────────────────────────────────────────────
 
-async function findPlace(
-  name: string,
-  lat?: number,
-  lng?: number
-): Promise<string | null> {
+async function findPlace(name: string, lat?: number, lng?: number): Promise<string | null> {
   if (!apiKey) {
     console.error("Missing GOOGLE_MAPS_API_KEY environment variable");
     return null;
@@ -113,9 +109,7 @@ async function findPlace(
     if (!resp.ok) {
       const errorText = await resp.text();
       console.warn(`[findPlace] HTTP Error ${resp.status}: ${resp.statusText}`, errorText);
-      throw new Error(
-        `Google Maps API Error: ${resp.status} ${resp.statusText}`
-      );
+      throw new Error(`Google Maps API Error: ${resp.status} ${resp.statusText}`);
     }
 
     const data = await resp.json();
@@ -133,9 +127,7 @@ async function findPlace(
   }
 }
 
-async function getPlaceDetails(
-  placeId: string
-): Promise<Record<string, unknown> | null> {
+async function getPlaceDetails(placeId: string): Promise<Record<string, unknown> | null> {
   if (!apiKey) {
     console.error("Missing GOOGLE_MAPS_API_KEY environment variable");
     return null;
@@ -154,12 +146,8 @@ async function getPlaceDetails(
 
     if (!resp.ok) {
       const errorText = await resp.text();
-      console.warn(
-        `[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`, errorText
-      );
-      throw new Error(
-        `Google Maps API Error: ${resp.status} ${resp.statusText}`
-      );
+      console.warn(`[getPlaceDetails] HTTP Error ${resp.status}: ${resp.statusText}`, errorText);
+      throw new Error(`Google Maps API Error: ${resp.status} ${resp.statusText}`);
     }
 
     return await resp.json();
@@ -169,9 +157,7 @@ async function getPlaceDetails(
   }
 }
 
-async function checkPlaceCache(
-  placeId: string
-): Promise<Record<string, unknown> | null> {
+async function checkPlaceCache(placeId: string): Promise<Record<string, unknown> | null> {
   try {
     const { data, error } = await supabase
       .from("google_places")
@@ -180,10 +166,7 @@ async function checkPlaceCache(
       .maybeSingle();
 
     if (error) {
-      console.warn(
-        `[checkPlaceCache] Supabase error for ${placeId}:`,
-        error.message
-      );
+      console.warn(`[checkPlaceCache] Supabase error for ${placeId}:`, error.message);
       return null;
     }
 
@@ -195,9 +178,7 @@ async function checkPlaceCache(
   }
 }
 
-async function checkPlaceCacheByName(
-  name: string
-): Promise<Record<string, unknown> | null> {
+async function checkPlaceCacheByName(name: string): Promise<Record<string, unknown> | null> {
   try {
     const { data, error } = await supabase
       .from("google_places")
@@ -206,10 +187,7 @@ async function checkPlaceCacheByName(
       .maybeSingle();
 
     if (error) {
-      console.warn(
-        `[checkPlaceCacheByName] Supabase error for '${name}':`,
-        error.message
-      );
+      console.warn(`[checkPlaceCacheByName] Supabase error for '${name}':`, error.message);
       return null;
     }
 
@@ -223,9 +201,7 @@ async function checkPlaceCacheByName(
 
 async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
   try {
-    const { error } = await supabase
-      .from("google_places")
-      .upsert(row, { onConflict: "place_id" });
+    const { error } = await supabase.from("google_places").upsert(row, { onConflict: "place_id" });
 
     if (error) {
       console.error(`[savePlaceCache] Supabase error:`, error.message);
@@ -241,7 +217,7 @@ async function savePlaceCache(row: Record<string, unknown>): Promise<void> {
 
 function normalizeCachedPlace(
   row: Record<string, unknown>,
-  fallbackName: string
+  fallbackName: string,
 ): Omit<ResolvedPlace, "id"> {
   return {
     place_id: (row.place_id as string) ?? undefined,

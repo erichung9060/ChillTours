@@ -23,13 +23,7 @@ import { ensureDayExists } from "@/lib/utils/itinerary";
 // Operation Types
 // ============================================================================
 
-export const OperationTypeSchema = z.enum([
-  "ADD",
-  "REMOVE",
-  "UPDATE",
-  "MOVE",
-  "REORDER",
-]);
+export const OperationTypeSchema = z.enum(["ADD", "REMOVE", "UPDATE", "MOVE", "REORDER"]);
 export type OperationType = z.infer<typeof OperationTypeSchema>;
 
 /**
@@ -134,7 +128,7 @@ export type OperationsUpdate = z.infer<typeof OperationsUpdateSchema>;
  */
 export async function applyOperations(
   itinerary: Itinerary,
-  operationsUpdate: OperationsUpdate
+  operationsUpdate: OperationsUpdate,
 ): Promise<Itinerary> {
   // Deep clone to avoid mutating original
   let updated = JSON.parse(JSON.stringify(itinerary)) as Itinerary;
@@ -153,10 +147,7 @@ export async function applyOperations(
 /**
  * Apply a single operation to an itinerary
  */
-async function applyOperation(
-  itinerary: Itinerary,
-  operation: Operation
-): Promise<Itinerary> {
+async function applyOperation(itinerary: Itinerary, operation: Operation): Promise<Itinerary> {
   switch (operation.type) {
     case "ADD":
       return await applyAddOperation(itinerary, operation);
@@ -181,15 +172,10 @@ async function applyOperation(
 /**
  * Add new activity to a day with backend location resolution
  */
-async function applyAddOperation(
-  itinerary: Itinerary,
-  op: AddOperation
-): Promise<Itinerary> {
+async function applyAddOperation(itinerary: Itinerary, op: AddOperation): Promise<Itinerary> {
   ensureDayExists(itinerary, op.day_number);
 
-  const dayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.day_number
-  );
+  const dayIndex = itinerary.days.findIndex((d) => d.day_number === op.day_number);
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found even after creation`);
@@ -232,13 +218,8 @@ async function applyAddOperation(
 /**
  * Remove activity from a day or remove the entire day
  */
-function applyRemoveOperation(
-  itinerary: Itinerary,
-  op: RemoveOperation
-): Itinerary {
-  const dayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.day_number
-  );
+function applyRemoveOperation(itinerary: Itinerary, op: RemoveOperation): Itinerary {
+  const dayIndex = itinerary.days.findIndex((d) => d.day_number === op.day_number);
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -257,10 +238,7 @@ function applyRemoveOperation(
 
     // Update end_date based on new duration
     if (itinerary.days.length > 0) {
-      itinerary.end_date = calculateDayDate(
-        itinerary.start_date,
-        itinerary.days.length
-      );
+      itinerary.end_date = calculateDayDate(itinerary.start_date, itinerary.days.length);
     } else {
       itinerary.end_date = itinerary.start_date;
     }
@@ -275,7 +253,7 @@ function applyRemoveOperation(
 
   if (activityIndex < 0 || activityIndex >= day.activities.length) {
     console.warn(
-      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`
+      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`,
     );
     return itinerary;
   }
@@ -295,13 +273,8 @@ function applyRemoveOperation(
  * Update existing activity with backend location resolution for location changes
  * Note: LLM will only provide the name. The API will resolve lat/lng via the resolver
  */
-async function applyUpdateOperation(
-  itinerary: Itinerary,
-  op: UpdateOperation
-): Promise<Itinerary> {
-  const dayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.day_number
-  );
+async function applyUpdateOperation(itinerary: Itinerary, op: UpdateOperation): Promise<Itinerary> {
+  const dayIndex = itinerary.days.findIndex((d) => d.day_number === op.day_number);
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -315,7 +288,7 @@ async function applyUpdateOperation(
 
   if (activityIndex < 0 || activityIndex >= day.activities.length) {
     console.warn(
-      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`
+      `Activity index ${op.activity_index} out of range for day ${op.day_number} (has ${day.activities.length} activities)`,
     );
     return itinerary;
   }
@@ -344,18 +317,11 @@ async function applyUpdateOperation(
 /**
  * Move activity from one day to another
  */
-function applyMoveOperation(
-  itinerary: Itinerary,
-  op: MoveOperation
-): Itinerary {
+function applyMoveOperation(itinerary: Itinerary, op: MoveOperation): Itinerary {
   ensureDayExists(itinerary, op.to_day_number);
 
-  const fromDayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.from_day_number
-  );
-  const toDayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.to_day_number
-  );
+  const fromDayIndex = itinerary.days.findIndex((d) => d.day_number === op.from_day_number);
+  const toDayIndex = itinerary.days.findIndex((d) => d.day_number === op.to_day_number);
 
   if (fromDayIndex === -1) {
     console.warn(`Source day ${op.from_day_number} not found`);
@@ -363,9 +329,7 @@ function applyMoveOperation(
   }
 
   if (toDayIndex === -1) {
-    console.warn(
-      `Target day ${op.to_day_number} not found even after creation`
-    );
+    console.warn(`Target day ${op.to_day_number} not found even after creation`);
     return itinerary;
   }
 
@@ -377,7 +341,7 @@ function applyMoveOperation(
 
   if (activityIndex < 0 || activityIndex >= fromDay.activities.length) {
     console.warn(
-      `Activity index ${op.from_activity_index} out of range for day ${op.from_day_number} (has ${fromDay.activities.length} activities)`
+      `Activity index ${op.from_activity_index} out of range for day ${op.from_day_number} (has ${fromDay.activities.length} activities)`,
     );
     return itinerary;
   }
@@ -408,13 +372,8 @@ function applyMoveOperation(
 /**
  * Reorder activities within a day
  */
-function applyReorderOperation(
-  itinerary: Itinerary,
-  op: ReorderOperation
-): Itinerary {
-  const dayIndex = itinerary.days.findIndex(
-    (d) => d.day_number === op.day_number
-  );
+function applyReorderOperation(itinerary: Itinerary, op: ReorderOperation): Itinerary {
+  const dayIndex = itinerary.days.findIndex((d) => d.day_number === op.day_number);
 
   if (dayIndex === -1) {
     console.warn(`Day ${op.day_number} not found`);
@@ -426,7 +385,7 @@ function applyReorderOperation(
   // Validate indices
   if (op.activity_order.length !== day.activities.length) {
     console.warn(
-      `Activity order length (${op.activity_order.length}) doesn't match activities count (${day.activities.length})`
+      `Activity order length (${op.activity_order.length}) doesn't match activities count (${day.activities.length})`,
     );
     return itinerary;
   }
@@ -466,7 +425,7 @@ function applyReorderOperation(
  * @returns Parsed operations update
  */
 export function parseOperations(
-  response: string | Record<string, unknown>
+  response: string | Record<string, unknown>,
 ): OperationsUpdate | null {
   try {
     const data = typeof response === "string" ? JSON.parse(response) : response;

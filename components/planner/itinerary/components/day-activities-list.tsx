@@ -8,10 +8,7 @@
 "use client";
 
 import { useMemo, useCallback, Fragment } from "react";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { DroppableDay } from "./droppable-day";
 import { SortableActivity } from "./sortable-activity";
 import { ActivityPlaceholderCard } from "./activity-placeholder-card";
@@ -28,10 +25,7 @@ export function DayActivitiesList({
 }: DayActivitiesListProps) {
   const { canEdit } = useItineraryPermission();
   const activities = day.activities;
-  const itemIds = useMemo(
-    () => activities.map((activity) => activity.id),
-    [activities]
-  );
+  const itemIds = useMemo(() => activities.map((activity) => activity.id), [activities]);
 
   // Add mode state
   const isAddMode = useItineraryStore((s) => s.isAddingActivity);
@@ -63,8 +57,7 @@ export function DayActivitiesList({
           <DroppableDay
             dayNumber={day.day_number}
             isOver={
-              draggingActivityId !== null &&
-              crossDayDragInfo?.targetDayNumber === day.day_number
+              draggingActivityId !== null && crossDayDragInfo?.targetDayNumber === day.day_number
             }
           />
         )}
@@ -86,9 +79,7 @@ export function DayActivitiesList({
               dayNumber={day.day_number}
               onActivityHover={onActivityHover}
               onActivityClick={onActivityClick}
-              disableAnimation={
-                crossDayDragInfo?.targetDayNumber === day.day_number
-              }
+              disableAnimation={crossDayDragInfo?.targetDayNumber === day.day_number}
             />
           </Fragment>
         ))}

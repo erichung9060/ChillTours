@@ -75,11 +75,7 @@ function rowToItinerary(row: ItineraryRow): Itinerary {
  * @throws Error if load fails
  */
 export async function loadItinerary(id: string): Promise<Itinerary> {
-  const { data, error } = await supabase
-    .from("itineraries")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const { data, error } = await supabase.from("itineraries").select("*").eq("id", id).single();
 
   if (error) {
     if (isNoRowError(error)) {
@@ -102,7 +98,10 @@ export async function loadItinerary(id: string): Promise<Itinerary> {
 async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
   const { data, error } = await (supabase
     .rpc("get_public_itinerary", { p_id: id })
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+    .single() as unknown as Promise<{
+    data: ItineraryRow | null;
+    error: any;
+  }>);
 
   if (error) {
     if (isNoRowError(error)) {
@@ -155,9 +154,7 @@ export async function createItineraryMetadata(metadata: {
 
   if (error) {
     // Check if it's a free tier limit error
-    if (
-      error.message.includes("Free tier users can only create 3 itineraries")
-    ) {
+    if (error.message.includes("Free tier users can only create 3 itineraries")) {
       throw new FreeTierLimitError();
     }
 
@@ -174,10 +171,8 @@ export async function createItineraryMetadata(metadata: {
 
 export async function updateItinerary(
   id: string,
-  updates: Partial<
-    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
-  >,
-  access: AccessContext
+  updates: Partial<Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">>,
+  access: AccessContext,
 ): Promise<Itinerary> {
   if (access.source === "owner" || access.source === "email_share") {
     return updateItineraryViaRls(id, updates);
@@ -192,9 +187,7 @@ export async function updateItinerary(
 
 async function updateItineraryViaRls(
   id: string,
-  updates: Partial<
-    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
-  >
+  updates: Partial<Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">>,
 ): Promise<Itinerary> {
   const updateData = buildItineraryUpdate(updates);
   const { data, error } = await (supabase
@@ -219,9 +212,7 @@ async function updateItineraryViaRls(
 
 async function updateItineraryViaRpc(
   id: string,
-  updates: Partial<
-    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
-  >
+  updates: Partial<Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">>,
 ): Promise<Itinerary> {
   const updateData = buildItineraryUpdate(updates);
   const { data, error } = await (supabase
@@ -244,9 +235,7 @@ async function updateItineraryViaRpc(
 }
 
 function buildItineraryUpdate(
-  updates: Partial<
-    Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">
-  >
+  updates: Partial<Omit<Itinerary, "id" | "user_id" | "created_at" | "updated_at">>,
 ): ItineraryUpdate {
   const updateData: ItineraryUpdate = {};
 
@@ -315,9 +304,7 @@ export interface ItinerarySummary {
 export async function listUserItineraries(): Promise<ItinerarySummary[]> {
   const { data, error } = await supabase
     .from("itineraries")
-    .select(
-      "id, title, destination, start_date, end_date, created_at, updated_at"
-    )
+    .select("id, title, destination, start_date, end_date, created_at, updated_at")
     .order("created_at", { ascending: false });
 
   if (error) {

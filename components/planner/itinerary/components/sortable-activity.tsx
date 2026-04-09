@@ -20,14 +20,7 @@ export function SortableActivity({
   disableAnimation,
 }: SortableActivityProps) {
   const { canEdit } = useItineraryPermission();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: activity.id,
     disabled: !canEdit,
     data: {
@@ -37,9 +30,9 @@ export function SortableActivity({
     transition: disableAnimation
       ? null
       : {
-        duration: 200,
-        easing: "cubic-bezier(0.25, 1, 0.5, 1)",
-      },
+          duration: 200,
+          easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+        },
   });
 
   const style = {
@@ -65,7 +58,7 @@ export function SortableActivity({
             : canEdit
               ? "hover:shadow-md cursor-grab"
               : "hover:shadow-md"
-          }`}
+        }`}
         onMouseEnter={() => onActivityHover?.(activity.id)}
         onMouseLeave={() => onActivityHover?.(null)}
         onClick={() => onActivityClick?.(activity.id)}

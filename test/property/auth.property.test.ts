@@ -121,103 +121,95 @@ describe("Property 1: Authentication Profile Management", () => {
 
           // Profile should be linked to authenticated user
           expect(profile?.id).toBe(user?.id);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
   it("should retrieve the same profile on subsequent authentications", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        testUserIdArbitrary,
-        testEmailArbitrary,
-        async (userId, email) => {
-          const mockProfile = {
-            id: userId,
-            email,
-            full_name: "Test User",
-            avatar_url: null,
-            tier: "free" as const,
-            credits: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
+      fc.asyncProperty(testUserIdArbitrary, testEmailArbitrary, async (userId, email) => {
+        const mockProfile = {
+          id: userId,
+          email,
+          full_name: "Test User",
+          avatar_url: null,
+          tier: "free" as const,
+          credits: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
 
-          const mockFrom = vi.fn(() => ({
-            select: vi.fn().mockReturnThis(),
-            eq: vi.fn().mockReturnThis(),
-            single: vi.fn().mockResolvedValue({
-              data: mockProfile,
-              error: null,
-            }),
-          }));
+        const mockFrom = vi.fn(() => ({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: mockProfile,
+            error: null,
+          }),
+        }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
-          // First authentication - get profile
-          const { data: profile1 } = await mockSupabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
+        // First authentication - get profile
+        const { data: profile1 } = await mockSupabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-          // Second authentication - get profile again
-          const { data: profile2 } = await mockSupabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId)
-            .single();
+        // Second authentication - get profile again
+        const { data: profile2 } = await mockSupabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
 
-          // Profiles should be identical
-          expect(profile1).toEqual(profile2);
-          expect(profile1?.id).toBe(profile2?.id);
-          expect(profile1?.email).toBe(profile2?.email);
-        }
-      ),
-      { numRuns: 100 }
+        // Profiles should be identical
+        expect(profile1).toEqual(profile2);
+        expect(profile1?.id).toBe(profile2?.id);
+        expect(profile1?.email).toBe(profile2?.email);
+      }),
+      { numRuns: 100 },
     );
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
   it("should enforce RLS: users can only access their own profile", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        testUserIdArbitrary,
-        testUserIdArbitrary,
-        async (userId1, userId2) => {
-          // Skip if same user (not testing access to own profile)
-          fc.pre(userId1 !== userId2);
+      fc.asyncProperty(testUserIdArbitrary, testUserIdArbitrary, async (userId1, userId2) => {
+        // Skip if same user (not testing access to own profile)
+        fc.pre(userId1 !== userId2);
 
-          // Mock user 1 trying to access user 2's profile
-          const mockFrom = vi.fn(() => ({
-            select: vi.fn().mockReturnThis(),
-            eq: vi.fn().mockReturnThis(),
-            single: vi.fn().mockResolvedValue({
-              data: null,
-              error: {
-                message: "Row level security policy violation",
-                code: "PGRST116",
-              },
-            }),
-          }));
+        // Mock user 1 trying to access user 2's profile
+        const mockFrom = vi.fn(() => ({
+          select: vi.fn().mockReturnThis(),
+          eq: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: {
+              message: "Row level security policy violation",
+              code: "PGRST116",
+            },
+          }),
+        }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
-          // User 1 authenticated, trying to access User 2's profile
-          const { data: profile, error } = await mockSupabase
-            .from("profiles")
-            .select("*")
-            .eq("id", userId2)
-            .single();
+        // User 1 authenticated, trying to access User 2's profile
+        const { data: profile, error } = await mockSupabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId2)
+          .single();
 
-          // Should not be able to access other user's profile
-          expect(profile).toBeNull();
-          expect(error).toBeDefined();
-        }
-      ),
-      { numRuns: 100 }
+        // Should not be able to access other user's profile
+        expect(profile).toBeNull();
+        expect(error).toBeDefined();
+      }),
+      { numRuns: 100 },
     );
   });
 
@@ -255,54 +247,50 @@ describe("Property 1: Authentication Profile Management", () => {
           expect(error).toBeNull();
           expect(updatedProfile).toBeDefined();
           expect(updatedProfile?.full_name).toBe(newName);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
   // Feature: tripai-travel-planner, Property 1: Authentication Profile Management
   it("should create profiles with default tier as free", async () => {
     await fc.assert(
-      fc.asyncProperty(
-        testUserIdArbitrary,
-        testEmailArbitrary,
-        async (userId, email) => {
-          const mockProfile = {
-            id: userId,
-            email,
-            full_name: null,
-            avatar_url: null,
-            tier: "free" as const,
-            credits: 0,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
+      fc.asyncProperty(testUserIdArbitrary, testEmailArbitrary, async (userId, email) => {
+        const mockProfile = {
+          id: userId,
+          email,
+          full_name: null,
+          avatar_url: null,
+          tier: "free" as const,
+          credits: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
 
-          const mockFrom = vi.fn(() => ({
-            insert: vi.fn().mockReturnThis(),
-            select: vi.fn().mockReturnThis(),
-            single: vi.fn().mockResolvedValue({
-              data: mockProfile,
-              error: null,
-            }),
-          }));
+        const mockFrom = vi.fn(() => ({
+          insert: vi.fn().mockReturnThis(),
+          select: vi.fn().mockReturnThis(),
+          single: vi.fn().mockResolvedValue({
+            data: mockProfile,
+            error: null,
+          }),
+        }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
 
-          // Create new profile
-          const { data: newProfile } = await mockSupabase
-            .from("profiles")
-            .insert({ id: userId, email })
-            .select()
-            .single();
+        // Create new profile
+        const { data: newProfile } = await mockSupabase
+          .from("profiles")
+          .insert({ id: userId, email })
+          .select()
+          .single();
 
-          // Should have default tier
-          expect(newProfile?.tier).toBe("free");
-          expect(newProfile?.credits).toBe(0);
-        }
-      ),
-      { numRuns: 100 }
+        // Should have default tier
+        expect(newProfile?.tier).toBe("free");
+        expect(newProfile?.credits).toBe(0);
+      }),
+      { numRuns: 100 },
     );
   });
 });
@@ -359,9 +347,9 @@ describe("RLS Policy Tests: Itineraries", () => {
           // Should not be able to access
           expect(itinerary).toBeNull();
           expect(error).toBeDefined();
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -413,9 +401,9 @@ describe("RLS Policy Tests: Itineraries", () => {
           expect(error).toBeNull();
           expect(newItinerary).toBeDefined();
           expect(newItinerary?.user_id).toBe(userId);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

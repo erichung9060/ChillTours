@@ -11,11 +11,7 @@ import {
   updateLinkAccess,
   updateSharePermission,
 } from "@/lib/supabase/shares";
-import type {
-  ItineraryShare,
-  LinkAccess,
-  SharePermission,
-} from "@/types/share";
+import type { ItineraryShare, LinkAccess, SharePermission } from "@/types/share";
 import { cn } from "@/lib/utils/cn";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -54,9 +50,7 @@ export function ShareDialog({
   const [permission, setPermission] = useState<SharePermission>("view");
 
   const shareUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/plan/${itineraryId}`
-      : "";
+    typeof window !== "undefined" ? `${window.location.origin}/plan/${itineraryId}` : "";
 
   useEffect(() => {
     if (open) {
@@ -85,16 +79,10 @@ export function ShareDialog({
     setIsSaving(true);
     try {
       const newLinkAccess: LinkAccess =
-        mode === "restricted"
-          ? "none"
-          : linkAccess === "edit"
-            ? "edit"
-            : "view";
+        mode === "restricted" ? "none" : linkAccess === "edit" ? "edit" : "view";
       await updateLinkAccess(itineraryId, newLinkAccess);
       setLinkAccess(newLinkAccess);
-      toast.success(
-        mode === "restricted" ? t("madeRestricted") : t("madePublic")
-      );
+      toast.success(mode === "restricted" ? t("madeRestricted") : t("madePublic"));
     } catch (error) {
       console.error("Failed to update link access:", error);
       toast.error(t("updateFailed"));
@@ -143,15 +131,10 @@ export function ShareDialog({
     }
   }
 
-  async function handleUpdateSharePermission(
-    shareId: string,
-    newPermission: SharePermission
-  ) {
+  async function handleUpdateSharePermission(shareId: string, newPermission: SharePermission) {
     try {
       const updatedShare = await updateSharePermission(shareId, newPermission);
-      setShares((current) =>
-        current.map((share) => (share.id === shareId ? updatedShare : share))
-      );
+      setShares((current) => current.map((share) => (share.id === shareId ? updatedShare : share)));
       toast.success(t("permissionUpdated"));
     } catch (error) {
       console.error("Failed to update permission:", error);
@@ -202,9 +185,7 @@ export function ShareDialog({
             <section className="space-y-3">
               <div>
                 <p className="text-sm font-medium">{t("generalAccess")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("generalAccessDescription")}
-                </p>
+                <p className="text-xs text-muted-foreground">{t("generalAccessDescription")}</p>
               </div>
 
               <div className="space-y-2">
@@ -214,26 +195,20 @@ export function ShareDialog({
                   disabled={isSaving}
                   className={cn(
                     "flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors",
-                    !isAnyoneMode
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-accent/50"
+                    !isAnyoneMode ? "border-primary bg-primary/5" : "hover:bg-accent/50",
                   )}
                 >
                   <Lock className="mt-0.5 h-4 w-4 text-muted-foreground" />
                   <div className="flex-1">
                     <div className="font-medium">{t("restricted")}</div>
-                    <p className="text-sm text-muted-foreground">
-                      {t("restrictedDescription")}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{t("restrictedDescription")}</p>
                   </div>
                 </button>
 
                 <div
                   className={cn(
                     "rounded-lg border p-3 transition-colors",
-                    isAnyoneMode
-                      ? "border-primary bg-primary/5"
-                      : "hover:bg-accent/50"
+                    isAnyoneMode ? "border-primary bg-primary/5" : "hover:bg-accent/50",
                   )}
                 >
                   <button
@@ -260,9 +235,7 @@ export function ShareDialog({
                         id="link-permission"
                         value={linkAccess}
                         onChange={(e) =>
-                          void handleLinkPermissionChange(
-                            e.target.value as "view" | "edit"
-                          )
+                          void handleLinkPermissionChange(e.target.value as "view" | "edit")
                         }
                         disabled={isSaving}
                         className={cn(selectClassName, "sm:w-40")}
@@ -297,9 +270,7 @@ export function ShareDialog({
             <section className="space-y-3 border-t pt-4">
               <div>
                 <p className="text-sm font-medium">{t("addPeople")}</p>
-                <p className="text-xs text-muted-foreground">
-                  {t("addPeopleDescription")}
-                </p>
+                <p className="text-xs text-muted-foreground">{t("addPeopleDescription")}</p>
               </div>
 
               <form onSubmit={handleAddShare} className="space-y-2">
@@ -312,9 +283,7 @@ export function ShareDialog({
                 <div className="flex gap-2">
                   <select
                     value={permission}
-                    onChange={(e) =>
-                      setPermission(e.target.value as SharePermission)
-                    }
+                    onChange={(e) => setPermission(e.target.value as SharePermission)}
                     className={cn(selectClassName, "w-32")}
                   >
                     <option value="view">{t("canView")}</option>
@@ -342,21 +311,16 @@ export function ShareDialog({
               {shares.length > 0 ? (
                 <div className="max-h-48 space-y-2 overflow-y-auto">
                   {shares.map((share) => (
-                    <div
-                      key={share.id}
-                      className="flex items-center gap-2 rounded-md bg-muted p-2"
-                    >
+                    <div key={share.id} className="flex items-center gap-2 rounded-md bg-muted p-2">
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">
-                          {share.shared_with_email}
-                        </p>
+                        <p className="truncate text-sm font-medium">{share.shared_with_email}</p>
                       </div>
                       <select
                         value={share.permission}
                         onChange={(e) =>
                           void handleUpdateSharePermission(
                             share.id,
-                            e.target.value as SharePermission
+                            e.target.value as SharePermission,
                           )
                         }
                         className={cn(selectClassName, "w-28")}

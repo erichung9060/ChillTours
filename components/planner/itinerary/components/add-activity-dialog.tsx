@@ -17,10 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  createActivityFormSchema,
-  type ActivityFormValues,
-} from "@/types/forms";
+import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface AddActivityDialogProps {
   dayNumber: number;
@@ -162,12 +159,7 @@ export function AddActivityDialog({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSaving}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
               {t("cancel")}
             </Button>
             <Button

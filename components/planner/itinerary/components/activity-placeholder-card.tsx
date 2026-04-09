@@ -27,9 +27,7 @@ export function ActivityPlaceholderCard({ onClick }: ActivityPlaceholderCardProp
       <CardContent className="p-4 flex items-center justify-center min-h-[100px]">
         <div className="flex flex-col items-center gap-2 text-center">
           <Plus className="h-6 w-6 text-primary/60" />
-          <p className="text-sm font-medium text-primary/60">
-            {t("clickToAdd")}
-          </p>
+          <p className="text-sm font-medium text-primary/60">{t("clickToAdd")}</p>
         </div>
       </CardContent>
     </Card>

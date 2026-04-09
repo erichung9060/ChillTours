@@ -32,6 +32,4 @@ export const CollaborationSessionConfigSchema = z.object({
   room_id: z.uuid(),
 });
 
-export type CollaborationSessionConfig = z.infer<
-  typeof CollaborationSessionConfigSchema
->;
+export type CollaborationSessionConfig = z.infer<typeof CollaborationSessionConfigSchema>;

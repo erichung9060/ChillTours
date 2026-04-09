@@ -37,10 +37,7 @@ describe("Activity Display Completeness Property Tests", () => {
   /**
    * Checks if a rendered string contains all required fields
    */
-  const hasAllRequiredFields = (
-    rendered: string,
-    activity: Activity
-  ): boolean => {
+  const hasAllRequiredFields = (rendered: string, activity: Activity): boolean => {
     // Check for time
     const hasTime = rendered.includes(activity.time);
 
@@ -67,7 +64,7 @@ describe("Activity Display Completeness Property Tests", () => {
         expect(rendered).toContain(activity.location.name);
         expect(rendered).toContain("Note:");
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -86,7 +83,7 @@ describe("Activity Display Completeness Property Tests", () => {
         expect(hasLocationField).toBe(true);
         expect(hasDescriptionField).toBe(true);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -104,7 +101,7 @@ describe("Activity Display Completeness Property Tests", () => {
           expect(rendered).toContain(activity.note);
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -124,9 +121,9 @@ describe("Activity Display Completeness Property Tests", () => {
           // Time and location should still be present
           expect(rendered).toContain(activity.time);
           expect(rendered).toContain(activity.location.name);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -142,8 +139,8 @@ describe("Activity Display Completeness Property Tests", () => {
                 .integer({ min: 0, max: 59 })
                 .map(
                   (minute) =>
-                    `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-                )
+                    `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
+                ),
             ),
           title: fc.string({ minLength: 1, maxLength: 100 }),
           note: fc.string({ minLength: 0, maxLength: 500 }),
@@ -161,9 +158,9 @@ describe("Activity Display Completeness Property Tests", () => {
 
           // All required fields should be present regardless of special characters
           expect(hasAllRequiredFields(rendered, activity)).toBe(true);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -184,7 +181,7 @@ describe("Activity Display Completeness Property Tests", () => {
           expect(rendered).toContain(field);
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -203,9 +200,9 @@ describe("Activity Display Completeness Property Tests", () => {
 
             expect(hasAllRequiredFields(rendered, activity)).toBe(true);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -224,7 +221,7 @@ describe("Activity Display Completeness Property Tests", () => {
           expect(rendered).toContain("Note:");
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -282,7 +279,7 @@ describe("Activity Display Completeness Property Tests", () => {
         expect(rendered.includes(activity.location.name)).toBe(true);
         expect(rendered.includes("Note:")).toBe(true);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

@@ -18,9 +18,7 @@ describe("Form Schema Factories", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "translated-validation.destinationRequired"
-        );
+        expect(result.error.issues[0].message).toBe("translated-validation.destinationRequired");
       }
     });
 
@@ -33,12 +31,8 @@ describe("Form Schema Factories", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const dateError = result.error.issues.find((issue) =>
-          issue.path.join(".") === "dates"
-        );
-        expect(dateError?.message).toBe(
-          "translated-validation.startDateRequired"
-        );
+        const dateError = result.error.issues.find((issue) => issue.path.join(".") === "dates");
+        expect(dateError?.message).toBe("translated-validation.startDateRequired");
       }
     });
 
@@ -54,9 +48,7 @@ describe("Form Schema Factories", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "translated-validation.endDateAfterStart"
-        );
+        expect(result.error.issues[0].message).toBe("translated-validation.endDateAfterStart");
       }
     });
   });
@@ -73,12 +65,8 @@ describe("Form Schema Factories", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const timeError = result.error.issues.find((issue) =>
-          issue.path.includes("time")
-        );
-        expect(timeError?.message).toBe(
-          "translated-validation.timeInvalidFormat"
-        );
+        const timeError = result.error.issues.find((issue) => issue.path.includes("time"));
+        expect(timeError?.message).toBe("translated-validation.timeInvalidFormat");
       }
     });
 

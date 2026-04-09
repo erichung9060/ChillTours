@@ -8,7 +8,7 @@ import * as fc from "fast-check";
 
 // Mock streaming response generator
 async function* mockStreamingGenerator(
-  chunks: string[]
+  chunks: string[],
 ): AsyncGenerator<{ chunk: string; done: boolean }> {
   for (let i = 0; i < chunks.length; i++) {
     yield {
@@ -24,7 +24,7 @@ async function* mockStreamingGenerator(
 
 // Collect all chunks from a streaming generator
 async function collectStreamChunks(
-  generator: AsyncGenerator<{ chunk: string; done: boolean }>
+  generator: AsyncGenerator<{ chunk: string; done: boolean }>,
 ): Promise<{ chunks: string[]; order: number[]; complete: boolean }> {
   const chunks: string[] = [];
   const order: number[] = [];
@@ -66,10 +66,7 @@ describe("Streaming Response Delivery Properties", () => {
           expect(result.chunks).toEqual(inputChunks);
 
           // Property 3: Order indices should be sequential
-          const expectedOrder = Array.from(
-            { length: inputChunks.length },
-            (_, i) => i
-          );
+          const expectedOrder = Array.from({ length: inputChunks.length }, (_, i) => i);
           expect(result.order).toEqual(expectedOrder);
 
           // Property 4: Stream should be marked complete
@@ -79,9 +76,9 @@ describe("Streaming Response Delivery Properties", () => {
           const reconstructed = result.chunks.join("");
           const original = inputChunks.join("");
           expect(reconstructed).toBe(original);
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
@@ -110,9 +107,9 @@ describe("Streaming Response Delivery Properties", () => {
 
           // Property: Only one done marker should be sent
           expect(doneCount).toBe(1);
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 });

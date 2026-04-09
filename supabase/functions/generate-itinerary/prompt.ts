@@ -3,12 +3,11 @@ export function buildItineraryPrompt(
   startDate: string,
   endDate: string,
   customPreferences?: string,
-  locale?: string
+  locale?: string,
 ): string {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const duration =
-    Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 
   const isZH = locale === "zh-TW";
 

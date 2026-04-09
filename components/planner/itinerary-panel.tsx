@@ -55,49 +55,28 @@ export function ItineraryPanel({
 
   const itinerary = previewItinerary ?? committedItinerary;
 
-  const draggingActivityId = useItineraryStore(
-    (state) => state.draggingActivityId
-  );
+  const draggingActivityId = useItineraryStore((state) => state.draggingActivityId);
   const crossDayDragInfo = useItineraryStore((state) => state.crossDayDragInfo);
-  const setDraggingActivityId = useItineraryStore(
-    (state) => state.setDraggingActivityId
-  );
-  const setCrossDayDragInfo = useItineraryStore(
-    (state) => state.setCrossDayDragInfo
-  );
-  const handleDragOverAction = useItineraryStore(
-    (state) => state.handleDragOver
-  );
+  const setDraggingActivityId = useItineraryStore((state) => state.setDraggingActivityId);
+  const setCrossDayDragInfo = useItineraryStore((state) => state.setCrossDayDragInfo);
+  const handleDragOverAction = useItineraryStore((state) => state.handleDragOver);
   const startPreview = useItineraryStore((state) => state.startPreview);
   const applyPreview = useItineraryStore((state) => state.applyPreview);
   const discardPreview = useItineraryStore((state) => state.discardPreview);
   const resetDragState = useItineraryStore((state) => state.resetDragState);
   const setHoveredDay = useItineraryStore((state) => state.setHoveredDay);
-  const setHoveredActivity = useItineraryStore(
-    (state) => state.setHoveredActivity
-  );
-  const setFocusedActivity = useItineraryStore(
-    (state) => state.setFocusedActivity
-  );
-  const isAddingActivity = useItineraryStore(
-    (state) => state.isAddingActivity
-  );
-  const setIsAddingActivity = useItineraryStore(
-    (state) => state.setIsAddingActivity
-  );
-  const addingActivityTarget = useItineraryStore(
-    (state) => state.addingActivityTarget
-  );
-  const setAddingActivityTarget = useItineraryStore(
-    (state) => state.setAddingActivityTarget
-  );
+  const setHoveredActivity = useItineraryStore((state) => state.setHoveredActivity);
+  const setFocusedActivity = useItineraryStore((state) => state.setFocusedActivity);
+  const isAddingActivity = useItineraryStore((state) => state.isAddingActivity);
+  const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
+  const addingActivityTarget = useItineraryStore((state) => state.addingActivityTarget);
+  const setAddingActivityTarget = useItineraryStore((state) => state.setAddingActivityTarget);
 
   // Global mouse tracking for add activity mode
   useGlobalAddModeTracking();
 
   // View mode state
-  const [internalViewMode, setInternalViewMode] =
-    useState<ViewMode>("side-by-side");
+  const [internalViewMode, setInternalViewMode] = useState<ViewMode>("side-by-side");
   const viewMode = externalViewMode ?? internalViewMode;
   const setViewMode = onViewModeChange ?? setInternalViewMode;
 
@@ -111,7 +90,7 @@ export function ItineraryPanel({
       activationConstraint: {
         distance: isAddingActivity ? Infinity : 8,
       },
-    })
+    }),
   );
 
   // Listen for Escape key to exit add mode
@@ -134,7 +113,7 @@ export function ItineraryPanel({
   const expandedDays = new Set(
     itinerary.days
       .map((day) => day.day_number)
-      .filter((dayNumber) => !collapsedDays.has(dayNumber))
+      .filter((dayNumber) => !collapsedDays.has(dayNumber)),
   );
 
   const toggleDay = (dayNumber: number) => {
@@ -207,7 +186,7 @@ export function ItineraryPanel({
           day.activities.map((activity) => ({
             activity,
             dayNumber: day.day_number,
-          }))
+          })),
         )
         .find(({ activity }) => activity.id === draggingActivityId)
     : null;

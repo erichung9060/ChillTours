@@ -20,8 +20,7 @@ describe("Zod i18n Integration E2E", () => {
       "validation.invalidUrl": "Must be a valid URL",
     };
 
-    const tEn = (key: string) =>
-      enMessages[key as keyof typeof enMessages] || key;
+    const tEn = (key: string) => enMessages[key as keyof typeof enMessages] || key;
 
     it("should return English error for missing destination in TripForm", () => {
       const schema = createTripFormSchema(tEn);
@@ -48,9 +47,7 @@ describe("Zod i18n Integration E2E", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "End date must be on or after start date"
-        );
+        expect(result.error.issues[0].message).toBe("End date must be on or after start date");
       }
     });
 
@@ -65,9 +62,7 @@ describe("Zod i18n Integration E2E", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const timeError = result.error.issues.find((issue) =>
-          issue.path.includes("time")
-        );
+        const timeError = result.error.issues.find((issue) => issue.path.includes("time"));
         expect(timeError?.message).toBe("Time must be in HH:MM format");
       }
     });
@@ -87,8 +82,7 @@ describe("Zod i18n Integration E2E", () => {
       "validation.invalidUrl": "必須是有效的網址",
     };
 
-    const tZh = (key: string) =>
-      zhMessages[key as keyof typeof zhMessages] || key;
+    const tZh = (key: string) => zhMessages[key as keyof typeof zhMessages] || key;
 
     it("should return Chinese error for missing destination in TripForm", () => {
       const schema = createTripFormSchema(tZh);
@@ -115,9 +109,7 @@ describe("Zod i18n Integration E2E", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toBe(
-          "結束日期必須在開始日期之後或相同"
-        );
+        expect(result.error.issues[0].message).toBe("結束日期必須在開始日期之後或相同");
       }
     });
 
@@ -132,9 +124,7 @@ describe("Zod i18n Integration E2E", () => {
 
       expect(result.success).toBe(false);
       if (!result.success) {
-        const timeError = result.error.issues.find((issue) =>
-          issue.path.includes("time")
-        );
+        const timeError = result.error.issues.find((issue) => issue.path.includes("time"));
         expect(timeError?.message).toBe("時間格式必須為 HH:MM");
       }
     });

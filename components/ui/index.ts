@@ -7,14 +7,7 @@ export type { InputProps } from "./input";
 export { Textarea } from "./textarea";
 export type { TextareaProps } from "./textarea";
 
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "./card";
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "./card";
 
 export { Loading } from "./loading";
 export type { LoadingProps } from "./loading";

@@ -29,7 +29,7 @@ export type SSEErrorEvent = { message: string };
 export class AIError extends Error {
   constructor(
     message: string,
-    public readonly code: string
+    public readonly code: string,
   ) {
     super(message);
     this.name = "AIError";
@@ -58,7 +58,7 @@ export class AIClient {
     onActivity: (data: SSEActivityEvent) => void,
     onComplete: () => void,
     onError: (data: SSEErrorEvent) => void,
-    signal: AbortSignal
+    signal: AbortSignal,
   ): Promise<void> {
     const token = await getAccessToken();
 
@@ -117,7 +117,7 @@ export class AIClient {
    */
   async chat(
     options: ChatOptions,
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
   ): Promise<{ message: string; operations?: OperationsUpdate }> {
     const { message, history, context, locale } = options;
 
@@ -186,10 +186,7 @@ export class AIClient {
         }
 
         // No marker yet - stream safe content (keep buffer for potential split marker)
-        const safeUpTo = Math.max(
-          0,
-          fullResponse.length - OPERATIONS_MARKER.length
-        );
+        const safeUpTo = Math.max(0, fullResponse.length - OPERATIONS_MARKER.length);
         this.streamContent(fullResponse, streamedUpTo, safeUpTo, onChunk);
         streamedUpTo = safeUpTo;
       }
@@ -198,9 +195,7 @@ export class AIClient {
       if (markerFound) {
         const markerIndex = fullResponse.indexOf(OPERATIONS_MARKER);
         const cleanMessage = fullResponse.substring(0, markerIndex).trim();
-        const jsonPart = fullResponse
-          .substring(markerIndex + OPERATIONS_MARKER.length)
-          .trim();
+        const jsonPart = fullResponse.substring(markerIndex + OPERATIONS_MARKER.length).trim();
 
         try {
           // Extract JSON from markdown code blocks if present
@@ -217,12 +212,7 @@ export class AIClient {
         fullResponse = cleanMessage;
       } else {
         // Stream any remaining buffered content if no marker was found
-        this.streamContent(
-          fullResponse,
-          streamedUpTo,
-          fullResponse.length,
-          onChunk
-        );
+        this.streamContent(fullResponse, streamedUpTo, fullResponse.length, onChunk);
       }
 
       return {
@@ -232,7 +222,7 @@ export class AIClient {
     } catch (error) {
       throw new AIError(
         `Failed to process chat response: ${error instanceof Error ? error.message : "Unknown error"}`,
-        "CHAT_ERROR"
+        "CHAT_ERROR",
       );
     }
   }
@@ -245,7 +235,7 @@ export class AIClient {
     content: string,
     startIndex: number,
     endIndex: number,
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
   ): void {
     if (endIndex > startIndex) {
       const toStream = content.substring(startIndex, endIndex);

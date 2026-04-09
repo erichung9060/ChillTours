@@ -4,9 +4,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
  * 驗證用戶是否已登入
  * 使用 Supabase Auth 的 getUser() 方法驗證 JWT
  */
-export async function verifyUser(
-  req: Request
-): Promise<{ userId: string; email: string } | null> {
+export async function verifyUser(req: Request): Promise<{ userId: string; email: string } | null> {
   try {
     const authHeader = req.headers.get("Authorization");
 

@@ -28,15 +28,11 @@ export function EmptyState({ onCreateClick }: EmptyStateProps) {
           />
         </svg>
       </div>
-      
-      <h2 className="text-2xl font-semibold text-foreground mb-2">
-        {t("title")}
-      </h2>
-      
-      <p className="text-muted-foreground mb-8 max-w-md">
-        {t("description")}
-      </p>
-      
+
+      <h2 className="text-2xl font-semibold text-foreground mb-2">{t("title")}</h2>
+
+      <p className="text-muted-foreground mb-8 max-w-md">{t("description")}</p>
+
       <Button variant="primary" size="lg" onClick={onCreateClick}>
         {t("createFirst")}
       </Button>

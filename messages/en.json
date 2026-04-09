@@ -62,15 +62,7 @@
       "selectEndDate": "Select end date",
       "days": "days",
       "weekdays": {
-        "short": [
-          "S",
-          "M",
-          "T",
-          "W",
-          "T",
-          "F",
-          "S"
-        ]
+        "short": ["S", "M", "T", "W", "T", "F", "S"]
       }
     },
     "footer": "© 2026 ChillTour. All rights reserved.",

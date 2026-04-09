@@ -24,7 +24,7 @@ describe("Reordering Persistence Property Tests", () => {
     overId: string,
     activeDayNumber: number,
     overDayNumber: number,
-    isEmpty: boolean = false
+    isEmpty: boolean = false,
   ): { active: Active; over: Over } => {
     const active: Active = {
       id: activeId,
@@ -80,7 +80,7 @@ describe("Reordering Persistence Property Tests", () => {
       fc.string({ minLength: 1, maxLength: 100 }), // title
       fc.string({ minLength: 1, maxLength: 100 }), // destination
       fc.integer({ min: 1, max: 30 }), // day_number
-      fc.array(activityArbitrary, { minLength: 2, maxLength: 10 }) // activities
+      fc.array(activityArbitrary, { minLength: 2, maxLength: 10 }), // activities
     )
     .map(([id, user_id, title, destination, day_number, activities]) => {
       // Ensure activities have sequential order
@@ -121,49 +121,47 @@ describe("Reordering Persistence Property Tests", () => {
       fc.string({ minLength: 1, maxLength: 100 }), // title
       fc.string({ minLength: 1, maxLength: 100 }), // destination
       fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }), // day 1 activities
-      fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }) // day 2 activities
+      fc.array(activityArbitrary, { minLength: 1, maxLength: 5 }), // day 2 activities
     )
-    .map(
-      ([id, user_id, title, destination, day1Activities, day2Activities]) => {
-        const orderedDay1Activities = day1Activities.map((activity, index) => ({
-          ...activity,
-          order: index,
-        }));
+    .map(([id, user_id, title, destination, day1Activities, day2Activities]) => {
+      const orderedDay1Activities = day1Activities.map((activity, index) => ({
+        ...activity,
+        order: index,
+      }));
 
-        const orderedDay2Activities = day2Activities.map((activity, index) => ({
-          ...activity,
-          order: index,
-        }));
+      const orderedDay2Activities = day2Activities.map((activity, index) => ({
+        ...activity,
+        order: index,
+      }));
 
-        const startDate = "2025-06-15";
-        const endDate = "2025-06-16";
+      const startDate = "2025-06-15";
+      const endDate = "2025-06-16";
 
-        const itinerary: Itinerary = {
-          id,
-          user_id,
-          title,
-          destination,
-          start_date: startDate,
-          end_date: endDate,
-          days: [
-            {
-              day_number: 1,
-              date: startDate,
-              activities: orderedDay1Activities,
-            },
-            {
-              day_number: 2,
-              date: endDate,
-              activities: orderedDay2Activities,
-            },
-          ],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
+      const itinerary: Itinerary = {
+        id,
+        user_id,
+        title,
+        destination,
+        start_date: startDate,
+        end_date: endDate,
+        days: [
+          {
+            day_number: 1,
+            date: startDate,
+            activities: orderedDay1Activities,
+          },
+          {
+            day_number: 2,
+            date: endDate,
+            activities: orderedDay2Activities,
+          },
+        ],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      };
 
-        return itinerary;
-      }
-    );
+      return itinerary;
+    });
 
   it("Property 18: Reordering Persistence - changes are maintained in the returned itinerary state", async () => {
     await fc.assert(
@@ -188,7 +186,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           // Perform the drag operation
@@ -197,7 +195,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           // Verify result is not null
@@ -220,9 +218,7 @@ describe("Reordering Persistence Property Tests", () => {
             });
 
             // Verify the moved activity is at its new position
-            const movedActivityIndex = newActivities.findIndex(
-              (a) => a.id === sourceActivity.id
-            );
+            const movedActivityIndex = newActivities.findIndex((a) => a.id === sourceActivity.id);
             expect(movedActivityIndex).not.toBe(sourceIdx);
 
             // Verify no activities were lost or duplicated
@@ -230,9 +226,9 @@ describe("Reordering Persistence Property Tests", () => {
             const newIds = new Set(newActivities.map((a) => a.id));
             expect(newIds).toEqual(originalIds);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -240,13 +236,10 @@ describe("Reordering Persistence Property Tests", () => {
     await fc.assert(
       fc.asyncProperty(
         itineraryWithActivitiesArbitrary,
-        fc.array(
-          fc.tuple(
-            fc.integer({ min: 0, max: 9 }),
-            fc.integer({ min: 0, max: 9 })
-          ),
-          { minLength: 2, maxLength: 5 }
-        ),
+        fc.array(fc.tuple(fc.integer({ min: 0, max: 9 }), fc.integer({ min: 0, max: 9 })), {
+          minLength: 2,
+          maxLength: 5,
+        }),
         async (initialItinerary, reorderOperations) => {
           let currentItinerary = initialItinerary;
 
@@ -271,7 +264,7 @@ describe("Reordering Persistence Property Tests", () => {
               sourceActivity.id,
               targetActivity.id,
               day.day_number,
-              day.day_number
+              day.day_number,
             );
 
             const result = calculateDragOverUpdate(
@@ -279,7 +272,7 @@ describe("Reordering Persistence Property Tests", () => {
               over,
               active.data.current,
               over.data.current,
-              currentItinerary
+              currentItinerary,
             );
 
             if (result) {
@@ -298,14 +291,12 @@ describe("Reordering Persistence Property Tests", () => {
           });
 
           // No activities should be lost or duplicated
-          const originalIds = new Set(
-            initialItinerary.days[0].activities.map((a) => a.id)
-          );
+          const originalIds = new Set(initialItinerary.days[0].activities.map((a) => a.id));
           const finalIds = new Set(finalActivities.map((a) => a.id));
           expect(finalIds).toEqual(originalIds);
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 
@@ -334,7 +325,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             sourceDay.day_number,
-            targetDay.day_number
+            targetDay.day_number,
           );
 
           // Perform the drag operation
@@ -343,7 +334,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           expect(result).not.toBeNull();
@@ -356,41 +347,31 @@ describe("Reordering Persistence Property Tests", () => {
             const newTargetDay = newItinerary.days[1];
 
             // Verify source day state is maintained
-            expect(newSourceDay.activities.length).toBe(
-              originalSourceCount - 1
-            );
+            expect(newSourceDay.activities.length).toBe(originalSourceCount - 1);
             expect(
-              newSourceDay.activities.find(
-                (a: Activity) => a.id === sourceActivity.id
-              )
+              newSourceDay.activities.find((a: Activity) => a.id === sourceActivity.id),
             ).toBeUndefined();
 
             // Verify source day activities have sequential order
-            newSourceDay.activities.forEach(
-              (activity: Activity, index: number) => {
-                expect(activity.order).toBe(index);
-              }
-            );
+            newSourceDay.activities.forEach((activity: Activity, index: number) => {
+              expect(activity.order).toBe(index);
+            });
 
             // Verify target day state is maintained
-            expect(newTargetDay.activities.length).toBe(
-              originalTargetCount + 1
-            );
+            expect(newTargetDay.activities.length).toBe(originalTargetCount + 1);
             const movedActivity = newTargetDay.activities.find(
-              (a: Activity) => a.id === sourceActivity.id
+              (a: Activity) => a.id === sourceActivity.id,
             );
             expect(movedActivity).toBeDefined();
 
             // Verify target day activities have sequential order
-            newTargetDay.activities.forEach(
-              (activity: Activity, index: number) => {
-                expect(activity.order).toBe(index);
-              }
-            );
+            newTargetDay.activities.forEach((activity: Activity, index: number) => {
+              expect(activity.order).toBe(index);
+            });
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -415,7 +396,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           // Perform the drag operation
@@ -424,7 +405,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
@@ -432,36 +413,30 @@ describe("Reordering Persistence Property Tests", () => {
 
             // Simulate a "re-render" by creating a deep copy
             // This tests that the state is stable and doesn't have hidden mutations
-            const deepCopy = JSON.parse(
-              JSON.stringify(firstItinerary)
-            ) as Itinerary;
+            const deepCopy = JSON.parse(JSON.stringify(firstItinerary)) as Itinerary;
 
             // Verify the essential state properties are preserved
             // (Note: JSON serialization removes undefined values and converts -0 to 0)
             expect(deepCopy.id).toBe(firstItinerary.id);
             expect(deepCopy.days.length).toBe(firstItinerary.days.length);
             expect(deepCopy.days[0].activities.length).toBe(
-              firstItinerary.days[0].activities.length
+              firstItinerary.days[0].activities.length,
             );
 
             // Verify order values are still sequential
             deepCopy.days[0].activities.forEach((activity, index) => {
               expect(activity.order).toBe(index);
-              expect(activity.id).toBe(
-                firstItinerary.days[0].activities[index].id
-              );
+              expect(activity.id).toBe(firstItinerary.days[0].activities[index].id);
             });
 
             // Verify activity IDs are in the same order
-            const originalIds = firstItinerary.days[0].activities.map(
-              (a) => a.id
-            );
+            const originalIds = firstItinerary.days[0].activities.map((a) => a.id);
             const copiedIds = deepCopy.days[0].activities.map((a) => a.id);
             expect(copiedIds).toEqual(originalIds);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -486,7 +461,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -494,39 +469,31 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
             // Take a snapshot of the reordered state
             const snapshot = {
-              activityIds: result.newItinerary.days[0].activities.map(
-                (a) => a.id
-              ),
-              activityOrders: result.newItinerary.days[0].activities.map(
-                (a) => a.order
-              ),
+              activityIds: result.newItinerary.days[0].activities.map((a) => a.id),
+              activityOrders: result.newItinerary.days[0].activities.map((a) => a.order),
             };
 
             // Simulate restoring from snapshot
             const restoredActivities = result.newItinerary.days[0].activities;
 
             // Verify snapshot matches the actual state
-            expect(restoredActivities.map((a) => a.id)).toEqual(
-              snapshot.activityIds
-            );
-            expect(restoredActivities.map((a) => a.order)).toEqual(
-              snapshot.activityOrders
-            );
+            expect(restoredActivities.map((a) => a.id)).toEqual(snapshot.activityIds);
+            expect(restoredActivities.map((a) => a.order)).toEqual(snapshot.activityOrders);
 
             // Verify orders are sequential
             snapshot.activityOrders.forEach((order, index) => {
               expect(order).toBe(index);
             });
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -540,7 +507,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceIdx: fc.integer({ min: 0, max: 4 }),
             targetIdx: fc.integer({ min: 0, max: 4 }),
           }),
-          { minLength: 1, maxLength: 3 }
+          { minLength: 1, maxLength: 3 },
         ),
         async (initialItinerary, operations) => {
           let currentItinerary = initialItinerary;
@@ -566,7 +533,7 @@ describe("Reordering Persistence Property Tests", () => {
                 sourceActivity.id,
                 targetActivity.id,
                 day.day_number,
-                day.day_number
+                day.day_number,
               );
 
               const result = calculateDragOverUpdate(
@@ -574,7 +541,7 @@ describe("Reordering Persistence Property Tests", () => {
                 over,
                 active.data.current,
                 over.data.current,
-                currentItinerary
+                currentItinerary,
               );
 
               if (result) {
@@ -599,7 +566,7 @@ describe("Reordering Persistence Property Tests", () => {
                 sourceActivity.id,
                 targetActivity.id,
                 sourceDay.day_number,
-                targetDay.day_number
+                targetDay.day_number,
               );
 
               const result = calculateDragOverUpdate(
@@ -607,7 +574,7 @@ describe("Reordering Persistence Property Tests", () => {
                 over,
                 active.data.current,
                 over.data.current,
-                currentItinerary
+                currentItinerary,
               );
 
               if (result) {
@@ -627,16 +594,16 @@ describe("Reordering Persistence Property Tests", () => {
           // Verify total activity count is preserved
           const initialTotalCount = initialItinerary.days.reduce(
             (sum, day) => sum + day.activities.length,
-            0
+            0,
           );
           const finalTotalCount = currentItinerary.days.reduce(
             (sum, day) => sum + day.activities.length,
-            0
+            0,
           );
           expect(finalTotalCount).toBe(initialTotalCount);
-        }
+        },
       ),
-      { numRuns: 50 }
+      { numRuns: 50 },
     );
   });
 
@@ -668,14 +635,14 @@ describe("Reordering Persistence Property Tests", () => {
                 location: a.location,
                 duration_minutes: a.duration_minutes,
               },
-            ])
+            ]),
           );
 
           const { active, over } = createDragObjects(
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -683,7 +650,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
@@ -699,15 +666,13 @@ describe("Reordering Persistence Property Tests", () => {
                 expect(activity.title).toBe(originalProps.title);
                 expect(activity.note).toBe(originalProps.note);
                 expect(activity.location).toEqual(originalProps.location);
-                expect(activity.duration_minutes).toBe(
-                  originalProps.duration_minutes
-                );
+                expect(activity.duration_minutes).toBe(originalProps.duration_minutes);
               }
             });
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -732,7 +697,7 @@ describe("Reordering Persistence Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           // Perform the same operation multiple times
@@ -741,7 +706,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           const result2 = calculateDragOverUpdate(
@@ -749,7 +714,7 @@ describe("Reordering Persistence Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           // Both results should be identical (deterministic)
@@ -760,16 +725,12 @@ describe("Reordering Persistence Property Tests", () => {
             const activities1 = result1.newItinerary.days[0].activities;
             const activities2 = result2.newItinerary.days[0].activities;
 
-            expect(activities1.map((a) => a.id)).toEqual(
-              activities2.map((a) => a.id)
-            );
-            expect(activities1.map((a) => a.order)).toEqual(
-              activities2.map((a) => a.order)
-            );
+            expect(activities1.map((a) => a.id)).toEqual(activities2.map((a) => a.id));
+            expect(activities1.map((a) => a.order)).toEqual(activities2.map((a) => a.order));
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

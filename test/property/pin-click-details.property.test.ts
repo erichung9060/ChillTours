@@ -25,15 +25,7 @@ const arbitraryLocation = (): fc.Arbitrary<Location> =>
 const arbitraryActivity = (): fc.Arbitrary<Activity> =>
   fc.record({
     id: fc.uuid(),
-    time: fc.constantFrom(
-      "09:00",
-      "10:30",
-      "12:00",
-      "14:30",
-      "16:00",
-      "18:30",
-      "20:00"
-    ),
+    time: fc.constantFrom("09:00", "10:30", "12:00", "14:30", "16:00", "18:30", "20:00"),
     title: fc.string({ minLength: 1, maxLength: 100 }),
     note: fc.string({ minLength: 0, maxLength: 500 }),
     location: arbitraryLocation(),
@@ -76,7 +68,7 @@ describe("Pin Click Details Display Property Tests", () => {
 
         return hasTitle && hasTime && hasDuration && hasLocationName;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -88,7 +80,7 @@ describe("Pin Click Details Display Property Tests", () => {
         // Property: Title in info window should match activity title
         return infoContent.title === activity.title;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -100,7 +92,7 @@ describe("Pin Click Details Display Property Tests", () => {
         // Property: Location name in info window should match activity location
         return infoContent.locationName === activity.location.name;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -111,11 +103,10 @@ describe("Pin Click Details Display Property Tests", () => {
 
         // Property: Time and duration should match exactly
         return (
-          infoContent.time === activity.time &&
-          infoContent.duration === activity.duration_minutes
+          infoContent.time === activity.time && infoContent.duration === activity.duration_minutes
         );
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -128,9 +119,9 @@ describe("Pin Click Details Display Property Tests", () => {
 
           // Property: If activity has note, info window should include it
           return infoContent.note === activity.note;
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -143,9 +134,9 @@ describe("Pin Click Details Display Property Tests", () => {
 
           // Property: Empty note should result in undefined in info window
           return infoContent.note === undefined;
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -160,7 +151,7 @@ describe("Pin Click Details Display Property Tests", () => {
 
         return validLat && validLng;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -172,24 +163,16 @@ describe("Pin Click Details Display Property Tests", () => {
         // Property: All data should be preserved without corruption
         const titleMatch = infoContent.title === activity.title;
         const timeMatch = infoContent.time === activity.time;
-        const durationMatch =
-          infoContent.duration === activity.duration_minutes;
-        const locationMatch =
-          infoContent.locationName === activity.location.name;
+        const durationMatch = infoContent.duration === activity.duration_minutes;
+        const locationMatch = infoContent.locationName === activity.location.name;
         const descriptionMatch =
           activity.note.length === 0
             ? infoContent.note === undefined
             : infoContent.note === activity.note;
 
-        return (
-          titleMatch &&
-          timeMatch &&
-          durationMatch &&
-          locationMatch &&
-          descriptionMatch
-        );
+        return titleMatch && timeMatch && durationMatch && locationMatch && descriptionMatch;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -218,9 +201,9 @@ describe("Pin Click Details Display Property Tests", () => {
             infoContent.title === activity.title &&
             infoContent.locationName === activity.location.name
           );
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -229,19 +212,16 @@ describe("Pin Click Details Display Property Tests", () => {
       fc.property(
         arbitraryActivity().map((a) => ({
           ...a,
-          note: fc.sample(
-            fc.string({ minLength: 400, maxLength: 500 }),
-            1
-          )[0],
+          note: fc.sample(fc.string({ minLength: 400, maxLength: 500 }), 1)[0],
         })),
         (activity) => {
           const infoContent = generateInfoWindowContent(activity);
 
           // Property: Long descriptions should be preserved completely
           return infoContent.note === activity.note;
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

@@ -66,21 +66,32 @@ interface ItineraryState {
   applyPreview: () => Promise<void>;
   discardPreview: () => void;
   resetDragState: () => void;
-  updateMetadata: (updates: Partial<Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">>) => Promise<void>;
-  addActivity: (dayNumber: number, activityInput: {
+  updateMetadata: (
+    updates: Partial<
+      Pick<Itinerary, "title" | "destination" | "start_date" | "end_date" | "preferences">
+    >,
+  ) => Promise<void>;
+  addActivity: (
+    dayNumber: number,
+    activityInput: {
       title: string;
       locationName: string;
       time: string;
       duration: number;
       note?: string;
-  }, insertionIndex?: number) => Promise<void>;
-  updateActivity: (activityId: string, activityInput: {
+    },
+    insertionIndex?: number,
+  ) => Promise<void>;
+  updateActivity: (
+    activityId: string,
+    activityInput: {
       title: string;
       locationName: string;
       time: string;
       duration: number;
       note?: string;
-  }) => Promise<void>;
+    },
+  ) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
 
   // Generation Actions
@@ -92,15 +103,8 @@ interface ItineraryState {
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
-  handleDragOver: (
-    active: Active,
-    over: Over | null,
-    activeData: any,
-    overData: any
-  ) => void;
-  setCrossDayDragInfo: (
-    info: { sourceDayNumber: number; targetDayNumber: number } | null
-  ) => void;
+  handleDragOver: (active: Active, over: Over | null, activeData: any, overData: any) => void;
+  setCrossDayDragInfo: (info: { sourceDayNumber: number; targetDayNumber: number } | null) => void;
   setDraggingActivityId: (id: string | null) => void;
 
   // Hover & Focus State Actions
@@ -111,7 +115,9 @@ interface ItineraryState {
   // Add Activity Mode Actions
   setIsAddingActivity: (flag: boolean) => void;
   setAddingActivityTarget: (target: { dayNumber: number; insertionIndex: number } | null) => void;
-  setAddModePlaceholder: (placeholder: { dayNumber: number; insertionIndex: number } | null) => void;
+  setAddModePlaceholder: (
+    placeholder: { dayNumber: number; insertionIndex: number } | null,
+  ) => void;
 }
 
 export const useItineraryStore = create<ItineraryState>((set, get) => ({
@@ -173,11 +179,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     set({ isLoading: true, errorKind: null, error: null });
     try {
       const data = await loadItinerary(id);
-      const access = await getEffectivePermission(
-        data.id,
-        data.user_id,
-        data.link_access
-      );
+      const access = await getEffectivePermission(data.id, data.user_id, data.link_access);
 
       set({
         itinerary: data,
@@ -194,7 +196,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       } else {
         set({
           errorKind: "load",
-          error: "Failed to load itinerary. Please try again."
+          error: "Failed to load itinerary. Please try again.",
         });
       }
     } finally {
@@ -216,10 +218,9 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       days: nextItinerary.days,
     };
 
-    const nextPast = [
-      ...state.historyPast,
-      cloneItinerarySnapshot(currentItinerary),
-    ].slice(-MAX_HISTORY_ENTRIES);
+    const nextPast = [...state.historyPast, cloneItinerarySnapshot(currentItinerary)].slice(
+      -MAX_HISTORY_ENTRIES,
+    );
 
     set({
       itinerary: nextItinerary,
@@ -228,11 +229,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(
-        currentItinerary.id,
-        payload,
-        state.access
-      );
+      const updated = await updateItinerary(currentItinerary.id, payload, state.access);
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to commit itinerary:", err);
@@ -275,11 +272,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(
-        currentItinerary.id,
-        payload,
-        state.access
-      );
+      const updated = await updateItinerary(currentItinerary.id, payload, state.access);
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to undo itinerary change:", err);
@@ -325,11 +318,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     });
 
     try {
-      const updated = await updateItinerary(
-        currentItinerary.id,
-        payload,
-        state.access
-      );
+      const updated = await updateItinerary(currentItinerary.id, payload, state.access);
       set({ itinerary: updated });
     } catch (err) {
       console.error("Failed to redo itinerary change:", err);
@@ -424,9 +413,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       start_date: newStart,
       end_date: newEnd,
       preferences:
-        updates.preferences !== undefined
-          ? updates.preferences
-          : currentItinerary.preferences,
+        updates.preferences !== undefined ? updates.preferences : currentItinerary.preferences,
       days:
         newDayCount !== oldDayCount
           ? adjustDays(currentItinerary.days, newDayCount)
@@ -508,7 +495,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
                     ]
                   : [...day.activities, activity],
             }
-          : day
+          : day,
       );
 
       await get().commitItineraryChange({
@@ -531,15 +518,15 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const state = get();
     if (!state.itinerary) return;
 
-      let existingActivity: Activity | undefined;
-      for (const day of state.itinerary.days) {
-        existingActivity = day.activities.find((a) => a.id === activityId);
-        if (existingActivity) break;
-      }
+    let existingActivity: Activity | undefined;
+    for (const day of state.itinerary.days) {
+      existingActivity = day.activities.find((a) => a.id === activityId);
+      if (existingActivity) break;
+    }
 
-      if (!existingActivity) {
-        throw new Error("Activity not found");
-      }
+    if (!existingActivity) {
+      throw new Error("Activity not found");
+    }
 
     const isDirty =
       activityInput.title !== existingActivity.title ||
@@ -572,7 +559,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       const newDays = state.itinerary.days.map((day) => ({
         ...day,
         activities: day.activities.map((activity) =>
-          activity.id === activityId ? updatedActivity : activity
+          activity.id === activityId ? updatedActivity : activity,
         ),
       }));
 
@@ -651,7 +638,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
             generationAbortController: null,
           });
         },
-        controller.signal
+        controller.signal,
       );
     } catch (err) {
       // AbortError is expected on cleanup — not a real error
@@ -702,8 +689,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       };
     }),
 
-  completeGeneration: () =>
-    set({ isGenerating: false, generationAbortController: null }),
+  completeGeneration: () => set({ isGenerating: false, generationAbortController: null }),
 
   startPolling: (itineraryId) => {
     const existing = get().pollingIntervalId;
@@ -719,7 +705,10 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       if (attempts > MAX_ATTEMPTS) {
         get().stopPolling();
-        set({ errorKind: "runtime", error: "Generation timed out. Please try again." });
+        set({
+          errorKind: "runtime",
+          error: "Generation timed out. Please try again.",
+        });
         return;
       }
 
@@ -775,7 +764,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       over,
       activeData,
       overData,
-      state.previewItinerary
+      state.previewItinerary,
     );
 
     if (result) {

@@ -1,11 +1,7 @@
 import { z } from "npm:zod";
 import { corsHeaders } from "./cors.ts";
 
-function jsonError(
-  status: number,
-  error: string,
-  code: string
-): Response {
+function jsonError(status: number, error: string, code: string): Response {
   return new Response(JSON.stringify({ error, code }), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -22,7 +18,7 @@ export function invalidRequestResponse(): Response {
 
 export async function parseJsonRequest<T>(
   req: Request,
-  schema: z.ZodType<T>
+  schema: z.ZodType<T>,
 ): Promise<{ data: T } | Response> {
   let body: unknown;
   try {

@@ -13,9 +13,7 @@ interface TrendingDestinationsProps {
   onDestinationClick?: (destination: string) => void;
 }
 
-export function TrendingDestinations({
-  onDestinationClick,
-}: TrendingDestinationsProps) {
+export function TrendingDestinations({ onDestinationClick }: TrendingDestinationsProps) {
   const t = useTranslations("landing.trending");
 
   const handleClick = (destName: string) => {

@@ -29,7 +29,7 @@ export function SingleDayView({
   if (!day) return null;
   const formattedDate = formatDayHeader(
     calculateDayDate(itinerary.start_date, day.day_number),
-    locale
+    locale,
   );
 
   return (

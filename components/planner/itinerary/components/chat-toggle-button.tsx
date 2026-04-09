@@ -8,10 +8,7 @@
 
 import type { ChatToggleButtonProps } from "../types";
 
-export function ChatToggleButton({
-  onToggleChat,
-  isChatOpen,
-}: ChatToggleButtonProps) {
+export function ChatToggleButton({ onToggleChat, isChatOpen }: ChatToggleButtonProps) {
   if (!onToggleChat) return null;
 
   return (

@@ -30,11 +30,7 @@ vi.mock("next/navigation", () => ({
 
 // Mock DateRangePicker
 vi.mock("@/components/landing/date-range-picker", () => ({
-  DateRangePicker: ({
-    onChange,
-  }: {
-    onChange: (start: Date, end: Date) => void;
-  }) => (
+  DateRangePicker: ({ onChange }: { onChange: (start: Date, end: Date) => void }) => (
     <button
       type="button"
       data-testid="mock-date-picker"
@@ -62,9 +58,7 @@ describe("TripForm - Form Validation", () => {
   it("should accept valid destination", async () => {
     render(<TripForm />);
 
-    const destinationInput = screen.getByPlaceholderText(
-      /destinationPlaceholder/i
-    );
+    const destinationInput = screen.getByPlaceholderText(/destinationPlaceholder/i);
     fireEvent.change(destinationInput, { target: { value: "Tokyo" } });
 
     const submitButton = screen.getByRole("button", {
@@ -73,21 +67,15 @@ describe("TripForm - Form Validation", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(
-        screen.queryByText("Destination is required")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Destination is required")).not.toBeInTheDocument();
     });
   });
 
   it("should handle optional custom preferences", async () => {
     render(<TripForm />);
 
-    const destinationInput = screen.getByPlaceholderText(
-      /destinationPlaceholder/i
-    );
-    const preferencesTextarea = screen.getByPlaceholderText(
-      /preferencesPlaceholder/i
-    );
+    const destinationInput = screen.getByPlaceholderText(/destinationPlaceholder/i);
+    const preferencesTextarea = screen.getByPlaceholderText(/preferencesPlaceholder/i);
 
     // Submit with destination only (no preferences)
     fireEvent.change(destinationInput, { target: { value: "Paris" } });
@@ -99,9 +87,7 @@ describe("TripForm - Form Validation", () => {
 
     // Should not show any validation errors
     await waitFor(() => {
-      expect(
-        screen.queryByText("Destination is required")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Destination is required")).not.toBeInTheDocument();
     });
 
     // Now add preferences and submit again
@@ -112,18 +98,14 @@ describe("TripForm - Form Validation", () => {
 
     // Should still not show validation errors
     await waitFor(() => {
-      expect(
-        screen.queryByText("Destination is required")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText("Destination is required")).not.toBeInTheDocument();
     });
   });
 
   it("should validate date selection", async () => {
     render(<TripForm />);
 
-    const destinationInput = screen.getByPlaceholderText(
-      /destinationPlaceholder/i
-    );
+    const destinationInput = screen.getByPlaceholderText(/destinationPlaceholder/i);
 
     // Fill in destination but leave dates empty
     fireEvent.change(destinationInput, { target: { value: "Tokyo" } });

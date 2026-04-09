@@ -2,10 +2,7 @@ import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { checkChatRateLimit } from "../_shared/rate-limit.ts";
-import {
-  parseJsonRequest,
-  unauthorizedResponse,
-} from "../_shared/request-guards.ts";
+import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
 import { createClient } from "npm:@supabase/supabase-js";
 import { z } from "npm:zod";
 
@@ -15,32 +12,34 @@ const ChatRequestSchema = z.object({
     z.object({
       role: z.enum(["user", "assistant"]),
       content: z.string(),
-    })
+    }),
   ),
-  itinerary_context: z.object({
-    id: z.string(),
-    title: z.string(),
-    destination: z.string(),
-    start_date: z.string(),
-    end_date: z.string(),
-    days: z.array(
-      z.object({
-        day_number: z.number().int().min(1),
-        activities: z.array(
-          z.object({
-            id: z.string(),
-            time: z.string(),
-            title: z.string(),
-            note: z.string(),
-            location: z.object({
-              name: z.string(),
+  itinerary_context: z
+    .object({
+      id: z.string(),
+      title: z.string(),
+      destination: z.string(),
+      start_date: z.string(),
+      end_date: z.string(),
+      days: z.array(
+        z.object({
+          day_number: z.number().int().min(1),
+          activities: z.array(
+            z.object({
+              id: z.string(),
+              time: z.string(),
+              title: z.string(),
+              note: z.string(),
+              location: z.object({
+                name: z.string(),
+              }),
+              duration_minutes: z.number().int().positive(),
             }),
-            duration_minutes: z.number().int().positive(),
-          })
-        ),
-      })
-    ),
-  }).optional(),
+          ),
+        }),
+      ),
+    })
+    .optional(),
 });
 
 type ChatRequest = z.infer<typeof ChatRequestSchema>;
@@ -50,7 +49,7 @@ type ChatRequest = z.infer<typeof ChatRequestSchema>;
  */
 function buildChatPrompt(
   message: string,
-  itineraryContext?: ChatRequest["itinerary_context"]
+  itineraryContext?: ChatRequest["itinerary_context"],
 ): string {
   let prompt = `You are a helpful travel planning assistant. The user is planning a trip and may ask you to modify their itinerary, suggest activities, or answer questions about their travel plans.
 
@@ -207,7 +206,11 @@ Deno.serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: req.headers.get("Authorization")! } } }
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      },
     );
 
     // TODO: Fetch daily limit from subscription table
@@ -234,7 +237,10 @@ Deno.serve(async (req) => {
           error: "Internal Error checking rate limit. Please try again later.",
           code: "RATE_LIMIT_ERROR",
         }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -244,7 +250,10 @@ Deno.serve(async (req) => {
           error: "Daily chat limit exceeded",
           code: "RATE_LIMIT_EXCEEDED",
         }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -323,7 +332,7 @@ Deno.serve(async (req) => {
       {
         status: isTransientError ? 503 : 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      },
     );
   }
 });

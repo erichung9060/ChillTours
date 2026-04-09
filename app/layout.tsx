@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 /**
  * Root Layout
- * 
+ *
  * This is the root layout that wraps all routes.
  * The [locale] layout will handle locale-specific configuration.
  */

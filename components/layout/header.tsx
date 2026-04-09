@@ -29,10 +29,7 @@ export function Header() {
             {user ? (
               <div className="flex items-center gap-3">
                 <Link href="/itineraries">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                  >
+                  <Button variant="ghost" size="sm">
                     {t("myItineraries")}
                   </Button>
                 </Link>

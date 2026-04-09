@@ -29,7 +29,7 @@ describe("Data Model Validation Properties", () => {
           });
           expect(result.success).toBe(false);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -51,7 +51,7 @@ describe("Data Model Validation Properties", () => {
           });
           expect(result.success).toBe(false);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -71,7 +71,7 @@ describe("Data Model Validation Properties", () => {
           });
           expect(result.success).toBe(false);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -91,7 +91,7 @@ describe("Data Model Validation Properties", () => {
           });
           expect(result.success).toBe(false);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -108,16 +108,14 @@ describe("Data Model Validation Properties", () => {
           // This test verifies the schema allows it (application validation is separate)
           expect(result.success).toBe(true);
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
     test("UserProfileSchema rejects invalid email format", () => {
       fc.assert(
         fc.property(
-          fc
-            .string({ minLength: 1, maxLength: 50 })
-            .filter((s) => !s.includes("@")),
+          fc.string({ minLength: 1, maxLength: 50 }).filter((s) => !s.includes("@")),
           (invalidEmail) => {
             const result = UserProfileSchema.safeParse({
               id: crypto.randomUUID(),
@@ -130,9 +128,9 @@ describe("Data Model Validation Properties", () => {
               updated_at: new Date().toISOString(),
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });
@@ -141,10 +139,7 @@ describe("Data Model Validation Properties", () => {
     test("LocationSchema validates latitude bounds", () => {
       fc.assert(
         fc.property(
-          fc.oneof(
-            fc.double({ min: -1000, max: -90.1 }),
-            fc.double({ min: 90.1, max: 1000 })
-          ),
+          fc.oneof(fc.double({ min: -1000, max: -90.1 }), fc.double({ min: 90.1, max: 1000 })),
           (invalidLat) => {
             const result = LocationSchema.safeParse({
               name: "Test Location",
@@ -152,19 +147,16 @@ describe("Data Model Validation Properties", () => {
               lng: 0,
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
     test("LocationSchema validates longitude bounds", () => {
       fc.assert(
         fc.property(
-          fc.oneof(
-            fc.double({ min: -1000, max: -180.1 }),
-            fc.double({ min: 180.1, max: 1000 })
-          ),
+          fc.oneof(fc.double({ min: -1000, max: -180.1 }), fc.double({ min: 180.1, max: 1000 })),
           (invalidLng) => {
             const result = LocationSchema.safeParse({
               name: "Test Location",
@@ -172,9 +164,9 @@ describe("Data Model Validation Properties", () => {
               lng: invalidLng,
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -199,19 +191,16 @@ describe("Data Model Validation Properties", () => {
               order: 0,
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
     test("ActivitySchema validates duration bounds", () => {
       fc.assert(
         fc.property(
-          fc.oneof(
-            fc.integer({ min: -1000, max: 0 }),
-            fc.integer({ min: 481, max: 1000 })
-          ),
+          fc.oneof(fc.integer({ min: -1000, max: 0 }), fc.integer({ min: 481, max: 1000 })),
           (invalidDuration) => {
             const result = ActivitySchema.safeParse({
               id: crypto.randomUUID(),
@@ -227,9 +216,9 @@ describe("Data Model Validation Properties", () => {
               order: 0,
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
@@ -271,17 +260,14 @@ describe("Data Model Validation Properties", () => {
             expect(result.success).toBe(false);
           }
         }),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
 
     test("DaySchema validates day_number bounds", () => {
       fc.assert(
         fc.property(
-          fc.oneof(
-            fc.integer({ min: -1000, max: 0 }),
-            fc.integer({ min: 31, max: 1000 })
-          ),
+          fc.oneof(fc.integer({ min: -1000, max: 0 }), fc.integer({ min: 31, max: 1000 })),
           (invalidDayNumber) => {
             const result = DaySchema.safeParse({
               day_number: invalidDayNumber,
@@ -289,9 +275,9 @@ describe("Data Model Validation Properties", () => {
               activities: [],
             });
             expect(result.success).toBe(false);
-          }
+          },
         ),
-        { numRuns: 100 }
+        { numRuns: 100 },
       );
     });
   });

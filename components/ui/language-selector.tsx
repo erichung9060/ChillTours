@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useLocale } from 'next-intl';
-import { useRouter, usePathname } from '@/lib/i18n/navigation';
-import { locales, localeNames, type Locale } from '@/lib/i18n/config';
-import { useTransition, useState, useRef, useEffect } from 'react';
+import { useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/lib/i18n/navigation";
+import { locales, localeNames, type Locale } from "@/lib/i18n/config";
+import { useTransition, useState, useRef, useEffect } from "react";
 
 export function LanguageSelector() {
   const locale = useLocale();
@@ -28,8 +28,8 @@ export function LanguageSelector() {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
@@ -41,11 +41,9 @@ export function LanguageSelector() {
         aria-expanded={isOpen}
         className="h-9 px-3 rounded-lg bg-background hover:bg-accent hover:text-accent-foreground border border-input text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 min-w-[100px] justify-center dark:border-border/50 dark:hover:border-border dark:hover:bg-accent/50 hover:-translate-y-0.5 dark:hover:shadow-md dark:hover:shadow-primary/10"
       >
-        <span className={isPending ? 'opacity-50' : ''}>
-          {localeNames[locale as Locale]}
-        </span>
+        <span className={isPending ? "opacity-50" : ""}>{localeNames[locale as Locale]}</span>
         <svg
-          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -62,8 +60,8 @@ export function LanguageSelector() {
               onClick={() => handleLanguageChange(loc)}
               className={`w-full px-4 py-3 text-left text-sm font-medium transition-all duration-150 ${
                 locale === loc
-                  ? 'bg-primary text-primary-foreground'
-                  : 'hover:bg-accent hover:text-accent-foreground text-foreground'
+                  ? "bg-primary text-primary-foreground"
+                  : "hover:bg-accent hover:text-accent-foreground text-foreground"
               }`}
             >
               {localeNames[loc]}

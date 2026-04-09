@@ -12,21 +12,23 @@ export const optionalCoordinateArb = fc.oneof(
     lat: fc.double({ min: -90, max: 90, noNaN: true }),
     lng: fc.double({ min: -180, max: 180, noNaN: true }),
   }),
-  fc.constant({})
+  fc.constant({}),
 );
 
 /**
  * Arbitrary for generating valid location data
  */
-export const locationArbitrary = fc.record({
-  name: fc.string({ minLength: 1, maxLength: 100 }),
-  place_id: fc.option(fc.string(), { nil: undefined }),
-}).chain((base) =>
-  optionalCoordinateArb.map((coords) => ({
-    ...base,
-    ...coords,
-  }))
-);
+export const locationArbitrary = fc
+  .record({
+    name: fc.string({ minLength: 1, maxLength: 100 }),
+    place_id: fc.option(fc.string(), { nil: undefined }),
+  })
+  .chain((base) =>
+    optionalCoordinateArb.map((coords) => ({
+      ...base,
+      ...coords,
+    })),
+  );
 
 /**
  * Arbitrary for generating valid activity data
@@ -39,9 +41,8 @@ export const activityArbitrary = fc.record({
       fc
         .integer({ min: 0, max: 59 })
         .map(
-          (minute) =>
-            `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        )
+          (minute) => `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`,
+        ),
     ),
   title: fc.string({ minLength: 1, maxLength: 100 }),
   note: fc.string({ minLength: 1, maxLength: 500 }),

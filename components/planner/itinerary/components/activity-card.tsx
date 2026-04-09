@@ -94,11 +94,11 @@ export function ActivityCard({
               <span className="truncate">{activity.location.name}</span>
             </Button>
 
-            {typeof activity.location.rating === 'number' && (
+            {typeof activity.location.rating === "number" && (
               <div className="flex items-center gap-1 text-[11px] mb-2 pl-1 select-none">
                 <span className="font-medium">{activity.location.rating.toFixed(1)}</span>
                 <Star className="h-3 w-3 fill-yellow-400 text-yellow-400 -mt-[1px]" />
-                {typeof activity.location.user_ratings_total === 'number' && (
+                {typeof activity.location.user_ratings_total === "number" && (
                   <span className="text-muted-foreground ml-0.5">
                     ({activity.location.user_ratings_total.toLocaleString()})
                   </span>
@@ -107,9 +107,7 @@ export function ActivityCard({
             )}
 
             {activity.note && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                📝 {activity.note}
-              </p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">📝 {activity.note}</p>
             )}
 
             <div className="flex items-center gap-3 text-xs text-muted-foreground">

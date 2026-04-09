@@ -25,10 +25,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useLocale } from "next-intl";
 import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
-import {
-  getMapProvider,
-  getConfiguredProviderType,
-} from "@/lib/maps/provider-factory";
+import { getMapProvider, getConfiguredProviderType } from "@/lib/maps/provider-factory";
 import { hasValidCoordinates } from "@/lib/utils/geo";
 import { PIN_CONFIGS } from "@/lib/maps/pin-icons";
 import { useItineraryStore } from "./itinerary/store";
@@ -41,11 +38,7 @@ interface MapPanelProps {
   onActivityClick?: (activityId: string) => void;
 }
 
-export function MapPanel({
-  itinerary,
-  selectedDayNumber,
-  onActivityClick,
-}: MapPanelProps) {
+export function MapPanel({ itinerary, selectedDayNumber, onActivityClick }: MapPanelProps) {
   // Get the map provider (abstraction layer)
   const providerType = getConfiguredProviderType();
   const locale = useLocale();
@@ -55,9 +48,7 @@ export function MapPanel({
   const hoveredActivityId = useItineraryStore((s) => s.hoveredActivityId);
   const focusedActivityId = useItineraryStore((s) => s.focusedActivityId);
 
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(
-    null
-  );
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
 
   // Collect all activities with their day numbers (memoized to prevent unnecessary re-renders)
   const allActivities = useMemo<ActivityWithDay[]>(
@@ -66,15 +57,15 @@ export function MapPanel({
         day.activities.map((activity) => ({
           ...activity,
           dayNumber: day.day_number,
-        }))
+        })),
       ),
-    [itinerary]
+    [itinerary],
   );
 
   // Filter to only activities with valid coordinates for map rendering
   const mappableActivities = useMemo<ActivityWithDay[]>(
     () => allActivities.filter((a) => hasValidCoordinates(a.location)),
-    [allActivities]
+    [allActivities],
   );
 
   // Calculate highlighted activities for highlighting and smart zoom (memoized)
@@ -99,7 +90,7 @@ export function MapPanel({
       // Reuse the same logic: check if activity is in highlightedActivities
       return highlightedActivities.some((target) => target.id === activity.id);
     },
-    [highlightedActivities]
+    [highlightedActivities],
   );
 
   // Determine marker icon based on highlight state (using provider abstraction)
@@ -107,9 +98,7 @@ export function MapPanel({
     (activity: ActivityWithDay) => {
       const mapProvider = getMapProvider();
       const isHighlighted = isActivityHighlighted(activity);
-      const config = isHighlighted
-        ? PIN_CONFIGS.highlighted
-        : PIN_CONFIGS.default;
+      const config = isHighlighted ? PIN_CONFIGS.highlighted : PIN_CONFIGS.default;
 
       // Use provider to create marker icon
       return mapProvider.createMarkerIcon({
@@ -117,7 +106,7 @@ export function MapPanel({
         size: { width: config.width, height: config.height },
       });
     },
-    [isActivityHighlighted]
+    [isActivityHighlighted],
   );
 
   const handleMarkerClick = useCallback(
@@ -125,7 +114,7 @@ export function MapPanel({
       setSelectedActivity(activity);
       onActivityClick?.(activity.id);
     },
-    [onActivityClick]
+    [onActivityClick],
   );
 
   const handleInfoWindowClose = useCallback(() => {
@@ -141,9 +130,7 @@ export function MapPanel({
   const rendererProps = {
     activities: mappableActivities,
     selectedActivity,
-    highlightedActivities: highlightedActivities.filter((a) =>
-      hasValidCoordinates(a.location)
-    ),
+    highlightedActivities: highlightedActivities.filter((a) => hasValidCoordinates(a.location)),
     focusedActivityId,
     onMarkerClick: handleMarkerClick,
     onInfoWindowClose: handleInfoWindowClose,

@@ -121,7 +121,7 @@ export function MapboxMapRenderer({
 
     // Focus takes priority — always flyTo and open Popup
     if (focusedActivityId) {
-      const target = activities.find(a => a.id === focusedActivityId);
+      const target = activities.find((a) => a.id === focusedActivityId);
       if (!target) return;
 
       mapRef.current.flyTo({
@@ -141,10 +141,7 @@ export function MapboxMapRenderer({
 
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
-        !isLocationVisible(
-          activity.location.lat as number,
-          activity.location.lng as number
-        )
+        !isLocationVisible(activity.location.lat as number, activity.location.lng as number),
     );
 
     if (!hasInvisibleActivity) return;
@@ -171,7 +168,14 @@ export function MapboxMapRenderer({
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
-  }, [focusedActivityId, highlightedActivities, isLoaded, activities, isLocationVisible, onMarkerClick]);
+  }, [
+    focusedActivityId,
+    highlightedActivities,
+    isLoaded,
+    activities,
+    isLocationVisible,
+    onMarkerClick,
+  ]);
 
   if (loadError || !mapboxToken) {
     return (
@@ -205,7 +209,7 @@ export function MapboxMapRenderer({
   }
 
   // Convert locale to Mapbox language code (e.g., 'zh-TW' -> 'zh-Hant')
-  const mapboxLanguage = locale === 'zh-TW' ? 'zh-Hant' : locale.split('-')[0];
+  const mapboxLanguage = locale === "zh-TW" ? "zh-Hant" : locale.split("-")[0];
 
   return (
     <Map

@@ -19,10 +19,7 @@ import type { Activity } from "@/types/itinerary";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {
-  createActivityFormSchema,
-  type ActivityFormValues,
-} from "@/types/forms";
+import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface EditActivityDialogProps {
   activity: Activity;
@@ -32,11 +29,7 @@ interface EditActivityDialogProps {
 
 type Step = "edit" | "confirm-delete";
 
-export function EditActivityDialog({
-  activity,
-  isOpen,
-  onClose,
-}: EditActivityDialogProps) {
+export function EditActivityDialog({ activity, isOpen, onClose }: EditActivityDialogProps) {
   const t = useTranslations("planner.editDialog");
   const tv = useTranslations();
   const updateActivity = useItineraryStore((state) => state.updateActivity);
@@ -209,9 +202,7 @@ export function EditActivityDialog({
                 <AlertTriangle className="h-5 w-5" />
                 {t("confirmDeleteTitle")}
               </DialogTitle>
-              <DialogDescription>
-                {t("confirmDeleteDescription")}
-              </DialogDescription>
+              <DialogDescription>{t("confirmDeleteDescription")}</DialogDescription>
             </DialogHeader>
 
             <div className="my-4 rounded-md border border-destructive/30 bg-destructive/5 p-4">
@@ -221,16 +212,10 @@ export function EditActivityDialog({
               </p>
             </div>
 
-            <p className="text-sm text-muted-foreground">
-              {t("confirmDeleteNote")}
-            </p>
+            <p className="text-sm text-muted-foreground">{t("confirmDeleteNote")}</p>
 
             <DialogFooter className="mt-6 gap-2">
-              <Button
-                variant="outline"
-                onClick={handleBackToEdit}
-                disabled={isSaving}
-              >
+              <Button variant="outline" onClick={handleBackToEdit} disabled={isSaving}>
                 {t("cancelDelete")}
               </Button>
               <Button

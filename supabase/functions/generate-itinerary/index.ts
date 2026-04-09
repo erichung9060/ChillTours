@@ -3,10 +3,7 @@ import { JSONParser } from "npm:@streamparser/json";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
-import {
-  parseJsonRequest,
-  unauthorizedResponse,
-} from "../_shared/request-guards.ts";
+import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
 
 import { z } from "npm:zod";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
@@ -68,8 +65,14 @@ Deno.serve(async (req) => {
 
     if (fetchError || !itineraryRow) {
       return new Response(
-        JSON.stringify({ error: "Itinerary not found or forbidden", code: "NOT_FOUND" }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Itinerary not found or forbidden",
+          code: "NOT_FOUND",
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -97,27 +100,56 @@ Deno.serve(async (req) => {
 
       if (currentRow?.status === "generating") {
         return new Response(
-          JSON.stringify({ error: "Generation already in progress", code: "ALREADY_GENERATING" }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Generation already in progress",
+            code: "ALREADY_GENERATING",
+          }),
+          {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       if (currentRow?.status === "completed") {
         return new Response(
-          JSON.stringify({ error: "Itinerary already generated", code: "ALREADY_COMPLETED" }),
-          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: "Itinerary already generated",
+            code: "ALREADY_COMPLETED",
+          }),
+          {
+            status: 409,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
         );
       }
 
       // Unknown error
-      console.error("Failed to start generation:", updateError, "Current status:", currentRow?.status);
+      console.error(
+        "Failed to start generation:",
+        updateError,
+        "Current status:",
+        currentRow?.status,
+      );
       return new Response(
-        JSON.stringify({ error: "Failed to start generation", code: "UPDATE_FAILED" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Failed to start generation",
+          code: "UPDATE_FAILED",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
       );
     }
 
-    const prompt = buildItineraryPrompt(destination, startDate, endDate, preferences ?? undefined, locale);
+    const prompt = buildItineraryPrompt(
+      destination,
+      startDate,
+      endDate,
+      preferences ?? undefined,
+      locale,
+    );
 
     const stream = new ReadableStream({
       async start(controller) {
@@ -136,19 +168,34 @@ Deno.serve(async (req) => {
         }
 
         // Track days and activities for DB save
-        const dayMap = new Map<number, {
-          day_number: number;
-          activities: object[];
-        }>();
+        const dayMap = new Map<
+          number,
+          {
+            day_number: number;
+            activities: object[];
+          }
+        >();
 
         // Track async resolution tasks before saving
         const pendingResolutions: Promise<void>[] = [];
 
         // @streamparser/json: fire onValue for each complete activity object
         // paths: ["$.itinerary.*.activities.*"] means each activity in each day
-        const parser = new JSONParser({ paths: ["$.itinerary.*.activities.*"] });
+        const parser = new JSONParser({
+          paths: ["$.itinerary.*.activities.*"],
+        });
 
-        parser.onValue = ({ value, key, parent, stack }: { value: unknown; key: unknown; parent: unknown; stack: unknown }) => {
+        parser.onValue = ({
+          value,
+          key,
+          parent,
+          stack,
+        }: {
+          value: unknown;
+          key: unknown;
+          parent: unknown;
+          stack: unknown;
+        }) => {
           const activity = value as {
             time: string;
             title: string;
@@ -190,28 +237,40 @@ Deno.serve(async (req) => {
           // Resolve place info asynchronously before emitting SSE
           const resolveTask = (async () => {
             try {
-              const resolvedData = await resolvePlacesInfo([{
-                id: activityWithId.id,
-                name: activityWithId.location.name,
-              }]);
-              
+              const resolvedData = await resolvePlacesInfo([
+                {
+                  id: activityWithId.id,
+                  name: activityWithId.location.name,
+                },
+              ]);
+
               if (resolvedData.length > 0) {
                 const resolved = resolvedData[0];
                 activityWithId.location = {
                   name: resolved.name || activityWithId.location.name,
                   ...(resolved.lat !== undefined && { lat: resolved.lat }),
                   ...(resolved.lng !== undefined && { lng: resolved.lng }),
-                  ...(resolved.place_id !== undefined && { place_id: resolved.place_id }),
-                  ...(resolved.rating !== undefined && { rating: resolved.rating }),
-                  ...(resolved.user_ratings_total !== undefined && { user_ratings_total: resolved.user_ratings_total }),
-                  ...(resolved.website !== undefined && { website: resolved.website }),
-                  ...(resolved.opening_hours !== undefined && { opening_hours: resolved.opening_hours }),
+                  ...(resolved.place_id !== undefined && {
+                    place_id: resolved.place_id,
+                  }),
+                  ...(resolved.rating !== undefined && {
+                    rating: resolved.rating,
+                  }),
+                  ...(resolved.user_ratings_total !== undefined && {
+                    user_ratings_total: resolved.user_ratings_total,
+                  }),
+                  ...(resolved.website !== undefined && {
+                    website: resolved.website,
+                  }),
+                  ...(resolved.opening_hours !== undefined && {
+                    opening_hours: resolved.opening_hours,
+                  }),
                 };
               }
             } catch (err) {
               console.error("Place resolution failed for", activityWithId.location.name, err);
             }
-            
+
             // Emit SSE only after (conditional) resolution completes
             emitSSE("activity", {
               day_number,
@@ -240,7 +299,7 @@ Deno.serve(async (req) => {
               // Look for the start of JSON
               const jsonStartIndex = accumulatedText.indexOf("{");
               if (jsonStartIndex === -1) continue;
-              
+
               // Found JSON, extract from start and mark as started
               jsonStarted = true;
               accumulatedText = accumulatedText.substring(jsonStartIndex);
@@ -248,7 +307,7 @@ Deno.serve(async (req) => {
 
             // Remove markdown code fences (both ``` and ```json)
             const cleaned = accumulatedText.replace(/```(?:json)?/gi, "");
-            
+
             // Only write the new content to parser
             if (cleaned) {
               parser.write(cleaned);
@@ -279,14 +338,18 @@ Deno.serve(async (req) => {
               .eq("id", itinerary_id);
             emitSSE("error", { message: "Internal server error" });
             if (!clientDisconnected) {
-              try { controller.close(); } catch (e) { }
+              try {
+                controller.close();
+              } catch (e) {}
             }
             return;
           }
 
           emitSSE("complete", {});
           if (!clientDisconnected) {
-            try { controller.close(); } catch (e) { }
+            try {
+              controller.close();
+            } catch (e) {}
           }
         } catch (error) {
           console.error("Streaming error:", error);
@@ -298,7 +361,9 @@ Deno.serve(async (req) => {
 
           emitSSE("error", { message: "Internal server error" });
           if (!clientDisconnected) {
-            try { controller.close(); } catch (e) { }
+            try {
+              controller.close();
+            } catch (e) {}
           }
         }
       },
@@ -309,14 +374,14 @@ Deno.serve(async (req) => {
         ...corsHeaders,
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        Connection: "keep-alive",
       },
     });
   } catch (error) {
     console.error("Handler error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

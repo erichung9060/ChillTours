@@ -30,7 +30,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
           "dark:hover:bg-destructive/[0.15]",
           // Animation on mount
           "animate-in fade-in-0 slide-in-from-top-2 duration-300",
-          className
+          className,
         )}
         role="alert"
         {...props}
@@ -42,7 +42,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
                 "rounded-lg bg-destructive/10 p-1.5",
                 "dark:bg-destructive/20",
                 "transition-all duration-200",
-                "group-hover:scale-110"
+                "group-hover:scale-110",
               )}
             >
               <svg
@@ -79,7 +79,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
                   "underline underline-offset-4",
                   "transition-all duration-200",
                   "hover:translate-x-1",
-                  "focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1"
+                  "focus:outline-none focus:ring-2 focus:ring-destructive/50 rounded px-1",
                 )}
               >
                 {t("retry")} →
@@ -89,7 +89,7 @@ const ErrorMessage = React.forwardRef<HTMLDivElement, ErrorMessageProps>(
         </div>
       </div>
     );
-  }
+  },
 );
 
 ErrorMessage.displayName = "ErrorMessage";

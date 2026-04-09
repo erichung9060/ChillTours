@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @keyframes bounce-high {
-
   0%,
   100% {
     transform: translateY(0);
@@ -135,7 +134,6 @@
 @utility animate-in {
   animation: dialog-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
 
 /* 修正 Mapbox 關閉按鈕尺寸 (因 Tailwind reset) */
 .mapboxgl-popup-close-button {

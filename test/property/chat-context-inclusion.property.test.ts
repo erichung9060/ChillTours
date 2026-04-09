@@ -1,9 +1,6 @@
 import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import {
-  itineraryArbitrary,
-  chatMessageArbitrary,
-} from "../utils/property-test-helpers";
+import { itineraryArbitrary, chatMessageArbitrary } from "../utils/property-test-helpers";
 
 /**
  * Property-based tests for chat context inclusion
@@ -21,7 +18,7 @@ import {
 function buildChatRequest(
   message: string,
   history: Array<{ role: string; content: string }>,
-  context: any
+  context: any,
 ): {
   message: string;
   history: Array<{ role: string; content: string }>;
@@ -46,7 +43,7 @@ describe("Chat Context Inclusion Properties", () => {
           const request = buildChatRequest(
             message,
             history.map((msg) => ({ role: msg.role, content: msg.content })),
-            null
+            null,
           );
 
           // Property: Request should include message
@@ -62,9 +59,9 @@ describe("Chat Context Inclusion Properties", () => {
             expect(msg.role).toBe(history[index].role);
             expect(msg.content).toBe(history[index].content);
           });
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
@@ -79,7 +76,7 @@ describe("Chat Context Inclusion Properties", () => {
           const request = buildChatRequest(
             message,
             history.map((msg) => ({ role: msg.role, content: msg.content })),
-            itinerary
+            itinerary,
           );
 
           // Property: Request should include itinerary context
@@ -101,13 +98,11 @@ describe("Chat Context Inclusion Properties", () => {
           request.context.days.forEach((day: any, dayIndex: number) => {
             expect(day.day_number).toBe(itinerary.days[dayIndex].day_number);
             expect(Array.isArray(day.activities)).toBe(true);
-            expect(day.activities.length).toBe(
-              itinerary.days[dayIndex].activities.length
-            );
+            expect(day.activities.length).toBe(itinerary.days[dayIndex].activities.length);
           });
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 
@@ -121,7 +116,7 @@ describe("Chat Context Inclusion Properties", () => {
           const request = buildChatRequest(
             message,
             history.map((msg) => ({ role: msg.role, content: msg.content })),
-            null
+            null,
           );
 
           // Property: History order should be preserved
@@ -132,9 +127,9 @@ describe("Chat Context Inclusion Properties", () => {
 
           // Property: No messages should be lost
           expect(request.history.length).toBe(history.length);
-        }
+        },
       ),
-      { numRuns: 20 }
+      { numRuns: 20 },
     );
   });
 });

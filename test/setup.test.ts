@@ -11,7 +11,7 @@ describe("Test Infrastructure Setup", () => {
       fc.property(fc.integer(), (n) => {
         return n + 0 === n;
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -23,8 +23,7 @@ describe("Test Infrastructure Setup", () => {
   });
 
   it("should have access to property test helpers", async () => {
-    const { itineraryArbitrary } =
-      await import("./utils/property-test-helpers");
+    const { itineraryArbitrary } = await import("./utils/property-test-helpers");
     expect(itineraryArbitrary).toBeDefined();
   });
 });

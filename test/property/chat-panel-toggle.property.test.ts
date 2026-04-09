@@ -28,7 +28,7 @@ describe("Chat Panel Toggle Property Tests", () => {
         const doubleToggled = !toggledState;
         expect(doubleToggled).toBe(initialState);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -48,12 +48,11 @@ describe("Chat Panel Toggle Property Tests", () => {
           // Verify final state based on toggle count
           // Even number of toggles = back to initial state
           // Odd number of toggles = opposite of initial state
-          const expectedState =
-            toggleCount % 2 === 0 ? initialState : !initialState;
+          const expectedState = toggleCount % 2 === 0 ? initialState : !initialState;
           expect(currentState).toBe(expectedState);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -66,7 +65,7 @@ describe("Chat Panel Toggle Property Tests", () => {
 
         expect(doubleToggled).toBe(state);
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -89,9 +88,9 @@ describe("Chat Panel Toggle Property Tests", () => {
             // Each transition should be to a valid state
             expect(typeof nextState).toBe("boolean");
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -115,9 +114,9 @@ describe("Chat Panel Toggle Property Tests", () => {
 
           // Results should be identical
           expect(state1).toBe(state2);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -148,12 +147,11 @@ describe("Chat Panel Toggle Property Tests", () => {
           }
 
           // Verify the result is deterministic
-          const expectedState =
-            toggleCount % 2 === 0 ? initialState : !initialState;
+          const expectedState = toggleCount % 2 === 0 ? initialState : !initialState;
           expect(finalState).toBe(expectedState);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

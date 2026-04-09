@@ -10,13 +10,7 @@
 
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { useRouter } from "@/lib/i18n/navigation";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase, signOut as supabaseSignOut } from "@/lib/supabase/client";

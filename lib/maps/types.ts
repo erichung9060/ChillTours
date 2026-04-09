@@ -63,10 +63,7 @@ export interface MapProvider {
   /**
    * Create a marker icon
    */
-  createMarkerIcon(config: {
-    color: string;
-    size: { width: number; height: number };
-  }): MarkerIcon;
+  createMarkerIcon(config: { color: string; size: { width: number; height: number } }): MarkerIcon;
 }
 
 /**

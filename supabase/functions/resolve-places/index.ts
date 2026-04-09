@@ -2,10 +2,7 @@ import { z } from "npm:zod";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
-import {
-  parseJsonRequest,
-  unauthorizedResponse,
-} from "../_shared/request-guards.ts";
+import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
 
 // ──────────────────────────────────────────────
 // Request / Response schemas

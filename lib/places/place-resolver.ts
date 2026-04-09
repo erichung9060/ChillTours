@@ -26,9 +26,7 @@ export interface PartialLocation {
  * @param location - Partial location (typically just a name)
  * @returns Location with full place details (unknown fields are omitted)
  */
-export async function resolvePlaceDetails(
-  location: PartialLocation
-): Promise<Location> {
+export async function resolvePlaceDetails(location: PartialLocation): Promise<Location> {
   try {
     const token = await getAccessToken();
     const id = crypto.randomUUID();

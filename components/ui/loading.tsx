@@ -20,7 +20,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
         className={cn(
           "flex flex-col items-center justify-center gap-3",
           "animate-in fade-in-0 zoom-in-95 duration-300",
-          className
+          className,
         )}
         {...props}
       >
@@ -31,7 +31,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
               "absolute inset-0 rounded-full",
               "dark:bg-primary/20 dark:blur-md",
               "animate-pulse",
-              sizeClasses[size]
+              sizeClasses[size],
             )}
           />
           {/* Spinner */}
@@ -41,7 +41,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
               "border-primary/30 border-t-primary",
               "dark:border-primary/40 dark:border-t-primary",
               "transition-all duration-300",
-              sizeClasses[size]
+              sizeClasses[size],
             )}
             role="status"
             aria-label="Loading"
@@ -55,7 +55,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
             className={cn(
               "text-sm text-muted-foreground font-medium",
               "animate-pulse",
-              "transition-all duration-300"
+              "transition-all duration-300",
             )}
           >
             {text}
@@ -63,7 +63,7 @@ const Loading = React.forwardRef<HTMLDivElement, LoadingProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Loading.displayName = "Loading";

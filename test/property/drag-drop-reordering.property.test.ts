@@ -11,10 +11,7 @@
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { calculateDragOverUpdate } from "@/components/planner/itinerary/utils/drag-handlers";
-import {
-  itineraryArbitrary,
-  activityArbitrary,
-} from "@/test/utils/property-test-helpers";
+import { itineraryArbitrary, activityArbitrary } from "@/test/utils/property-test-helpers";
 import type { Itinerary, Activity } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 
@@ -27,7 +24,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
     overId: string,
     activeDayNumber: number,
     overDayNumber: number,
-    isEmpty: boolean = false
+    isEmpty: boolean = false,
   ): { active: Active; over: Over } => {
     const active: Active = {
       id: activeId,
@@ -82,7 +79,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
       fc.string({ minLength: 1, maxLength: 100 }), // title
       fc.string({ minLength: 1, maxLength: 100 }), // destination
       fc.integer({ min: 1, max: 30 }), // day_number
-      fc.array(activityArbitrary, { minLength: 2, maxLength: 10 }) // activities
+      fc.array(activityArbitrary, { minLength: 2, maxLength: 10 }), // activities
     )
     .map(([id, user_id, title, destination, day_number, activities]) => {
       // Ensure activities have sequential order
@@ -136,7 +133,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           // Perform the drag operation
@@ -145,7 +142,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           // Verify result is not null
@@ -159,15 +156,11 @@ describe("Drag-Drop Reordering Property Tests", () => {
             expect(newActivities.length).toBe(activities.length);
 
             // Find the moved activity in the new list
-            const movedActivity = newActivities.find(
-              (a) => a.id === sourceActivity.id
-            );
+            const movedActivity = newActivities.find((a) => a.id === sourceActivity.id);
             expect(movedActivity).toBeDefined();
 
             // Verify the activity is at or near the target position
-            const newIndex = newActivities.findIndex(
-              (a) => a.id === sourceActivity.id
-            );
+            const newIndex = newActivities.findIndex((a) => a.id === sourceActivity.id);
             expect(newIndex).not.toBe(sourceIdx);
 
             // Verify all activities have sequential order values
@@ -180,9 +173,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
             const newIds = new Set(newActivities.map((a) => a.id));
             expect(newIds).toEqual(originalIds);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -207,7 +200,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -215,7 +208,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
@@ -226,9 +219,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
               expect(newActivities[i].order).toBe(i);
             }
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -253,7 +246,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -261,26 +254,22 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
             const originalIds = activities.map((a) => a.id).sort();
-            const newIds = result.newItinerary.days[0].activities
-              .map((a) => a.id)
-              .sort();
+            const newIds = result.newItinerary.days[0].activities.map((a) => a.id).sort();
 
             // Verify same set of activity IDs
             expect(newIds).toEqual(originalIds);
 
             // Verify count is the same
-            expect(result.newItinerary.days[0].activities.length).toBe(
-              activities.length
-            );
+            expect(result.newItinerary.days[0].activities.length).toBe(activities.length);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -312,31 +301,24 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
-          calculateDragOverUpdate(
-            active,
-            over,
-            active.data.current,
-            over.data.current,
-            itinerary
-          );
+          calculateDragOverUpdate(active, over, active.data.current, over.data.current, itinerary);
 
           // Verify original itinerary structure was not mutated
           // Check that activity count hasn't changed
-          expect(itinerary.days[0].activities.length).toBe(
-            originalActivityCount
-          );
+          expect(itinerary.days[0].activities.length).toBe(originalActivityCount);
 
           // Check that order values haven't changed in original
-          const currentActivityOrders = itinerary.days[0].activities.map(
-            (a) => ({ id: a.id, order: a.order })
-          );
+          const currentActivityOrders = itinerary.days[0].activities.map((a) => ({
+            id: a.id,
+            order: a.order,
+          }));
           expect(currentActivityOrders).toEqual(originalActivityOrders);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -361,7 +343,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -369,14 +351,12 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
             const newActivities = result.newItinerary.days[0].activities;
-            const newIndex = newActivities.findIndex(
-              (a) => a.id === sourceActivity.id
-            );
+            const newIndex = newActivities.findIndex((a) => a.id === sourceActivity.id);
 
             // Verify the activity moved from its original position
             expect(newIndex).not.toBe(sourceIdx);
@@ -385,9 +365,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
             expect(newIndex).toBeGreaterThanOrEqual(0);
             expect(newIndex).toBeLessThan(newActivities.length);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -412,7 +392,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -420,7 +400,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
@@ -430,9 +410,9 @@ describe("Drag-Drop Reordering Property Tests", () => {
             // Verify the day number hasn't changed
             expect(result.newItinerary.days[0].day_number).toBe(day.day_number);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -457,7 +437,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -465,14 +445,12 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           if (result) {
             const newActivities = result.newItinerary.days[0].activities;
-            const movedActivity = newActivities.find(
-              (a) => a.id === sourceActivity.id
-            );
+            const movedActivity = newActivities.find((a) => a.id === sourceActivity.id);
 
             expect(movedActivity).toBeDefined();
 
@@ -481,18 +459,14 @@ describe("Drag-Drop Reordering Property Tests", () => {
               expect(movedActivity.id).toBe(sourceActivity.id);
               expect(movedActivity.time).toBe(sourceActivity.time);
               expect(movedActivity.title).toBe(sourceActivity.title);
-              expect(movedActivity.note).toBe(
-                sourceActivity.note
-              );
+              expect(movedActivity.note).toBe(sourceActivity.note);
               expect(movedActivity.location).toEqual(sourceActivity.location);
-              expect(movedActivity.duration_minutes).toBe(
-                sourceActivity.duration_minutes
-              );
+              expect(movedActivity.duration_minutes).toBe(sourceActivity.duration_minutes);
             }
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -512,7 +486,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
           firstActivity.id,
           lastActivity.id,
           day.day_number,
-          day.day_number
+          day.day_number,
         );
 
         const result = calculateDragOverUpdate(
@@ -520,16 +494,14 @@ describe("Drag-Drop Reordering Property Tests", () => {
           over,
           active.data.current,
           over.data.current,
-          itinerary
+          itinerary,
         );
 
         if (result) {
           const newActivities = result.newItinerary.days[0].activities;
 
           // Verify the activity moved
-          const newIndex = newActivities.findIndex(
-            (a) => a.id === firstActivity.id
-          );
+          const newIndex = newActivities.findIndex((a) => a.id === firstActivity.id);
           expect(newIndex).not.toBe(0);
 
           // Verify all activities have valid order
@@ -538,7 +510,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
           });
         }
       }),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -563,7 +535,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           // Perform the same drag operation twice
@@ -572,7 +544,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           const result2 = calculateDragOverUpdate(
@@ -580,14 +552,14 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           // Results should be identical
           expect(result1).toEqual(result2);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -612,7 +584,7 @@ describe("Drag-Drop Reordering Property Tests", () => {
             sourceActivity.id,
             targetActivity.id,
             day.day_number,
-            day.day_number
+            day.day_number,
           );
 
           const result = calculateDragOverUpdate(
@@ -620,15 +592,15 @@ describe("Drag-Drop Reordering Property Tests", () => {
             over,
             active.data.current,
             over.data.current,
-            itinerary
+            itinerary,
           );
 
           // Valid drag operations should always produce a result
           expect(result).not.toBeNull();
           expect(result).toBeDefined();
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });

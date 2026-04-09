@@ -14,7 +14,17 @@ import type { PanelHeaderProps } from "../types";
 import { EditMetadataDialog } from "./edit-metadata-dialog";
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Pencil, Maximize, Minimize, Loader2, Cloud, CloudOff, Plus, Undo2, Redo2 } from "lucide-react";
+import {
+  Pencil,
+  Maximize,
+  Minimize,
+  Loader2,
+  Cloud,
+  CloudOff,
+  Plus,
+  Undo2,
+  Redo2,
+} from "lucide-react";
 import { formatDateDisplay } from "@/lib/utils/date";
 import { useItineraryStore } from "../store";
 import { useRouter } from "@/lib/i18n/navigation";
@@ -77,7 +87,10 @@ export function PanelHeader({
               <span>{t("saving")}</span>
             </div>
           ) : saveError ? (
-            <div className="flex items-center gap-1.5 ml-2 text-xs text-destructive shrink-0" title="Saving failed or offline">
+            <div
+              className="flex items-center gap-1.5 ml-2 text-xs text-destructive shrink-0"
+              title="Saving failed or offline"
+            >
               <CloudOff className="h-3 w-3" />
               <span>{t("error")}</span>
             </div>
@@ -128,9 +141,10 @@ export function PanelHeader({
             variant={isAddingActivity ? "default" : "ghost"}
             size="sm"
             onClick={() => setIsAddingActivity(!isAddingActivity)}
-            className={`h-8 w-8 p-0 shrink-0 ${isAddingActivity
-              ? "bg-primary text-primary-foreground hover:bg-primary/90"
-              : "text-muted-foreground hover:text-foreground"
+            className={`h-8 w-8 p-0 shrink-0 ${
+              isAddingActivity
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "text-muted-foreground hover:text-foreground"
             }`}
             title="Add Activity"
           >
@@ -170,11 +184,7 @@ export function PanelHeader({
           className="hidden md:flex h-8 w-8 p-0 shrink-0"
           title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
         >
-          {isFullscreen ? (
-            <Minimize className="h-4 w-4" />
-          ) : (
-            <Maximize className="h-4 w-4" />
-          )}
+          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
         </Button>
       </div>
 

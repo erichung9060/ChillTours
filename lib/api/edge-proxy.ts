@@ -9,7 +9,7 @@ function createErrorResponse(status: number, error: string, code: string): Respo
 
 export async function validateEdgeProxyRequest<T>(
   request: Request,
-  schema: z.ZodType<T>
+  schema: z.ZodType<T>,
 ): Promise<{ authHeader: string; data: T } | Response> {
   const authHeader = request.headers.get("authorization");
   if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader.trim())) {

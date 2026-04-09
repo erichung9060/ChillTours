@@ -31,7 +31,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
                 error,
               "dark:hover:border-destructive/70": error,
             },
-            className
+            className,
           )}
           ref={ref}
           {...props}
@@ -40,7 +40,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p
             className={cn(
               "mt-1.5 text-sm transition-colors duration-200",
-              error ? "text-destructive" : "text-muted-foreground"
+              error ? "text-destructive" : "text-muted-foreground",
             )}
           >
             {helperText}
@@ -48,7 +48,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
 Textarea.displayName = "Textarea";

@@ -23,10 +23,7 @@ describe("Day Section Expand/Collapse Property Tests", () => {
   /**
    * Simulates the toggleDay function from ItineraryPanel
    */
-  const toggleDay = (
-    expandedDays: Set<number>,
-    dayNumber: number
-  ): Set<number> => {
+  const toggleDay = (expandedDays: Set<number>, dayNumber: number): Set<number> => {
     const next = new Set(expandedDays);
     if (next.has(dayNumber)) {
       next.delete(dayNumber);
@@ -57,9 +54,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
               expect(newExpandedDays.has(otherDay)).toBe(true);
             }
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -75,9 +72,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
 
           // Should return to original state
           expect(toggledTwice).toEqual(initialExpandedDays);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -100,13 +97,11 @@ describe("Day Section Expand/Collapse Property Tests", () => {
           // Even number of toggles = back to initial state
           // Odd number of toggles = opposite of initial state
           const expectedExpanded =
-            toggleCount % 2 === 0
-              ? wasInitiallyExpanded
-              : !wasInitiallyExpanded;
+            toggleCount % 2 === 0 ? wasInitiallyExpanded : !wasInitiallyExpanded;
           expect(currentExpandedDays.has(dayNumber)).toBe(expectedExpanded);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -127,9 +122,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
 
           // Verify the other day's state is unchanged
           expect(newExpandedDays.has(otherDay)).toBe(otherDayWasExpanded);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -150,9 +145,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
             // Verify each transition is valid (opposite state)
             expect(afterToggle).toBe(!beforeToggle);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -176,9 +171,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
 
           // Results should be identical
           expect(result1).toEqual(result2);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -236,9 +231,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
           } else {
             expect(newSize).toBe(initialSize + 1);
           }
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -260,9 +255,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
 
           // Results should be identical (commutative)
           expect(result1).toEqual(result2);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 
@@ -291,9 +286,9 @@ describe("Day Section Expand/Collapse Property Tests", () => {
 
           // Exactly one day should have changed
           expect(changedCount).toBe(1);
-        }
+        },
       ),
-      { numRuns: 100 }
+      { numRuns: 100 },
     );
   });
 });
