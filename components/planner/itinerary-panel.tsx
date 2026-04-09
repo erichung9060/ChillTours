@@ -95,11 +95,6 @@ export function ItineraryPanel({
   // Global mouse tracking for add activity mode
   useGlobalAddModeTracking();
 
-  // Early return if no itinerary loaded
-  if (!itinerary) {
-    return null;
-  }
-
   // View mode state
   const [internalViewMode, setInternalViewMode] =
     useState<ViewMode>("side-by-side");
@@ -108,9 +103,7 @@ export function ItineraryPanel({
 
   // UI state
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [expandedDays, setExpandedDays] = useState<Set<number>>(
-    new Set(itinerary.days.map((day) => day.day_number))
-  );
+  const [collapsedDays, setCollapsedDays] = useState<Set<number>>(() => new Set());
 
   // Configure sensors for drag and drop
   const sensors = useSensors(
@@ -132,9 +125,20 @@ export function ItineraryPanel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isAddingActivity, addingActivityTarget, setIsAddingActivity]);
 
+  // Early return if no itinerary loaded
+  if (!itinerary) {
+    return null;
+  }
+
   // UI handlers
+  const expandedDays = new Set(
+    itinerary.days
+      .map((day) => day.day_number)
+      .filter((dayNumber) => !collapsedDays.has(dayNumber))
+  );
+
   const toggleDay = (dayNumber: number) => {
-    setExpandedDays((prev) => {
+    setCollapsedDays((prev) => {
       const next = new Set(prev);
       if (next.has(dayNumber)) {
         next.delete(dayNumber);
