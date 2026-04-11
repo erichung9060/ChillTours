@@ -30,9 +30,10 @@ const PANEL_PADDING = 35; // Padding inside the panel
 
 // Calculate initial itinerary panel width based on number of days
 const calculateInitialItineraryWidth = (numDays: number): number => {
-  if (typeof window === "undefined") return MIN_ITINERARY_PANEL_WIDTH;
-
-  if (numDays === 0) return MIN_ITINERARY_PANEL_WIDTH;
+  // Return minimum width for SSR or empty itinerary
+  if (typeof window === "undefined" || numDays === 0) {
+    return MIN_ITINERARY_PANEL_WIDTH;
+  }
 
   const windowWidth = window.innerWidth;
   const minMapWidth = Math.max(windowWidth * 0.25, MIN_MAP_PANEL_WIDTH);
