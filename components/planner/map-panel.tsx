@@ -22,7 +22,7 @@
 
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useLocale } from "next-intl";
 import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
 import { getMapProvider, getConfiguredProviderType } from "@/lib/maps/provider-factory";
@@ -34,21 +34,20 @@ import { MapboxMapRenderer } from "./map-renderers/mapbox-map-renderer";
 
 interface MapPanelProps {
   itinerary: Itinerary;
-  selectedDayNumber?: number | null;
-  onActivityClick?: (activityId: string) => void;
 }
 
-export function MapPanel({ itinerary, selectedDayNumber, onActivityClick }: MapPanelProps) {
+export function MapPanel({ itinerary }: MapPanelProps) {
   // Get the map provider (abstraction layer)
   const providerType = getConfiguredProviderType();
   const locale = useLocale();
 
-  // Read hover/focus state directly from store
+  // Read state directly from store
   const hoveredDayNumber = useItineraryStore((s) => s.hoveredDayNumber);
   const hoveredActivityId = useItineraryStore((s) => s.hoveredActivityId);
+  const selectedActivityId = useItineraryStore((s) => s.selectedActivityId);
+  const selectedDayNumber = useItineraryStore((s) => s.selectedDayNumber);
   const focusedActivityId = useItineraryStore((s) => s.focusedActivityId);
-
-  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const setSelectedActivity = useItineraryStore((s) => s.setSelectedActivity);
 
   // Collect all activities with their day numbers (memoized to prevent unnecessary re-renders)
   const allActivities = useMemo<ActivityWithDay[]>(
@@ -68,21 +67,32 @@ export function MapPanel({ itinerary, selectedDayNumber, onActivityClick }: MapP
     [allActivities],
   );
 
+  const visibleActivities = useMemo<ActivityWithDay[]>(() => {
+    if (selectedDayNumber !== null) {
+      return mappableActivities.filter((a) => a.dayNumber === selectedDayNumber);
+    }
+    return mappableActivities;
+  }, [mappableActivities, selectedDayNumber]);
+
+  // Derived selected Activity object for Map Renderer
+  const selectedActivity = useMemo(() => {
+    if (!selectedActivityId) return null;
+    return visibleActivities.find((a) => a.id === selectedActivityId) || null;
+  }, [visibleActivities, selectedActivityId]);
+
   // Calculate highlighted activities for highlighting and smart zoom (memoized)
   const highlightedActivities = useMemo(() => {
-    return allActivities.filter((activity) => {
-      if (hoveredActivityId) {
-        return activity.id === hoveredActivityId;
-      }
-      if (hoveredDayNumber) {
-        return activity.dayNumber === hoveredDayNumber;
-      }
-      if (selectedDayNumber) {
-        return activity.dayNumber === selectedDayNumber;
-      }
-      return false;
-    });
-  }, [allActivities, hoveredActivityId, hoveredDayNumber, selectedDayNumber]);
+    if (selectedActivityId) {
+      return visibleActivities.filter((activity) => activity.id === selectedActivityId);
+    }
+    if (hoveredActivityId) {
+      return visibleActivities.filter((activity) => activity.id === hoveredActivityId);
+    }
+    if (hoveredDayNumber) {
+      return visibleActivities.filter((activity) => activity.dayNumber === hoveredDayNumber);
+    }
+    return [];
+  }, [visibleActivities, selectedActivityId, hoveredActivityId, hoveredDayNumber]);
 
   // Determine if an activity should be highlighted
   const isActivityHighlighted = useCallback(
@@ -111,15 +121,14 @@ export function MapPanel({ itinerary, selectedDayNumber, onActivityClick }: MapP
 
   const handleMarkerClick = useCallback(
     (activity: Activity) => {
-      setSelectedActivity(activity);
-      onActivityClick?.(activity.id);
+      setSelectedActivity(activity.id);
     },
-    [onActivityClick],
+    [setSelectedActivity],
   );
 
   const handleInfoWindowClose = useCallback(() => {
     setSelectedActivity(null);
-  }, []);
+  }, [setSelectedActivity]);
 
   // One-shot: clear focusedActivityId after renderer has handled it
   const handleFocusComplete = useCallback(() => {
@@ -128,9 +137,9 @@ export function MapPanel({ itinerary, selectedDayNumber, onActivityClick }: MapP
 
   // Common props for all renderers
   const rendererProps = {
-    activities: mappableActivities,
+    activities: visibleActivities,
     selectedActivity,
-    highlightedActivities: highlightedActivities.filter((a) => hasValidCoordinates(a.location)),
+    highlightedActivities,
     focusedActivityId,
     onMarkerClick: handleMarkerClick,
     onInfoWindowClose: handleInfoWindowClose,

@@ -65,6 +65,7 @@ export default function PlanningPage() {
   const startStreaming = useItineraryStore((state) => state.startStreaming);
   const startPolling = useItineraryStore((state) => state.startPolling);
   const stopPolling = useItineraryStore((state) => state.stopPolling);
+  const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -78,19 +79,20 @@ export default function PlanningPage() {
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
 
-  // Derived state for selected day in single-day view
-  const selectedDayNumber =
-    viewMode === "single-day" && itinerary ? itinerary.days[currentDayIndex]?.day_number : null;
-
-  // Reset currentDayIndex when switching to single-day mode or when itinerary changes
+  // Store synchronization for map interaction state
   useEffect(() => {
     if (viewMode === "single-day" && itinerary) {
       // Ensure currentDayIndex is within valid range
       if (currentDayIndex >= itinerary.days.length) {
         setCurrentDayIndex(0);
+        setSelectedDay(itinerary.days[0]?.day_number ?? null);
+      } else {
+        setSelectedDay(itinerary.days[currentDayIndex]?.day_number ?? null);
       }
+    } else {
+      setSelectedDay(null);
     }
-  }, [viewMode, itinerary, currentDayIndex]);
+  }, [viewMode, itinerary, currentDayIndex, setSelectedDay]);
 
   // Load itinerary data via Store Action
   useEffect(() => {
@@ -338,7 +340,7 @@ export default function PlanningPage() {
               className="hidden md:flex flex-1 relative bg-muted/20"
               style={{ minWidth: `${MIN_MAP_PANEL_WIDTH}px` }}
             >
-              <MapPanel itinerary={itinerary} selectedDayNumber={selectedDayNumber} />
+              <MapPanel itinerary={itinerary} />
             </div>
           )}
 
