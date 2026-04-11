@@ -44,6 +44,8 @@ interface ItineraryState {
 
   hoveredDayNumber: number | null;
   hoveredActivityId: string | null;
+  selectedDayNumber: number | null;
+  selectedActivityId: string | null;
   focusedActivityId: string | null;
 
   // Add Activity Mode State
@@ -110,6 +112,8 @@ interface ItineraryState {
   // Hover & Focus State Actions
   setHoveredDay: (dayNumber: number | null) => void;
   setHoveredActivity: (activityId: string | null) => void;
+  setSelectedDay: (dayNumber: number | null) => void;
+  setSelectedActivity: (activityId: string | null) => void;
   setFocusedActivity: (activityId: string | null) => void;
 
   // Add Activity Mode Actions
@@ -140,6 +144,8 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   draggingActivityId: null,
   hoveredDayNumber: null,
   hoveredActivityId: null,
+  selectedDayNumber: null,
+  selectedActivityId: null,
   focusedActivityId: null,
   isAddingActivity: false,
   addingActivityTarget: null,
@@ -148,9 +154,28 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   // Basic Setters
   setCrossDayDragInfo: (info) => set({ crossDayDragInfo: info }),
   setDraggingActivityId: (id) => set({ draggingActivityId: id }),
-  setHoveredDay: (dayNumber) => set({ hoveredDayNumber: dayNumber }),
-  setHoveredActivity: (activityId) => set({ hoveredActivityId: activityId }),
-  setFocusedActivity: (activityId) => set({ focusedActivityId: activityId }),
+  setHoveredDay: (dayNumber) => {
+    set({ hoveredDayNumber: dayNumber });
+  },
+  setHoveredActivity: (activityId) => {
+    set({ hoveredActivityId: activityId });
+  },
+  setSelectedDay: (dayNumber) => {
+    set({ selectedDayNumber: dayNumber });
+  },
+  setSelectedActivity: (activityId) => {
+    set({ selectedActivityId: activityId });
+  },
+  setFocusedActivity: (activityId) => {
+    if (activityId) {
+      set({
+        focusedActivityId: activityId,
+        selectedActivityId: activityId,
+      });
+    } else {
+      set({ focusedActivityId: null });
+    }
+  },
   setIsAddingActivity: (flag) =>
     set({
       isAddingActivity: flag,

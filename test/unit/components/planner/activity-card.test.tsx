@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ActivityCard } from "@/components/planner/itinerary/components/activity-card";
 import type { Activity } from "@/types/itinerary";
 
-const createNavigationLinkMock = vi.fn(() => "https://maps.example.com/route");
+const createDirectionsLinkMock = vi.fn(() => "https://maps.example.com/route");
+const createPlaceSearchLinkMock = vi.fn(() => "https://maps.example.com/place");
 
 vi.mock("@/lib/maps/utils", () => ({
-  createNavigationLink: (...args: unknown[]) => createNavigationLinkMock(...args),
+  createDirectionsLink: (...args: unknown[]) => createDirectionsLinkMock(...args),
+  createPlaceSearchLink: (...args: unknown[]) => createPlaceSearchLinkMock(...args),
 }));
 
 vi.mock("@/components/planner/itinerary/components/edit-activity-dialog", () => ({
@@ -18,7 +20,8 @@ describe("ActivityCard", () => {
 
   beforeEach(() => {
     openSpy.mockReset();
-    createNavigationLinkMock.mockClear();
+    createDirectionsLinkMock.mockClear();
+    createPlaceSearchLinkMock.mockClear();
     window.open = openSpy;
   });
 
@@ -41,7 +44,19 @@ describe("ActivityCard", () => {
     fireEvent.click(screen.getByTitle("Open Website"));
 
     expect(openSpy).toHaveBeenCalledWith("https://museum.example.com", "_blank");
-    expect(createNavigationLinkMock).not.toHaveBeenCalled();
+    expect(createDirectionsLinkMock).not.toHaveBeenCalled();
+    expect(createPlaceSearchLinkMock).not.toHaveBeenCalled();
+  });
+
+  it("opens the Google Maps directions link when the location name is clicked", () => {
+    render(<ActivityCard activity={baseActivity} />);
+
+    fireEvent.click(screen.getByTitle("Navigate with Google Maps"));
+
+    expect(createDirectionsLinkMock).toHaveBeenCalledTimes(1);
+    expect(createDirectionsLinkMock).toHaveBeenCalledWith(baseActivity.location);
+    expect(openSpy).toHaveBeenCalledWith("https://maps.example.com/route", "_blank");
+    expect(createPlaceSearchLinkMock).not.toHaveBeenCalled();
   });
 
   it("falls back to navigation link when location.website is missing", () => {
@@ -58,7 +73,9 @@ describe("ActivityCard", () => {
 
     fireEvent.click(screen.getByTitle("Open Website"));
 
-    expect(createNavigationLinkMock).toHaveBeenCalledTimes(1);
-    expect(openSpy).toHaveBeenCalledWith("https://maps.example.com/route", "_blank");
+    expect(createDirectionsLinkMock).not.toHaveBeenCalled();
+    expect(createPlaceSearchLinkMock).toHaveBeenCalledTimes(1);
+    expect(createPlaceSearchLinkMock).toHaveBeenCalledWith({ name: "City Museum" });
+    expect(openSpy).toHaveBeenCalledWith("https://maps.example.com/place", "_blank");
   });
 });

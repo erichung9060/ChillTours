@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Pencil, MapPin, Star } from "lucide-react";
 import type { ActivityCardProps } from "../types";
-import { createNavigationLink } from "@/lib/maps/utils";
+import { createDirectionsLink, createPlaceSearchLink } from "@/lib/maps/utils";
 import { EditActivityDialog } from "./edit-activity-dialog";
 import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 
@@ -27,7 +27,7 @@ export function ActivityCard({
 
   const handleNavigationConfig = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = createNavigationLink(activity.location);
+    const url = createDirectionsLink(activity.location);
     window.open(url, "_blank");
   };
 
@@ -36,7 +36,8 @@ export function ActivityCard({
     if (activity.location.website) {
       window.open(activity.location.website, "_blank");
     } else {
-      handleNavigationConfig(e);
+      const url = createPlaceSearchLink(activity.location);
+      window.open(url, "_blank");
     }
   };
 
