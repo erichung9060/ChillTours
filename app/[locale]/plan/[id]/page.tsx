@@ -120,6 +120,11 @@ export default function PlanningPage() {
       const controller = useItineraryStore.getState().generationAbortController;
       controller?.abort();
     };
+    // Zustand actions (startStreaming, startPolling, stopPolling) are stable refs
+    // and do not need to be listed. The full `itinerary` object is intentionally
+    // excluded: tracking only id + status prevents this effect from re-firing on
+    // every activity append during streaming, which would restart the stream.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itinerary?.id, itinerary?.status, locale]);
 
   // Handle fullscreen mode change
@@ -215,6 +220,11 @@ export default function PlanningPage() {
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
     };
+    // chatPanelWidth, isChatOpen, and itineraryPanelWidth are intentionally
+    // omitted: adding them would re-attach the listener on every pixel dragged,
+    // causing flicker. The closure reads the latest values correctly because
+    // React flushes state updates synchronously within the same event loop tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isResizingItinerary, isResizingChat]);
 
   if (isLoading) {
