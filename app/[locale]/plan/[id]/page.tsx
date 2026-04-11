@@ -75,7 +75,7 @@ export default function PlanningPage() {
     "side-by-side",
   );
   const [selectedDayIndex, setCurrentDayIndex] = useState(0);
-  const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
+  const [userAdjustedWidth, setUserAdjustedWidth] = useState<number | null>(null);
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
@@ -98,13 +98,7 @@ export default function PlanningPage() {
     fetchItinerary(itineraryId);
   }, [itineraryId, fetchItinerary]);
 
-  // Calculate and set itinerary panel width when itinerary is first loaded or days count changes
-  useEffect(() => {
-    if (itinerary) {
-      const initialWidth = calculateInitialItineraryWidth(itinerary.days.length);
-      setItineraryPanelWidth(initialWidth);
-    }
-  }, [itinerary?.days.length]); // Only recalculate when days count changes
+  const itineraryPanelWidth = userAdjustedWidth ?? calculateInitialItineraryWidth(itinerary?.days.length ?? 0);
 
   useEffect(() => {
     if (!itinerary) return;
@@ -147,7 +141,7 @@ export default function PlanningPage() {
           MIN_ITINERARY_PANEL_WIDTH,
           windowWidth - chatPanelWidth - MIN_MAP_PANEL_WIDTH,
         );
-        setItineraryPanelWidth(newItineraryWidth);
+        setUserAdjustedWidth(newItineraryWidth);
 
         // If itinerary is at min and still exceeds, reduce chat width
         if (newItineraryWidth + chatPanelWidth > availableWidthForAll) {
@@ -184,7 +178,7 @@ export default function PlanningPage() {
 
         // Enforce minimum itinerary width and minimum map width
         if (newItineraryWidth >= MIN_ITINERARY_PANEL_WIDTH) {
-          setItineraryPanelWidth(Math.min(newItineraryWidth, maxItineraryWidth));
+          setUserAdjustedWidth(Math.min(newItineraryWidth, maxItineraryWidth));
         }
       }
 
