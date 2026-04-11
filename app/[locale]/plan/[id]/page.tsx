@@ -9,7 +9,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "@/lib/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Header } from "@/components/layout/header";
@@ -74,22 +74,20 @@ export default function PlanningPage() {
   const [viewMode, setViewMode] = useState<"expandable" | "single-day" | "side-by-side">(
     "side-by-side",
   );
-  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+  const [selectedDayIndex, setCurrentDayIndex] = useState(0);
   const [itineraryPanelWidth, setItineraryPanelWidth] = useState(500); // Will be updated after itinerary loads
   const [chatPanelWidth, setChatPanelWidth] = useState(400);
   const [isResizingItinerary, setIsResizingItinerary] = useState(false);
   const [isResizingChat, setIsResizingChat] = useState(false);
 
-  // Store synchronization for map interaction state
+  const currentDayIndex = useMemo(() => {
+    if (!itinerary || selectedDayIndex < itinerary.days.length) return selectedDayIndex;
+    return 0;
+  }, [selectedDayIndex, itinerary]);
+
   useEffect(() => {
     if (viewMode === "single-day" && itinerary) {
-      // Ensure currentDayIndex is within valid range
-      if (currentDayIndex >= itinerary.days.length) {
-        setCurrentDayIndex(0);
-        setSelectedDay(itinerary.days[0]?.day_number ?? null);
-      } else {
-        setSelectedDay(itinerary.days[currentDayIndex]?.day_number ?? null);
-      }
+      setSelectedDay(itinerary.days[currentDayIndex]?.day_number ?? null);
     } else {
       setSelectedDay(null);
     }
