@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -51,8 +51,9 @@ export function EditActivityDialog({ activity, isOpen, onClose }: EditActivityDi
 
   const { isDirty } = form.formState;
 
-  useEffect(() => {
-    if (isOpen) {
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      // Reset to initial state each time the dialog opens
       setStep("edit");
       form.reset({
         title: activity.title,
@@ -61,8 +62,10 @@ export function EditActivityDialog({ activity, isOpen, onClose }: EditActivityDi
         time: activity.time,
         duration: activity.duration_minutes,
       });
+    } else {
+      onClose();
     }
-  }, [activity, isOpen, form]);
+  };
 
   const onSubmit = async (data: ActivityFormValues) => {
     try {
@@ -93,7 +96,7 @@ export function EditActivityDialog({ activity, isOpen, onClose }: EditActivityDi
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
         {step === "edit" ? (
           /* ── Edit Step ── */
