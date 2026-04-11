@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Itinerary, Activity, Day } from "@/types/itinerary";
+import type { Itinerary, Activity } from "@/types/itinerary";
 import type { AccessContext } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";

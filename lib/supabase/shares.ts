@@ -80,7 +80,6 @@ export async function createShare(
 
   const { data, error } = await (supabase
     .from("itinerary_shares")
-    // @ts-ignore - Supabase type inference issue for insert payloads on generated types
     .insert(insertData)
     .select()
     .single() as unknown as Promise<{ data: ShareRow | null; error: any }>);
@@ -132,7 +131,6 @@ export async function updateSharePermission(
 
   const { data, error } = await (supabase
     .from("itinerary_shares")
-    // @ts-ignore - Supabase type inference issue for update payloads on generated types
     .update(updateData)
     .eq("id", shareId)
     .select()
@@ -187,7 +185,6 @@ export async function updateLinkAccess(
 
   const { error } = await (supabase
     .from("itineraries")
-    // @ts-ignore - Supabase type inference issue for update payloads on generated types
     .update(updateData)
     .eq("id", itineraryId) as unknown as Promise<{ error: any }>);
 

@@ -147,7 +147,6 @@ export async function createItineraryMetadata(metadata: {
 
   const { data, error } = await (supabase
     .from("itineraries")
-    // @ts-ignore - Supabase type inference issue with complex Json types
     .insert(insertData)
     .select()
     .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
@@ -192,7 +191,6 @@ async function updateItineraryViaRls(
   const updateData = buildItineraryUpdate(updates);
   const { data, error } = await (supabase
     .from("itineraries")
-    // @ts-ignore - Supabase type inference issue with complex Json types
     .update(updateData)
     .eq("id", id)
     .select()

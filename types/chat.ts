@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Itinerary, ItinerarySchema, DaySchema } from "./itinerary";
+import { ItinerarySchema, DaySchema } from "./itinerary";
 
 // ============================================================================
 // Chat Message Types
