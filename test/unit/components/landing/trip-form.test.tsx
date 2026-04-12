@@ -1,6 +1,28 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { TripForm } from "@/components/landing/trip-form";
+import { ItineraryLimitError } from "@/lib/supabase/itineraries";
+
+const { pushMock, getCurrentUserMock, createItineraryMetadataMock } = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  getCurrentUserMock: vi.fn(),
+  createItineraryMetadataMock: vi.fn(),
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  getCurrentUser: getCurrentUserMock,
+}));
+
+vi.mock("@/lib/supabase/itineraries", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/supabase/itineraries")>(
+    "@/lib/supabase/itineraries",
+  );
+
+  return {
+    ...actual,
+    createItineraryMetadata: createItineraryMetadataMock,
+  };
+});
 
 // Mock auth context
 vi.mock("@/lib/auth/auth-context", () => ({
@@ -15,7 +37,7 @@ vi.mock("@/lib/auth/auth-context", () => ({
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
-    push: vi.fn(),
+    push: pushMock,
     replace: vi.fn(),
     prefetch: vi.fn(),
     back: vi.fn(),
@@ -42,6 +64,11 @@ vi.mock("@/components/landing/date-range-picker", () => ({
 }));
 
 describe("TripForm - Form Validation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getCurrentUserMock.mockResolvedValue(null);
+  });
+
   it("should reject empty destination", async () => {
     render(<TripForm />);
 
@@ -130,5 +157,27 @@ describe("TripForm - Form Validation", () => {
 
     // Note: Full validation flow and i18n error messages are validated by E2E tests
     // in test/validation/zod-i18n-integration.test.ts
+  });
+
+  it("shows a dedicated itinerary-limit error message when the tier cap is reached", async () => {
+    getCurrentUserMock.mockResolvedValue({ id: "user-1" });
+    createItineraryMetadataMock.mockRejectedValue(new ItineraryLimitError());
+
+    render(<TripForm />);
+
+    fireEvent.change(screen.getByPlaceholderText(/destinationPlaceholder/i), {
+      target: { value: "Tokyo" },
+    });
+    fireEvent.click(screen.getByTestId("mock-date-picker"));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /generateButton/i,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("itineraryLimitError")).toBeInTheDocument();
+    });
+    expect(pushMock).not.toHaveBeenCalled();
   });
 });

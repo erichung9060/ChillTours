@@ -44,6 +44,7 @@
       "preferencesPlaceholder": "Budget-friendly foodie tour, hiking spots, vintage shopping...",
       "generateButton": "Generate Free Itinerary",
       "generating": "Generating...",
+      "itineraryLimitError": "You have reached your itinerary limit for the current plan.",
       "createError": "Failed to create itinerary. Please try again.",
       "perfectArrangeButton": "Perfect Arrangement",
       "autoOptimizing": "Optimizing routes..."
@@ -79,7 +80,7 @@
   },
   "auth": {
     "dialogTitle": "ChillTour",
-    "dialogDescription": "Your AI-powered travel companion",
+    "dialogDescription": "Sign in to generate your free personalized itinerary",
     "continueWithGoogle": "Continue with Google",
     "signingIn": "Signing in...",
     "signInError": "Failed to sign in. Please try again.",
@@ -107,7 +108,10 @@
     "loading": "Loading your itinerary...",
     "loadError": "Failed to Load Itinerary",
     "accessError": "Unable to Access Itinerary",
+    "generationError": "Failed to Generate Itinerary",
     "accessErrorMessage": "This itinerary could not be found or you do not have access to it.",
+    "errorInsufficientCredits": "You do not have enough credits to generate this itinerary.",
+    "generationFailed": "Failed to generate itinerary. Please try again.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
     "editDialog": {
@@ -199,7 +203,7 @@
     "error": "Sorry, I encountered an error. Please try again.",
     "errorApplyOperations": "Failed to apply AI suggestions. Please try again.",
     "errorUnauthorized": "Please log in to chat with the AI assistant.",
-    "errorRateLimit": "You have reached your daily chat limit. Please upgrade your plan to continue."
+    "errorInsufficientCredits": "You do not have enough credits to continue this chat."
   },
   "share": {
     "share": "Share",
