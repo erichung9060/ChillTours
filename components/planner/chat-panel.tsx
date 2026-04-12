@@ -139,15 +139,17 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
           }
         }
       } catch (error) {
-        console.error("Chat error:", error);
-
         let errorContent = t("error");
         if (error instanceof ApiError) {
           if (error.code === "UNAUTHORIZED") {
             errorContent = t("errorUnauthorized");
           } else if (error.code === "INSUFFICIENT_CREDITS") {
             errorContent = t("errorInsufficientCredits");
+          } else {
+            console.error("Chat error:", error);
           }
+        } else {
+          console.error("Chat error:", error);
         }
 
         const errorMessage: ChatMessage = {
