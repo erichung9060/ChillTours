@@ -39,7 +39,7 @@ describe("Theme System Property Tests", () => {
       fc.asyncProperty(
         fc.array(themeModeArbitrary, { minLength: 1, maxLength: 10 }),
         async (themeModes) => {
-          let lastTheme = themeModes[themeModes.length - 1];
+          const lastTheme = themeModes[themeModes.length - 1];
 
           // Simulate multiple theme changes
           for (const theme of themeModes) {

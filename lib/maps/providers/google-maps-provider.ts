@@ -8,7 +8,7 @@ import type { MapProvider, MapConfig, MarkerIcon } from "../types";
 import { generatePinIcon } from "../pin-icons";
 
 export class GoogleMapsProvider implements MapProvider {
-  name: "google" = "google";
+  name = "google" as const;
 
   async initialize(_config: MapConfig): Promise<void> {
     // Google Maps initialization is handled by @react-google-maps/api

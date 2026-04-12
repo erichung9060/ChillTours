@@ -12,7 +12,7 @@ import type { MapProvider, MapConfig, MarkerIcon } from "../types";
 import { generatePinIcon } from "../pin-icons";
 
 export class MapboxProvider implements MapProvider {
-  name: "mapbox" = "mapbox";
+  name = "mapbox" as const;
 
   async initialize(_config: MapConfig): Promise<void> {
     // Mapbox initialization would be handled by react-map-gl

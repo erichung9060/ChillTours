@@ -14,7 +14,7 @@
 
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
-import type { Itinerary, Day, Activity } from "@/types";
+import type { Itinerary, Activity } from "@/types";
 import { resolvePlaceDetails } from "@/lib/places/place-resolver";
 import { calculateDayDate } from "@/lib/utils/date";
 import { ensureDayExists } from "@/lib/utils/itinerary";

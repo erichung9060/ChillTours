@@ -45,26 +45,27 @@ export interface UseItineraryChatReturn {
  * ```
  */
 export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const storageKey = `${STORAGE_PREFIX}${itineraryId}`;
 
-  // Load chat history from localStorage on mount or when itineraryId changes
-  useEffect(() => {
-    const key = `${STORAGE_PREFIX}${itineraryId}`;
-
+  const [messages, setMessages] = useState<ChatMessage[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
-      const stored = localStorage.getItem(key);
-      if (stored) {
-        const parsed = JSON.parse(stored) as ChatMessage[];
-        setMessages(parsed);
-      } else {
-        // No existing chat history for this itinerary
-        setMessages([]);
-      }
+      const stored = localStorage.getItem(storageKey);
+      return stored ? (JSON.parse(stored) as ChatMessage[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(storageKey);
+      setMessages(stored ? (JSON.parse(stored) as ChatMessage[]) : []);
     } catch (error) {
       console.error("Failed to load chat history:", error);
       setMessages([]);
     }
-  }, [itineraryId]);
+  }, [storageKey]);
 
   // Save to localStorage helper
   const saveToStorage = useCallback(
