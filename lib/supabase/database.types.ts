@@ -162,29 +162,15 @@ export type Database = {
         };
         Relationships: [];
       };
-      user_chat_usage: {
-        Row: {
-          chat_count: number | null;
-          usage_date: string;
-          user_id: string;
-        };
-        Insert: {
-          chat_count?: number | null;
-          usage_date?: string;
-          user_id: string;
-        };
-        Update: {
-          chat_count?: number | null;
-          usage_date?: string;
-          user_id?: string;
-        };
-        Relationships: [];
-      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
+      deduct_credits: {
+        Args: { p_amount: number; p_user_id: string };
+        Returns: boolean;
+      };
       delete_expired_google_places: { Args: never; Returns: undefined };
       get_public_itinerary: {
         Args: { p_id: string };
@@ -203,14 +189,7 @@ export type Database = {
           user_id: string;
         }[];
       };
-      increment_and_check_chat_limit: {
-        Args: { p_daily_limit: number; p_user_id: string };
-        Returns: boolean;
-      };
-      is_itinerary_owner: {
-        Args: { itinerary_uuid: string };
-        Returns: boolean;
-      };
+      is_itinerary_owner: { Args: { itinerary_uuid: string }; Returns: boolean };
       update_public_itinerary: {
         Args: { p_id: string; p_updates: Json };
         Returns: {
