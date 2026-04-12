@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { Check, Copy, Globe, Loader2, Lock, Share2, Trash2 } from "lucide-react";
 import {
@@ -52,17 +52,7 @@ export function ShareDialog({
   const shareUrl =
     typeof window !== "undefined" ? `${window.location.origin}/plan/${itineraryId}` : "";
 
-  useEffect(() => {
-    if (open) {
-      void fetchSharesData();
-    }
-  }, [open]);
-
-  useEffect(() => {
-    setLinkAccess(initialLinkAccess);
-  }, [initialLinkAccess]);
-
-  async function fetchSharesData() {
+  const fetchSharesData = useCallback(async () => {
     setIsLoading(true);
     try {
       const data = await listShares(itineraryId);
@@ -73,7 +63,17 @@ export function ShareDialog({
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [itineraryId, t]);
+
+  useEffect(() => {
+    if (open) {
+      void fetchSharesData();
+    }
+  }, [open, fetchSharesData]);
+
+  useEffect(() => {
+    setLinkAccess(initialLinkAccess);
+  }, [initialLinkAccess]);
 
   async function handleLinkAccessModeChange(mode: "restricted" | "anyone") {
     setIsSaving(true);
