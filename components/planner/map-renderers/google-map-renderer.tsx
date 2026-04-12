@@ -6,7 +6,7 @@
 
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useMemo } from "react";
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from "@vis.gl/react-google-maps";
 import { useTheme } from "@/hooks/use-theme";
 import type { Activity } from "@/types/itinerary";
@@ -28,13 +28,16 @@ function MapContent({
   selectedActivity,
   onInfoWindowClose,
   onFocusComplete,
-  locale,
 }: MapRendererProps) {
   const map = useMap();
-  const [infoWindowPosition, setInfoWindowPosition] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+
+  const infoWindowPosition = useMemo(() => {
+    if (!selectedActivity) return null;
+    return {
+      lat: selectedActivity.location.lat as number,
+      lng: selectedActivity.location.lng as number,
+    };
+  }, [selectedActivity]);
 
   // Fit bounds when map loads or activities change
   useEffect(() => {
@@ -76,32 +79,25 @@ function MapContent({
     [map],
   );
 
-  // Smart zoom & focus: unified map camera effect
-  // - Focus (click): force panTo + zoom + open InfoWindow, regardless of visibility
-  // - Hover: fitBounds only when highlighted activities are outside viewport
+  // Focus effect — pans & zooms map to focused activity.
   useEffect(() => {
-    if (!map) return;
+    if (!map || !focusedActivityId) return;
 
-    // Focus takes priority — always pan and open InfoWindow
-    if (focusedActivityId) {
-      const target = activities.find((a) => a.id === focusedActivityId);
-      if (!target) return;
+    const target = activities.find((a) => a.id === focusedActivityId);
+    if (!target) return;
 
-      const lat = target.location.lat as number;
-      const lng = target.location.lng as number;
+    map.panTo({
+      lat: target.location.lat as number,
+      lng: target.location.lng as number,
+    });
+    map.setZoom(15);
 
-      map.panTo({ lat, lng });
-      map.setZoom(15);
+    onFocusComplete();
+  }, [map, focusedActivityId, activities, onFocusComplete]);
 
-      setInfoWindowPosition({ lat, lng });
-      onMarkerClick(target);
-
-      onFocusComplete();
-      return;
-    }
-
-    // Hover smart zoom — only when some highlighted activities are off-screen
-    if (highlightedActivities.length === 0) return;
+  // Smart zoom — fitBounds only when highlighted activities are outside viewport
+  useEffect(() => {
+    if (!map || highlightedActivities.length === 0) return;
 
     const hasInvisibleActivity = highlightedActivities.some(
       (activity) =>
@@ -110,20 +106,18 @@ function MapContent({
 
     if (!hasInvisibleActivity) return;
 
-    const locations = highlightedActivities.map((a) => a.location);
-
     try {
       const bounds = new google.maps.LatLngBounds();
-      locations.forEach((location) => {
+      highlightedActivities.forEach((a) => {
         bounds.extend({
-          lat: location.lat as number,
-          lng: location.lng as number,
+          lat: a.location.lat as number,
+          lng: a.location.lng as number,
         });
       });
 
       map.fitBounds(bounds, 100);
 
-      if (locations.length === 1) {
+      if (highlightedActivities.length === 1) {
         const currentZoom = map.getZoom();
         if (currentZoom && currentZoom > 15) {
           map.setZoom(15);
@@ -132,21 +126,16 @@ function MapContent({
     } catch (error) {
       console.error("Error fitting bounds:", error);
     }
-  }, [map, focusedActivityId, highlightedActivities, activities, isLocationVisible, onMarkerClick]);
+  }, [map, highlightedActivities, isLocationVisible]);
 
   const handleMarkerClick = useCallback(
     (activity: Activity) => {
-      setInfoWindowPosition({
-        lat: activity.location.lat as number,
-        lng: activity.location.lng as number,
-      });
       onMarkerClick(activity);
     },
     [onMarkerClick],
   );
 
   const handleInfoWindowCloseClick = useCallback(() => {
-    setInfoWindowPosition(null);
     onInfoWindowClose();
   }, [onInfoWindowClose]);
 
@@ -166,6 +155,7 @@ function MapContent({
             onClick={() => handleMarkerClick(activity)}
             title={activity.title}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element -- marker icons are rendered inside the Maps SDK overlay, next/image is not applicable here */}
             <img
               src={iconData.url}
               width={iconData.width}
