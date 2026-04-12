@@ -10,7 +10,7 @@ import {
 } from "@/lib/supabase/itineraries";
 import { getEffectivePermission } from "@/lib/supabase/shares";
 import { applyOperations, type OperationsUpdate } from "@/lib/ai/operations";
-import { aiClient, AIError } from "@/lib/ai/client";
+import { aiClient, ApiError } from "@/lib/ai/client";
 import { calcDayCount } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
 import { resolvePlaceDetails } from "@/lib/places/place-resolver";
@@ -673,20 +673,24 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } catch (err) {
       // AbortError is expected on cleanup — not a real error
       if (err instanceof Error && err.name === "AbortError") return;
-      if (err instanceof Error && err.message === "ALREADY_GENERATING") {
-        // 發現已經在生成中，平滑切換到 Polling 模式
-        get().startPolling(itineraryId);
-        return;
+      
+      if (err instanceof ApiError) {
+        if (err.code === "ALREADY_GENERATING") {
+          // 發現已經在生成中，平滑切換到 Polling 模式
+          get().startPolling(itineraryId);
+          return;
+        }
+        if (err.code === "INSUFFICIENT_CREDITS") {
+          set({
+            isGenerating: false,
+            errorKind: "runtime",
+            error: "INSUFFICIENT_CREDITS",
+            generationAbortController: null,
+          });
+          return;
+        }
       }
-      if (err instanceof AIError && err.code === "INSUFFICIENT_CREDITS") {
-        set({
-          isGenerating: false,
-          errorKind: "runtime",
-          error: "INSUFFICIENT_CREDITS",
-          generationAbortController: null,
-        });
-        return;
-      }
+      
       console.error("Stream failed:", err);
       set({
         isGenerating: false,
