@@ -15,6 +15,14 @@ export function Header() {
   const { user, signOut } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign-out error:", error);
+    }
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
@@ -55,7 +63,7 @@ export function Header() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => signOut()}
+                  onClick={() => void handleSignOut()}
                   className="text-muted-foreground hover:text-foreground"
                 >
                   {t("signOut")}

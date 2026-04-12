@@ -42,8 +42,7 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Error getting current user:", error);
-    return null;
+    throw error;
   }
 
   return user;
@@ -59,8 +58,7 @@ export async function getCurrentSession() {
   } = await supabase.auth.getSession();
 
   if (error) {
-    console.error("Error getting current session:", error);
-    return null;
+    throw error;
   }
 
   return session;
@@ -79,7 +77,6 @@ export async function signOut() {
   const { error } = await supabase.auth.signOut();
 
   if (error) {
-    console.error("Error signing out:", error);
     throw error;
   }
 
@@ -91,7 +88,6 @@ export async function handleAuthCallback(code: string) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    console.error("Error exchanging code for session:", error);
     throw error;
   }
 
