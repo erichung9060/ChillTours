@@ -17,6 +17,20 @@ export interface PartialLocation {
   lng?: number;
 }
 
+/** Shape of each item returned by the /api/resolve-places endpoint */
+interface ResolvedPlace {
+  id: string;
+  name: string;
+  place_id?: string;
+  lat?: number;
+  lng?: number;
+  rating?: number;
+  user_ratings_total?: number;
+  opening_hours?: Record<string, unknown>;
+  website?: string;
+  error?: string;
+}
+
 /**
  * Resolve complete place details via the backend API proxy (/api/resolve-places).
  *
@@ -55,7 +69,7 @@ export async function resolvePlaceDetails(location: PartialLocation): Promise<Lo
     }
 
     const data = await response.json();
-    const resolved = data.resolved?.find((r: any) => r.id === id);
+    const resolved = (data.resolved as ResolvedPlace[] | undefined)?.find((r) => r.id === id);
 
     if (resolved && !resolved.error) {
       return {
