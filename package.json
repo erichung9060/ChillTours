@@ -12,7 +12,7 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "supabase:gen": "supabase gen types typescript --project-id rkxowkdqkplsqhxivynl > lib/supabase/database.types.ts"
+    "supabase:gen": "supabase gen types typescript --project-id rkxowkdqkplsqhxivynl > lib/supabase/database.types.ts && cp lib/supabase/database.types.ts supabase/functions/_shared/database.types.ts"
   },
   "keywords": [],
   "author": "",
