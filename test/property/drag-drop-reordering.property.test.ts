@@ -11,8 +11,8 @@
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { calculateDragOverUpdate } from "@/components/planner/itinerary/utils/drag-handlers";
-import { itineraryArbitrary, activityArbitrary } from "@/test/utils/property-test-helpers";
-import type { Itinerary, Activity } from "@/types/itinerary";
+import { activityArbitrary } from "@/test/utils/property-test-helpers";
+import type { Itinerary } from "@/types/itinerary";
 import type { Active, Over } from "@dnd-kit/core";
 
 describe("Drag-Drop Reordering Property Tests", () => {

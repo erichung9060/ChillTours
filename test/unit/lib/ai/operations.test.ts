@@ -9,7 +9,7 @@ import { applyOperations, parseOperations } from "@/lib/ai/operations";
 import type { Itinerary } from "@/types";
 
 vi.mock("@/lib/places/place-resolver", () => ({
-  resolvePlaceDetails: vi.fn(async (loc: any) => ({
+  resolvePlaceDetails: vi.fn(async (loc: { name: string; lat?: number; lng?: number }) => ({
     name: loc.name,
     lat: 36.0,
     lng: 140.0,

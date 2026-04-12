@@ -82,7 +82,7 @@ describe("Chat Panel Toggle Property Tests", () => {
 
           // Verify transitions between states
           for (let i = 0; i < stateSequence.length - 1; i++) {
-            const currentState = stateSequence[i];
+            const _currentState = stateSequence[i];
             const nextState = stateSequence[i + 1];
 
             // Each transition should be to a valid state

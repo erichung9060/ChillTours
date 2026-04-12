@@ -206,7 +206,7 @@ describe("Day Section Expand/Collapse Property Tests", () => {
       },
     ];
 
-    for (const { name, initial, dayNumber, expectedExpanded } of testCases) {
+    for (const { name: _name, initial, dayNumber, expectedExpanded } of testCases) {
       const result = toggleDay(initial, dayNumber);
       expect(result.has(dayNumber)).toBe(expectedExpanded);
     }

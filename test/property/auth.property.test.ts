@@ -14,7 +14,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fc from "fast-check";
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient as _createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/database.types";
 
 // Mock Supabase client for testing
@@ -44,7 +44,7 @@ describe("Property 1: Authentication Profile Management", () => {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn(),
       })),
-    } as any;
+    } as unknown as SupabaseClient<Database>;
   });
 
   afterEach(() => {
@@ -72,7 +72,7 @@ describe("Property 1: Authentication Profile Management", () => {
 
           // Mock the auth.getUser response
           vi.mocked(mockSupabase.auth.getUser).mockResolvedValue({
-            data: { user: mockUser as any },
+            data: { user: mockUser as Parameters<typeof mockUser>[0] },
             error: null,
           });
 
@@ -97,7 +97,7 @@ describe("Property 1: Authentication Profile Management", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
           // Get the user
           const {
@@ -151,7 +151,7 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
         // First authentication - get profile
         const { data: profile1 } = await mockSupabase
@@ -196,7 +196,7 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
         // User 1 authenticated, trying to access User 2's profile
         const { data: profile, error } = await mockSupabase
@@ -233,7 +233,7 @@ describe("Property 1: Authentication Profile Management", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
           // Update profile
           const { data: updatedProfile, error } = await mockSupabase
@@ -277,7 +277,7 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
         // Create new profile
         const { data: newProfile } = await mockSupabase
@@ -309,7 +309,7 @@ describe("RLS Policy Tests: Itineraries", () => {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn(),
       })),
-    } as any;
+    } as unknown as SupabaseClient<Database>;
   });
 
   it("should enforce RLS: users can only view their own itineraries", async () => {
@@ -335,7 +335,7 @@ describe("RLS Policy Tests: Itineraries", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
           // User 1 trying to access User 2's itinerary
           const { data: itinerary, error } = await mockSupabase
@@ -381,7 +381,7 @@ describe("RLS Policy Tests: Itineraries", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as any);
+          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
 
           // Create itinerary
           const { data: newItinerary, error } = await mockSupabase

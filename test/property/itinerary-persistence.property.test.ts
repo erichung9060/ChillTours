@@ -18,7 +18,6 @@ import {
   ItineraryUnavailableError,
 } from "@/lib/supabase/itineraries";
 import { supabase } from "@/lib/supabase/client";
-import type { Itinerary } from "@/types/itinerary";
 import { itineraryArbitrary } from "@/test/utils/property-test-helpers";
 
 // Mock Supabase client
@@ -65,7 +64,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(supabase.from).mockImplementation(mockFrom as unknown as typeof supabase.from);
 
         // Load the itinerary
         const result = await loadItinerary(itinerary.id);
@@ -105,7 +104,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(supabase.from).mockImplementation(mockFrom as unknown as typeof supabase.from);
         vi.mocked(supabase.rpc).mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: null,
@@ -114,7 +113,7 @@ describe("Property 22: Itinerary Database Persistence", () => {
               code: "PGRST116",
             },
           }),
-        } as any);
+        } as unknown as ReturnType<typeof supabase.rpc>);
 
         // Attempt to load should throw
         await expect(loadItinerary(nonExistentId)).rejects.toThrow(ItineraryUnavailableError);
@@ -143,7 +142,7 @@ describe("Property 24: Itinerary Deletion", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as any);
+        vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as unknown as typeof supabase.from);
 
         // Delete the itinerary
         await deleteItinerary(itineraryId);
@@ -164,7 +163,7 @@ describe("Property 24: Itinerary Deletion", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockLoadFrom as any);
+        vi.mocked(supabase.from).mockImplementation(mockLoadFrom as unknown as typeof supabase.from);
         vi.mocked(supabase.rpc).mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: null,
@@ -173,7 +172,7 @@ describe("Property 24: Itinerary Deletion", () => {
               code: "PGRST116",
             },
           }),
-        } as any);
+        } as unknown as ReturnType<typeof supabase.rpc>);
 
         // Attempting to load deleted itinerary should throw
         await expect(loadItinerary(itineraryId)).rejects.toThrow(ItineraryUnavailableError);
@@ -198,7 +197,7 @@ describe("Property 24: Itinerary Deletion", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockFrom as any);
+        vi.mocked(supabase.from).mockImplementation(mockFrom as unknown as typeof supabase.from);
 
         // Attempt to delete should throw
         await expect(deleteItinerary(nonExistentId)).rejects.toThrow(ItineraryUnavailableError);
@@ -228,7 +227,7 @@ describe("Property 24: Itinerary Deletion", () => {
             }),
           }));
 
-          vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as any);
+          vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as unknown as typeof supabase.from);
 
           // Delete one itinerary
           await deleteItinerary(itineraryToDelete.id);
@@ -251,7 +250,7 @@ describe("Property 24: Itinerary Deletion", () => {
             }),
           }));
 
-          vi.mocked(supabase.from).mockImplementation(mockListFrom as any);
+          vi.mocked(supabase.from).mockImplementation(mockListFrom as unknown as typeof supabase.from);
 
           // List itineraries
           const list = await listUserItineraries();

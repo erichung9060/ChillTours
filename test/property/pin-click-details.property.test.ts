@@ -8,7 +8,7 @@
  * containing the corresponding location details.
  */
 
-import { describe, it, expect } from "vitest";
+import { describe, it } from "vitest";
 import * as fc from "fast-check";
 import type { Activity, Location } from "@/types/itinerary";
 

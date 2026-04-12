@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import * as fc from "fast-check";
-import type { Itinerary, Day, Activity } from "../../types";
+import type { Itinerary, Day } from "../../types";
 
 /**
  * Property-based tests for itinerary parsing completeness
@@ -25,9 +25,9 @@ function parseItinerary(aiResponse: string): Itinerary | null {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 7);
 
-    const days: Day[] = (parsed.days || []).map((day: any, dayIndex: number) => ({
+    const days: Day[] = (parsed.days || []).map((day: { day_number?: number; activities?: unknown[] }, dayIndex: number) => ({
       day_number: day.day_number || dayIndex + 1,
-      activities: (day.activities || []).map((activity: any, actIndex: number) => ({
+      activities: (day.activities || []).map((activity: { id?: string; time?: string; title?: string; note?: string; location?: { name?: string; lat?: number; lng?: number; place_id?: string }; duration_minutes?: number }, actIndex: number) => ({
         id: activity.id || crypto.randomUUID(),
         time: activity.time || "09:00",
         title: activity.title || "Untitled Activity",
@@ -57,12 +57,12 @@ function parseItinerary(aiResponse: string): Itinerary | null {
       created_at: now,
       updated_at: now,
     };
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
 
-function addDays(date: Date, days: number): string {
+function _addDays(date: Date, days: number): string {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
   return result.toISOString().split("T")[0];

@@ -12,7 +12,7 @@
 import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { itineraryArbitrary, activityArbitrary } from "@/test/utils/property-test-helpers";
-import type { Itinerary, Activity, ActivityWithDay } from "@/types/itinerary";
+import type { Itinerary, ActivityWithDay } from "@/types/itinerary";
 
 describe("Itinerary-Map Synchronization Property Tests", () => {
   /**

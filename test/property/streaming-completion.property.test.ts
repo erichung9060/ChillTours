@@ -10,7 +10,7 @@
  * and stop displaying the typing indicator.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import * as fc from "fast-check";
 import type { ChatMessage } from "@/types/chat";
 

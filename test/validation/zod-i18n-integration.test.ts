@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   createTripFormSchema,
-  createEditMetadataFormSchema,
   createActivityFormSchema,
 } from "@/types/forms";
 

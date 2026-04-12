@@ -4,7 +4,6 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { resolvePlaceDetails } from "@/lib/places/place-resolver";
-import type { PartialLocation } from "@/lib/places/place-resolver";
 
 // Mock Supabase client
 vi.mock("@/lib/supabase/client", () => ({
