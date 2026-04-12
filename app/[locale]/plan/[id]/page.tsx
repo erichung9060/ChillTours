@@ -241,7 +241,12 @@ export default function PlanningPage() {
 
   if (error) {
     const title = errorKind === "access" ? t("accessError") : t("loadError");
-    const message = errorKind === "access" ? t("accessErrorMessage") : error;
+    const message =
+      errorKind === "access"
+        ? t("accessErrorMessage")
+        : error === "INSUFFICIENT_CREDITS"
+          ? t("errorInsufficientCredits")
+          : error;
 
     return (
       <>

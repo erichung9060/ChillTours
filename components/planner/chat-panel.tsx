@@ -145,8 +145,8 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         if (error instanceof AIError) {
           if (error.code === "UNAUTHORIZED") {
             errorContent = t("errorUnauthorized");
-          } else if (error.code === "RATE_LIMIT_EXCEEDED") {
-            errorContent = t("errorRateLimit");
+          } else if (error.code === "INSUFFICIENT_CREDITS") {
+            errorContent = t("errorInsufficientCredits");
           }
         }
 
