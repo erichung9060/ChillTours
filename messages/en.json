@@ -108,6 +108,7 @@
     "loading": "Loading your itinerary...",
     "loadError": "Failed to Load Itinerary",
     "accessError": "Unable to Access Itinerary",
+    "generationError": "Failed to Generate Itinerary",
     "accessErrorMessage": "This itinerary could not be found or you do not have access to it.",
     "errorInsufficientCredits": "You do not have enough credits to generate this itinerary.",
     "generationFailed": "Failed to generate itinerary. Please try again.",

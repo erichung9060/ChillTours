@@ -128,6 +128,18 @@ export default function PlanningPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itinerary?.id, itinerary?.status, locale]);
 
+  const getErrorTitle = () => {
+    switch (errorKind) {
+      case "access":
+        return t("accessError");
+      case "runtime":
+        return t("generationError");
+      case "load":
+      default:
+        return t("loadError");
+    }
+  };
+
   const getErrorMessage = () => {
     if (errorKind === "access") {
       return t("accessErrorMessage");
@@ -139,7 +151,6 @@ export default function PlanningPage() {
       case "LOAD_FAILED":
         return t("loadErrorMessage");
       case "GENERATION_FAILED":
-        return t("generationFailed");
       default:
         return t("generationFailed");
     }
@@ -257,7 +268,7 @@ export default function PlanningPage() {
   }
 
   if (errorCode) {
-    const title = errorKind === "access" ? t("accessError") : t("loadError");
+    const title = getErrorTitle();
     const message = getErrorMessage();
 
     return (
