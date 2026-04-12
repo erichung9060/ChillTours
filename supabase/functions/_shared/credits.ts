@@ -1,4 +1,4 @@
-import { type SupabaseClient } from "npm:@supabase/supabase-js";
+import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 export const CREDIT_COSTS = {
   GENERATE_ITINERARY: 100,
