@@ -8,6 +8,7 @@
  */
 
 import { supabase } from "./client";
+import type { PostgrestError } from "@supabase/supabase-js";
 import type { Itinerary } from "@/types/itinerary";
 import type { AccessContext } from "@/types/share";
 import type { Database } from "./database.types";
@@ -38,15 +39,15 @@ export class ItineraryUnavailableError extends Error {
   }
 }
 
-function isNoRowError(error: any): boolean {
-  return error?.code === "PGRST116";
+function isNoRowError(error: unknown): boolean {
+  return (error as { code?: string })?.code === "PGRST116";
 }
 
 /**
  * Convert database row to Itinerary type
  */
 function rowToItinerary(row: ItineraryRow): Itinerary {
-  const data = row.data as any;
+  const data = row.data as unknown as { days?: Itinerary["days"] } | null;
 
   return {
     id: row.id,
@@ -100,7 +101,7 @@ async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
     .rpc("get_public_itinerary", { p_id: id })
     .single() as unknown as Promise<{
     data: ItineraryRow | null;
-    error: any;
+    error: PostgrestError | null;
   }>);
 
   if (error) {
@@ -149,7 +150,7 @@ export async function createItineraryMetadata(metadata: {
     .from("itineraries")
     .insert(insertData)
     .select()
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: PostgrestError | null }>);
 
   if (error) {
     // Check if it's a free tier limit error
@@ -194,7 +195,7 @@ async function updateItineraryViaRls(
     .update(updateData)
     .eq("id", id)
     .select()
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: PostgrestError | null }>);
 
   if (error) {
     console.error("Error updating itinerary via RLS:", error);
@@ -218,7 +219,7 @@ async function updateItineraryViaRpc(
       p_id: id,
       p_updates: updateData,
     })
-    .single() as unknown as Promise<{ data: ItineraryRow | null; error: any }>);
+    .single() as unknown as Promise<{ data: ItineraryRow | null; error: PostgrestError | null }>);
 
   if (error) {
     console.error("Error updating public itinerary via RPC:", error);

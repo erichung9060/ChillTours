@@ -13,6 +13,7 @@
  */
 
 import { supabase } from "./client";
+import type { PostgrestError } from "@supabase/supabase-js";
 import type {
   AccessContext,
   EffectivePermission,
@@ -82,7 +83,7 @@ export async function createShare(
     .from("itinerary_shares")
     .insert(insertData)
     .select()
-    .single() as unknown as Promise<{ data: ShareRow | null; error: any }>);
+    .single() as unknown as Promise<{ data: ShareRow | null; error: PostgrestError | null }>);
 
   if (error) {
     if (error.code === "23505") {
@@ -134,7 +135,7 @@ export async function updateSharePermission(
     .update(updateData)
     .eq("id", shareId)
     .select()
-    .single() as unknown as Promise<{ data: ShareRow | null; error: any }>);
+    .single() as unknown as Promise<{ data: ShareRow | null; error: PostgrestError | null }>);
 
   if (error) {
     if (error.code === "PGRST116") {
@@ -186,7 +187,7 @@ export async function updateLinkAccess(
   const { error } = await (supabase
     .from("itineraries")
     .update(updateData)
-    .eq("id", itineraryId) as unknown as Promise<{ error: any }>);
+    .eq("id", itineraryId) as unknown as Promise<{ error: PostgrestError | null }>);
 
   if (error) {
     console.error("Error updating link access:", error);
@@ -233,7 +234,7 @@ export async function getEffectivePermission(
       .eq("shared_with_email", user.email.toLowerCase())
       .single() as unknown as Promise<{
       data: Pick<ShareRow, "permission"> | null;
-      error: any;
+      error: PostgrestError | null;
     }>);
 
     if (share?.permission === "edit" || share?.permission === "view") {

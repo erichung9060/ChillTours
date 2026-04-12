@@ -8,6 +8,13 @@
 import type { Active, Over } from "@dnd-kit/core";
 import type { Itinerary, Day } from "@/types/itinerary";
 
+/** Shape of data attached to dnd-kit draggable/droppable items */
+export interface DragData {
+  dayNumber: number;
+  isEmpty?: boolean;
+  [key: string]: unknown;
+}
+
 /**
  * Helper to clone a day and its activities array for immutable updates
  */
@@ -28,8 +35,8 @@ const cloneDayInItinerary = (newItinerary: Itinerary, dayIndex: number): Day => 
 interface DragHandlerContext {
   active: Active;
   over: Over;
-  activeData: any;
-  overData: any;
+  activeData: DragData;
+  overData: DragData;
   newItinerary: Itinerary;
   cloneDay: (index: number) => Day;
 }
@@ -169,8 +176,8 @@ export const handleCrossDayDrag = ({
 export const calculateDragOverUpdate = (
   active: Active,
   over: Over,
-  activeData: any,
-  overData: any,
+  activeData: DragData,
+  overData: DragData,
   itinerary: Itinerary,
 ): {
   newItinerary: Itinerary;

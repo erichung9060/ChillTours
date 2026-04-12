@@ -65,7 +65,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
 
   // Validate locale - return 404 for unsupported locales
-  if (!locales.includes(locale as any)) {
+  if (!(locales as readonly string[]).includes(locale)) {
     notFound();
   }
 
