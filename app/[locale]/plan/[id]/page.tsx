@@ -98,7 +98,8 @@ export default function PlanningPage() {
     fetchItinerary(itineraryId);
   }, [itineraryId, fetchItinerary]);
 
-  const itineraryPanelWidth = userAdjustedWidth ?? calculateInitialItineraryWidth(itinerary?.days.length ?? 0);
+  const itineraryPanelWidth =
+    userAdjustedWidth ?? calculateInitialItineraryWidth(itinerary?.days.length ?? 0);
 
   useEffect(() => {
     if (!itinerary) return;
