@@ -1,5 +1,7 @@
+import { type SupabaseClient } from "npm:@supabase/supabase-js";
+
 export async function checkChatRateLimit(
-  supabaseClient: any,
+  supabaseClient: SupabaseClient,
   userId: string,
   dailyLimit: number = 30,
 ): Promise<{ allowed: boolean; error?: string }> {
@@ -15,8 +17,9 @@ export async function checkChatRateLimit(
     }
 
     return { allowed: allowed === true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Unexpected error during rate limit check:", err);
-    return { allowed: false, error: err.message || "Unknown error" };
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return { allowed: false, error: message };
   }
 }
