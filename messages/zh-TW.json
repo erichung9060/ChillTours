@@ -108,6 +108,7 @@
     "loadError": "載入行程失敗",
     "accessError": "無法存取行程",
     "accessErrorMessage": "找不到此行程，或您沒有存取權限。",
+    "errorInsufficientCredits": "您的點數不足，無法產生此行程。",
     "generating": "正在產生您的行程中...",
     "errorUpdateDays": "更新行程順序失敗，請再試一次。",
     "editDialog": {
@@ -199,7 +200,7 @@
     "error": "抱歉，發生錯誤。請重試。",
     "errorApplyOperations": "套用 AI 建議失敗，請再試一次。",
     "errorUnauthorized": "抱歉，您必須先登入才能開始使用 AI 行程助手呦！",
-    "errorRateLimit": "您的對話次數已達到上限了，請升級方案再來找我吧！"
+    "errorInsufficientCredits": "您的點數不足，無法繼續這段對話。"
   },
   "share": {
     "share": "分享",

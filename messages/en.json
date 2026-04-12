@@ -108,6 +108,7 @@
     "loadError": "Failed to Load Itinerary",
     "accessError": "Unable to Access Itinerary",
     "accessErrorMessage": "This itinerary could not be found or you do not have access to it.",
+    "errorInsufficientCredits": "You do not have enough credits to generate this itinerary.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
     "editDialog": {
@@ -199,7 +200,7 @@
     "error": "Sorry, I encountered an error. Please try again.",
     "errorApplyOperations": "Failed to apply AI suggestions. Please try again.",
     "errorUnauthorized": "Please log in to chat with the AI assistant.",
-    "errorRateLimit": "You have reached your daily chat limit. Please upgrade your plan to continue."
+    "errorInsufficientCredits": "You do not have enough credits to continue this chat."
   },
   "share": {
     "share": "Share",
