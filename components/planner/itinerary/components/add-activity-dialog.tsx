@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, useWatch, type Resolver } from "react-hook-form";
 import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface AddActivityDialogProps {
@@ -50,7 +50,7 @@ export function AddActivityDialog({
     },
   });
 
-  const titleValue = form.watch("title");
+  const titleValue = useWatch({ control: form.control, name: "title" });
   const isDirtyLocation = form.getFieldState("locationName").isDirty;
   const { isDirty } = form.formState;
 

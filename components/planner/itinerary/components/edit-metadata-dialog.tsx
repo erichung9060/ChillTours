@@ -19,7 +19,7 @@ import type { Itinerary } from "@/types/itinerary";
 import { AlertTriangle, Trash2 } from "lucide-react";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { createEditMetadataFormSchema, type EditMetadataFormValues } from "@/types/forms";
 import { toast } from "sonner";
 
@@ -83,7 +83,7 @@ export function EditMetadataDialog({
   }, [itinerary, isOpen, form]);
 
   // ─── Derived: how many days will be affected by shrinking ───────────────
-  const watchedDates = form.watch("dates");
+  const watchedDates = useWatch({ control: form.control, name: "dates" });
   const startDate = watchedDates?.from;
   const endDate = watchedDates?.to;
 
