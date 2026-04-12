@@ -1,9 +1,10 @@
 import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { JSONParser } from "npm:@streamparser/json";
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
+import { checkCredits, deductCredits } from "../_shared/credits.ts";
+import { createSupabaseAdminClient, createSupabaseClient } from "../_shared/supabase.ts";
 
 import { z } from "npm:zod";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
@@ -14,22 +15,6 @@ const GenerateRequestSchema = z.object({
 });
 
 type GenerateItineraryRequest = z.infer<typeof GenerateRequestSchema>;
-
-function createSupabaseAdminClient() {
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  return createClient(url, serviceKey);
-}
-
-function createSupabaseClient(authHeader: string) {
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  return createClient(url, anonKey, {
-    global: {
-      headers: { Authorization: authHeader },
-    },
-  });
-}
 
 import { buildItineraryPrompt } from "./prompt.ts";
 
@@ -143,6 +128,41 @@ Deno.serve(async (req) => {
       );
     }
 
+    const { sufficient, error: creditsError } = await checkCredits(
+      supabaseClient,
+      user.userId,
+      "GENERATE_ITINERARY",
+    );
+
+    if (creditsError) {
+      console.error("Credit check error:", creditsError);
+      await supabaseAdmin.from("itineraries").update({ status: "failed" }).eq("id", itinerary_id);
+      return new Response(
+        JSON.stringify({
+          error: "Internal error checking credits",
+          code: "CREDITS_CHECK_ERROR",
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
+    if (!sufficient) {
+      await supabaseAdmin.from("itineraries").update({ status: "failed" }).eq("id", itinerary_id);
+      return new Response(
+        JSON.stringify({
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+        }),
+        {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+
     const prompt = buildItineraryPrompt(
       destination,
       startDate,
@@ -161,7 +181,7 @@ Deno.serve(async (req) => {
           try {
             const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
             controller.enqueue(encoder.encode(message));
-          } catch (e) {
+          } catch {
             console.log("Client disconnected, background generation continuing...");
             clientDisconnected = true;
           }
@@ -185,17 +205,7 @@ Deno.serve(async (req) => {
           paths: ["$.itinerary.*.activities.*"],
         });
 
-        parser.onValue = ({
-          value,
-          key,
-          parent,
-          stack,
-        }: {
-          value: unknown;
-          key: unknown;
-          parent: unknown;
-          stack: unknown;
-        }) => {
+        parser.onValue = ({ value, stack }: { value: unknown; stack: Array<{ key?: number }> }) => {
           const activity = value as {
             time: string;
             title: string;
@@ -218,7 +228,8 @@ Deno.serve(async (req) => {
           // Extract day_number from JSONPath stack
           // stack format: [root, "itinerary", dayIndex, "activities", activityIndex]
           // Each element is a StackElement { key, value, partial }
-          const dayIndex = (stack as any[])[2].key as number;
+          const dayIndex = stack[2]?.key;
+          if (typeof dayIndex !== "number") return;
           const day_number = dayIndex + 1; // Convert 0-based index to 1-based day number
 
           // Add UUID and order
@@ -340,16 +351,24 @@ Deno.serve(async (req) => {
             if (!clientDisconnected) {
               try {
                 controller.close();
-              } catch (e) {}
+              } catch {}
             }
             return;
+          }
+
+          const deduction = await deductCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+          if (!deduction.success) {
+            console.error(
+              "Failed to deduct itinerary generation credits:",
+              deduction.error ?? "insufficient credits",
+            );
           }
 
           emitSSE("complete", {});
           if (!clientDisconnected) {
             try {
               controller.close();
-            } catch (e) {}
+            } catch {}
           }
         } catch (error) {
           console.error("Streaming error:", error);
@@ -363,7 +382,7 @@ Deno.serve(async (req) => {
           if (!clientDisconnected) {
             try {
               controller.close();
-            } catch (e) {}
+            } catch {}
           }
         }
       },

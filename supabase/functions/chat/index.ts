@@ -1,9 +1,9 @@
 import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
-import { checkChatRateLimit } from "../_shared/rate-limit.ts";
+import { checkCredits, deductCredits } from "../_shared/credits.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
-import { createClient } from "npm:@supabase/supabase-js";
+import { createSupabaseAdminClient, createSupabaseClient } from "../_shared/supabase.ts";
 import { z } from "npm:zod";
 
 const ChatRequestSchema = z.object({
@@ -202,40 +202,21 @@ Deno.serve(async (req) => {
       return unauthorizedResponse();
     }
 
-    // Rate Limiting Check
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      },
-    );
+    const supabaseClient = createSupabaseClient(req.headers.get("Authorization")!);
+    const supabaseAdmin = createSupabaseAdminClient();
 
-    // TODO: Fetch daily limit from subscription table
-    // Example:
-    // const { data: subscription } = await supabaseClient
-    //   .from('subscriptions')
-    //   .select('chat_daily_limit')
-    //   .eq('user_id', user.userId)
-    //   .single();
-    // const DAILY_LIMIT = subscription?.chat_daily_limit;
-
-    const { allowed, error: rateLimitError } = await checkChatRateLimit(
+    const { sufficient, error: creditsError } = await checkCredits(
       supabaseClient,
       user.userId,
-      // DAILY_LIMIT
+      "CHAT",
     );
 
-    if (rateLimitError) {
-      console.error("Rate limit check error:", rateLimitError);
-      // Depending on requirements, we might fail open or closed here.
-      // Assuming fail closed for now.
+    if (creditsError) {
+      console.error("Credit check error:", creditsError);
       return new Response(
         JSON.stringify({
-          error: "Internal Error checking rate limit. Please try again later.",
-          code: "RATE_LIMIT_ERROR",
+          error: "Internal error checking credits. Please try again later.",
+          code: "CREDITS_CHECK_ERROR",
         }),
         {
           status: 500,
@@ -244,14 +225,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!allowed) {
+    if (!sufficient) {
       return new Response(
         JSON.stringify({
-          error: "Daily chat limit exceeded",
-          code: "RATE_LIMIT_EXCEEDED",
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
         }),
         {
-          status: 429,
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
@@ -295,6 +276,16 @@ Deno.serve(async (req) => {
             if (text) {
               controller.enqueue(new TextEncoder().encode(text));
             }
+          }
+
+          const deduction = await deductCredits(supabaseAdmin, user.userId, "CHAT");
+          if (!deduction.success) {
+            console.error(
+              "Failed to deduct chat credits:",
+              deduction.error ?? "insufficient credits",
+            );
+            controller.error(new Error("Failed to deduct chat credits"));
+            return;
           }
 
           controller.close();
