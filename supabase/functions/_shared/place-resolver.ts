@@ -1,11 +1,8 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createSupabaseAdminClient } from "./supabase.ts";
 
 const apiKey = Deno.env.get("GOOGLE_MAPS_API_KEY");
 
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-);
+const supabase = createSupabaseAdminClient();
 
 export interface PlaceInput {
   id: string;

@@ -11,7 +11,7 @@ import { TrendingDestinations } from "./trending-destinations";
 import { DateRangePicker } from "./date-range-picker";
 import { LoginDialog } from "@/components/auth/login-dialog";
 import { getCurrentUser } from "@/lib/supabase/client";
-import { createItineraryMetadata } from "@/lib/supabase/itineraries";
+import { createItineraryMetadata, ItineraryLimitError } from "@/lib/supabase/itineraries";
 import { formatLocalDate } from "@/lib/utils/date";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -68,8 +68,12 @@ export function TripForm() {
 
       router.push(`/plan/${itinerary.id}`);
     } catch (error) {
-      console.error("Error creating itinerary:", error);
-      setGeneralError(error instanceof Error ? error.message : t("createError"));
+      if (error instanceof ItineraryLimitError) {
+        setGeneralError(t("itineraryLimitError"));
+      } else {
+        console.error("Error creating itinerary:", error);
+        setGeneralError(t("createError"));
+      }
       setIsLoading(false);
     }
   };

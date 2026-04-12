@@ -1,9 +1,9 @@
 import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
-import { checkChatRateLimit } from "../_shared/rate-limit.ts";
+import { captureCredits, refundCredits } from "../_shared/credits.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
-import { createClient } from "npm:@supabase/supabase-js";
+import { createSupabaseAdminClient } from "../_shared/supabase.ts";
 import { z } from "npm:zod";
 
 const ChatRequestSchema = z.object({
@@ -194,6 +194,10 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let captured = false;
+  let operationId: string | null = null;
+  let userId: string | null = null;
+
   try {
     // 驗證用戶是否已登入
     const user = await verifyUser(req);
@@ -202,60 +206,9 @@ Deno.serve(async (req) => {
       return unauthorizedResponse();
     }
 
-    // Rate Limiting Check
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      },
-    );
+    userId = user.userId;
 
-    // TODO: Fetch daily limit from subscription table
-    // Example:
-    // const { data: subscription } = await supabaseClient
-    //   .from('subscriptions')
-    //   .select('chat_daily_limit')
-    //   .eq('user_id', user.userId)
-    //   .single();
-    // const DAILY_LIMIT = subscription?.chat_daily_limit;
-
-    const { allowed, error: rateLimitError } = await checkChatRateLimit(
-      supabaseClient,
-      user.userId,
-      // DAILY_LIMIT
-    );
-
-    if (rateLimitError) {
-      console.error("Rate limit check error:", rateLimitError);
-      // Depending on requirements, we might fail open or closed here.
-      // Assuming fail closed for now.
-      return new Response(
-        JSON.stringify({
-          error: "Internal Error checking rate limit. Please try again later.",
-          code: "RATE_LIMIT_ERROR",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    if (!allowed) {
-      return new Response(
-        JSON.stringify({
-          error: "Daily chat limit exceeded",
-          code: "RATE_LIMIT_EXCEEDED",
-        }),
-        {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    const supabaseAdmin = createSupabaseAdminClient();
 
     // Parse request body
     const parsed = await parseJsonRequest(req, ChatRequestSchema);
@@ -264,6 +217,46 @@ Deno.serve(async (req) => {
     }
 
     const { message, history, itinerary_context }: ChatRequest = parsed.data;
+    operationId = crypto.randomUUID();
+
+    const capture = await captureCredits(supabaseAdmin, user.userId, "CHAT");
+    if (!capture.success) {
+      if (capture.error) {
+        // Backend/RPC error - return 500
+        console.error(
+          JSON.stringify({
+            action: "CHAT",
+            error: capture.error,
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "capture_failed",
+            user_id: user.userId,
+          }),
+        );
+        return new Response(
+          JSON.stringify({
+            error: "Credit system error. Please try again later.",
+            code: "CREDIT_SYSTEM_ERROR",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+      // Insufficient credits - return 402
+      return new Response(
+        JSON.stringify({
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+        }),
+        {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    captured = true;
 
     const ai = getAIClient();
 
@@ -300,6 +293,23 @@ Deno.serve(async (req) => {
           controller.close();
         } catch (error) {
           console.error("Error during streaming:", error);
+          if (captured) {
+            const refund = await refundCredits(supabaseAdmin, user.userId, "CHAT");
+            if (refund.success) {
+              captured = false;
+            } else {
+              console.error(
+                JSON.stringify({
+                  action: "CHAT",
+                  error: refund.error ?? "refund failed",
+                  event: "credit_event",
+                  operation_id: operationId,
+                  phase: "refund_failed",
+                  user_id: user.userId,
+                }),
+              );
+            }
+          }
           controller.error(error);
         }
       },
@@ -316,6 +326,25 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in chat function:", error);
+
+    if (captured && userId) {
+      const supabaseAdmin = createSupabaseAdminClient();
+      const refund = await refundCredits(supabaseAdmin, userId, "CHAT");
+      if (refund.success) {
+        captured = false;
+      } else {
+        console.error(
+          JSON.stringify({
+            action: "CHAT",
+            error: refund.error ?? "refund failed",
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "refund_failed",
+            user_id: userId,
+          }),
+        );
+      }
+    }
 
     // Implement retry logic for transient errors
     const isTransientError =

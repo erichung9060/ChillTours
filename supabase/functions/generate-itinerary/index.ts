@@ -1,9 +1,10 @@
 import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { JSONParser } from "npm:@streamparser/json";
-import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
+import { captureCredits, refundCredits } from "../_shared/credits.ts";
+import { createSupabaseAdminClient, createSupabaseClient } from "../_shared/supabase.ts";
 
 import { z } from "npm:zod";
 import { resolvePlacesInfo } from "../_shared/place-resolver.ts";
@@ -15,22 +16,6 @@ const GenerateRequestSchema = z.object({
 
 type GenerateItineraryRequest = z.infer<typeof GenerateRequestSchema>;
 
-function createSupabaseAdminClient() {
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  return createClient(url, serviceKey);
-}
-
-function createSupabaseClient(authHeader: string) {
-  const url = Deno.env.get("SUPABASE_URL")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-  return createClient(url, anonKey, {
-    global: {
-      headers: { Authorization: authHeader },
-    },
-  });
-}
-
 import { buildItineraryPrompt } from "./prompt.ts";
 
 Deno.serve(async (req) => {
@@ -38,11 +23,17 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let captured = false;
+  let operationId: string | null = null;
+  let userId: string | null = null;
+  let itineraryId: string | null = null;
+
   try {
     const user = await verifyUser(req);
     if (!user) {
       return unauthorizedResponse();
     }
+    userId = user.userId;
 
     const parsed = await parseJsonRequest(req, GenerateRequestSchema);
     if (parsed instanceof Response) {
@@ -50,6 +41,7 @@ Deno.serve(async (req) => {
     }
 
     const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;
+    itineraryId = itinerary_id;
 
     const ai = getAIClient();
 
@@ -78,9 +70,8 @@ Deno.serve(async (req) => {
 
     const { destination, start_date: startDate, end_date: endDate, preferences } = itineraryRow;
 
-    // Atomic concurrency guard: use conditional update to prevent race conditions
-    // Only allow transition from draft/failed to generating
-    // Using Admin client to bypass RLS for background updates
+    operationId = crypto.randomUUID();
+
     const { data: updateResult, error: updateError } = await supabaseAdmin
       .from("itineraries")
       .update({ status: "generating" })
@@ -90,19 +81,12 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError || !updateResult) {
-      // Update failed — either already generating or already completed
-      // Re-fetch to get current status for accurate error message
-      const { data: currentRow } = await supabaseAdmin
-        .from("itineraries")
-        .select("status")
-        .eq("id", itinerary_id)
-        .single();
-
-      if (currentRow?.status === "generating") {
+      // PGRST116 = no rows matched the WHERE clause → status is not draft/failed (conflict).
+      if (updateError?.code === "PGRST116") {
         return new Response(
           JSON.stringify({
-            error: "Generation already in progress",
-            code: "ALREADY_GENERATING",
+            error: "Cannot start generation: itinerary is not in a startable state",
+            code: "CONFLICT",
           }),
           {
             status: 409,
@@ -111,26 +95,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (currentRow?.status === "completed") {
-        return new Response(
-          JSON.stringify({
-            error: "Itinerary already generated",
-            code: "ALREADY_COMPLETED",
-          }),
-          {
-            status: 409,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      // Unknown error
-      console.error(
-        "Failed to start generation:",
-        updateError,
-        "Current status:",
-        currentRow?.status,
-      );
+      // Any other error code = real DB failure.
+      console.error("Failed to acquire generating lock:", updateError);
       return new Response(
         JSON.stringify({
           error: "Failed to start generation",
@@ -142,6 +108,52 @@ Deno.serve(async (req) => {
         },
       );
     }
+
+    // deduct credits.
+    const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+    if (!capture.success) {
+      // Roll back the status lock so the user can retry.
+      await supabaseAdmin
+        .from("itineraries")
+        .update({ status: "draft" })
+        .eq("id", itinerary_id);
+
+      if (capture.error) {
+        // Backend/RPC error - return 500
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: capture.error,
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "capture_failed",
+            user_id: user.userId,
+          }),
+        );
+        return new Response(
+          JSON.stringify({
+            error: "Credit system error. Please try again later.",
+            code: "CREDIT_SYSTEM_ERROR",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+      // Insufficient credits - return 402
+      return new Response(
+        JSON.stringify({
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+        }),
+        {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    captured = true;
 
     const prompt = buildItineraryPrompt(
       destination,
@@ -161,7 +173,7 @@ Deno.serve(async (req) => {
           try {
             const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
             controller.enqueue(encoder.encode(message));
-          } catch (e) {
+          } catch {
             console.log("Client disconnected, background generation continuing...");
             clientDisconnected = true;
           }
@@ -185,17 +197,7 @@ Deno.serve(async (req) => {
           paths: ["$.itinerary.*.activities.*"],
         });
 
-        parser.onValue = ({
-          value,
-          key,
-          parent,
-          stack,
-        }: {
-          value: unknown;
-          key: unknown;
-          parent: unknown;
-          stack: unknown;
-        }) => {
+        parser.onValue = ({ value, stack }: { value: unknown; stack: Array<{ key?: number }> }) => {
           const activity = value as {
             time: string;
             title: string;
@@ -218,7 +220,8 @@ Deno.serve(async (req) => {
           // Extract day_number from JSONPath stack
           // stack format: [root, "itinerary", dayIndex, "activities", activityIndex]
           // Each element is a StackElement { key, value, partial }
-          const dayIndex = (stack as any[])[2].key as number;
+          const dayIndex = stack[2]?.key;
+          if (typeof dayIndex !== "number") return;
           const day_number = dayIndex + 1; // Convert 0-based index to 1-based day number
 
           // Add UUID and order
@@ -332,24 +335,15 @@ Deno.serve(async (req) => {
 
           if (updateError) {
             console.error("Failed to save itinerary to DB:", updateError);
-            await supabaseAdmin
-              .from("itineraries")
-              .update({ status: "failed" })
-              .eq("id", itinerary_id);
-            emitSSE("error", { message: "Internal server error" });
-            if (!clientDisconnected) {
-              try {
-                controller.close();
-              } catch (e) {}
-            }
-            return;
+            throw updateError;
           }
+          captured = false;
 
           emitSSE("complete", {});
           if (!clientDisconnected) {
             try {
               controller.close();
-            } catch (e) {}
+            } catch {}
           }
         } catch (error) {
           console.error("Streaming error:", error);
@@ -359,11 +353,29 @@ Deno.serve(async (req) => {
             .update({ status: "failed" })
             .eq("id", itinerary_id);
 
+          if (captured) {
+            const refund = await refundCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+            if (refund.success) {
+              captured = false;
+            } else {
+              console.error(
+                JSON.stringify({
+                  action: "GENERATE_ITINERARY",
+                  error: refund.error ?? "refund failed",
+                  event: "credit_event",
+                  operation_id: operationId,
+                  phase: "refund_failed",
+                  user_id: user.userId,
+                }),
+              );
+            }
+          }
+
           emitSSE("error", { message: "Internal server error" });
           if (!clientDisconnected) {
             try {
               controller.close();
-            } catch (e) {}
+            } catch {}
           }
         }
       },
@@ -379,6 +391,32 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("Handler error:", error);
+
+    if (captured && userId) {
+      const supabaseAdmin = createSupabaseAdminClient();
+      if (itineraryId) {
+        await supabaseAdmin
+          .from("itineraries")
+          .update({ status: "failed" })
+          .eq("id", itineraryId);
+      }
+      const refund = await refundCredits(supabaseAdmin, userId, "GENERATE_ITINERARY");
+      if (refund.success) {
+        captured = false;
+      } else {
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: refund.error ?? "refund failed",
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "refund_failed",
+            user_id: userId,
+          }),
+        );
+      }
+    }
+
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

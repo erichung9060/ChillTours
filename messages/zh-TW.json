@@ -44,6 +44,7 @@
       "preferencesPlaceholder": "經濟實惠的美食之旅、登山景點、復古購物...",
       "generateButton": "產生行程",
       "generating": "產生中...",
+      "itineraryLimitError": "您目前方案可建立的行程數量已達上限。",
       "createError": "建立行程失敗。請重試。",
       "perfectArrangeButton": "完美安排",
       "autoOptimizing": "路線優化中..."
@@ -79,7 +80,7 @@
   },
   "auth": {
     "dialogTitle": "ChillTour",
-    "dialogDescription": "您的 AI 旅行夥伴",
+    "dialogDescription": "登入即可免費生成專屬行程",
     "continueWithGoogle": "使用 Google 繼續",
     "signingIn": "登入中...",
     "signInError": "登入失敗，請重試。",
@@ -107,7 +108,10 @@
     "loading": "載入您的行程中...",
     "loadError": "載入行程失敗",
     "accessError": "無法存取行程",
+    "generationError": "行程產生失敗",
     "accessErrorMessage": "找不到此行程，或您沒有存取權限。",
+    "errorInsufficientCredits": "您的點數不足，無法產生此行程。",
+    "generationFailed": "行程產生失敗，請再試一次。",
     "generating": "正在產生您的行程中...",
     "errorUpdateDays": "更新行程順序失敗，請再試一次。",
     "editDialog": {
@@ -199,7 +203,7 @@
     "error": "抱歉，發生錯誤。請重試。",
     "errorApplyOperations": "套用 AI 建議失敗，請再試一次。",
     "errorUnauthorized": "抱歉，您必須先登入才能開始使用 AI 行程助手呦！",
-    "errorRateLimit": "您的對話次數已達到上限了，請升級方案再來找我吧！"
+    "errorInsufficientCredits": "您的點數不足，無法繼續這段對話。"
   },
   "share": {
     "share": "分享",

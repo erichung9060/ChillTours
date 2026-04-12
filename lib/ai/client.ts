@@ -24,15 +24,15 @@ export type SSEActivityEvent = {
 export type SSEErrorEvent = { message: string };
 
 /**
- * Error types for AI API
+ * Error types for API responses
  */
-export class AIError extends Error {
+export class ApiError extends Error {
   constructor(
     message: string,
     public readonly code: string,
   ) {
     super(message);
-    this.name = "AIError";
+    this.name = "ApiError";
   }
 }
 
@@ -77,14 +77,8 @@ export class AIClient {
       }),
       signal,
       async onopen(response) {
-        if (response.status === 409) {
-          throw new Error("ALREADY_GENERATING");
-        }
         if (!response.ok) {
           throw await handleError(response);
-        }
-        if (!response.headers.get("content-type")?.includes("text/event-stream")) {
-          throw new AIError("Invalid content type", "INVALID_CONTENT_TYPE");
         }
       },
       onmessage(msg) {
@@ -113,7 +107,7 @@ export class AIClient {
    * @param options - Chat options
    * @param onChunk - Callback for each streaming chunk
    * @returns AI response message
-   * @throws AIError if chat fails
+   * @throws ApiError if the API responds with an error code
    */
   async chat(
     options: ChatOptions,
@@ -122,10 +116,6 @@ export class AIClient {
     const { message, history, context, locale } = options;
 
     const token = await getAccessToken();
-
-    if (!token) {
-      throw new AIError("Unauthorized. Please log in to use this feature.", "UNAUTHORIZED");
-    }
 
     const response = await fetch("/api/chat", {
       method: "POST",
@@ -149,7 +139,7 @@ export class AIClient {
     }
 
     if (!response.body) {
-      throw new AIError("No response body received", "NO_RESPONSE_BODY");
+      throw new Error("No response body received");
     }
 
     // Stream response
@@ -220,9 +210,8 @@ export class AIClient {
         operations,
       };
     } catch (error) {
-      throw new AIError(
+      throw new Error(
         `Failed to process chat response: ${error instanceof Error ? error.message : "Unknown error"}`,
-        "CHAT_ERROR",
       );
     }
   }
@@ -247,9 +236,9 @@ export class AIClient {
    * Handle error response from API
    *
    * @param response - Fetch response
-   * @returns AIError
+   * @returns ApiError
    */
-  private async handleErrorResponse(response: Response): Promise<AIError> {
+  private async handleErrorResponse(response: Response): Promise<ApiError> {
     let errorMessage = `API request failed with status ${response.status}`;
     let errorCode = "API_ERROR";
 
@@ -261,7 +250,7 @@ export class AIClient {
       // Failed to parse error response, use default message
     }
 
-    return new AIError(errorMessage, errorCode);
+    return new ApiError(errorMessage, errorCode);
   }
 }
 

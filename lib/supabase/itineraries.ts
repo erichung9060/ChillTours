@@ -19,13 +19,15 @@ type ItineraryInsert = Database["public"]["Tables"]["itineraries"]["Insert"];
 type ItineraryUpdate = Database["public"]["Tables"]["itineraries"]["Update"];
 type ItineraryStatus = Itinerary["status"];
 
+const ITINERARY_LIMIT_ERROR_CODE = "IT001";
+
 /**
- * Error thrown when free tier limit is reached
+ * Error thrown when the user's itinerary cap is reached for their current tier.
  */
-export class FreeTierLimitError extends Error {
+export class ItineraryLimitError extends Error {
   constructor() {
-    super("Free tier users can only create 3 itineraries");
-    this.name = "FreeTierLimitError";
+    super("The itinerary limit for this account has been reached");
+    this.name = "ItineraryLimitError";
   }
 }
 
@@ -41,6 +43,10 @@ export class ItineraryUnavailableError extends Error {
 
 function isNoRowError(error: unknown): boolean {
   return (error as { code?: string })?.code === "PGRST116";
+}
+
+function isItineraryLimitPostgrestError(error: PostgrestError): boolean {
+  return error.code === ITINERARY_LIMIT_ERROR_CODE;
 }
 
 /**
@@ -126,7 +132,7 @@ async function loadPublicItineraryViaRpc(id: string): Promise<Itinerary> {
  *
  * @param metadata - The itinerary metadata to save
  * @returns The created itinerary with empty days array
- * @throws FreeTierLimitError if user has reached free tier limit
+ * @throws ItineraryLimitError if user has reached their itinerary limit
  * @throws Error if save fails
  */
 export async function createItineraryMetadata(metadata: {
@@ -153,9 +159,8 @@ export async function createItineraryMetadata(metadata: {
     .single() as unknown as Promise<{ data: ItineraryRow | null; error: PostgrestError | null }>);
 
   if (error) {
-    // Check if it's a free tier limit error
-    if (error.message.includes("Free tier users can only create 3 itineraries")) {
-      throw new FreeTierLimitError();
+    if (isItineraryLimitPostgrestError(error)) {
+      throw new ItineraryLimitError();
     }
 
     console.error("Error creating itinerary metadata:", error);

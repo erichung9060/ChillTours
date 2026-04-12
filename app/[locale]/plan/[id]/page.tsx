@@ -60,7 +60,7 @@ export default function PlanningPage() {
   const fetchItinerary = useItineraryStore((state) => state.fetchItinerary);
   const itinerary = useItineraryStore((state) => state.itinerary);
   const isLoading = useItineraryStore((state) => state.isLoading);
-  const error = useItineraryStore((state) => state.error);
+  const errorCode = useItineraryStore((state) => state.errorCode);
   const errorKind = useItineraryStore((state) => state.errorKind);
   const isGenerating = useItineraryStore((state) => state.isGenerating);
   const startStreaming = useItineraryStore((state) => state.startStreaming);
@@ -127,6 +127,34 @@ export default function PlanningPage() {
     // every activity append during streaming, which would restart the stream.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itinerary?.id, itinerary?.status, locale]);
+
+  const getErrorTitle = () => {
+    switch (errorKind) {
+      case "access":
+        return t("accessError");
+      case "runtime":
+        return t("generationError");
+      case "load":
+      default:
+        return t("loadError");
+    }
+  };
+
+  const getErrorMessage = () => {
+    if (errorKind === "access") {
+      return t("accessErrorMessage");
+    }
+
+    switch (errorCode) {
+      case "INSUFFICIENT_CREDITS":
+        return t("errorInsufficientCredits");
+      case "LOAD_FAILED":
+        return t("loadErrorMessage");
+      case "GENERATION_FAILED":
+      default:
+        return t("generationFailed");
+    }
+  };
 
   // Handle fullscreen mode change
   const handleFullscreenChange = (isFullscreen: boolean) => {
@@ -239,9 +267,9 @@ export default function PlanningPage() {
     );
   }
 
-  if (error) {
-    const title = errorKind === "access" ? t("accessError") : t("loadError");
-    const message = errorKind === "access" ? t("accessErrorMessage") : error;
+  if (errorCode) {
+    const title = getErrorTitle();
+    const message = getErrorMessage();
 
     return (
       <>

@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createSupabaseAnonClient } from "./supabase.ts";
 
 /**
  * 驗證用戶是否已登入
@@ -15,16 +15,7 @@ export async function verifyUser(req: Request): Promise<{ userId: string; email:
 
     const jwt = authHeader.replace("Bearer ", "");
 
-    // 建立 Supabase client（使用 anon key 即可）
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error("❌ Missing Supabase configuration");
-      return null;
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createSupabaseAnonClient();
 
     // 使用 getUser() 驗證 JWT 並取得用戶資訊
     const {

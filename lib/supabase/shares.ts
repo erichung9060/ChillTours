@@ -28,17 +28,6 @@ type ShareInsert = Database["public"]["Tables"]["itinerary_shares"]["Insert"];
 type ShareUpdate = Database["public"]["Tables"]["itinerary_shares"]["Update"];
 type ItineraryUpdate = Database["public"]["Tables"]["itineraries"]["Update"];
 
-// ============================================================================
-// Error Classes
-// ============================================================================
-
-export class ShareNotFoundError extends Error {
-  constructor(id: string) {
-    super(`Share with id ${id} not found`);
-    this.name = "ShareNotFoundError";
-  }
-}
-
 export class ShareAlreadyExistsError extends Error {
   constructor(email: string) {
     super(`Share already exists for ${email}`);
@@ -138,16 +127,12 @@ export async function updateSharePermission(
     .single() as unknown as Promise<{ data: ShareRow | null; error: PostgrestError | null }>);
 
   if (error) {
-    if (error.code === "PGRST116") {
-      throw new ShareNotFoundError(shareId);
-    }
-
     console.error("Error updating share:", error);
     throw new Error(`Failed to update share: ${error.message}`);
   }
 
   if (!data) {
-    throw new ShareNotFoundError(shareId);
+    throw new Error(`Failed to update share: Share with id ${shareId} not found`);
   }
 
   return rowToShare(data);
@@ -161,10 +146,6 @@ export async function deleteShare(shareId: string): Promise<void> {
   const { error } = await supabase.from("itinerary_shares").delete().eq("id", shareId);
 
   if (error) {
-    if (error.code === "PGRST116") {
-      throw new ShareNotFoundError(shareId);
-    }
-
     console.error("Error deleting share:", error);
     throw new Error(`Failed to delete share: ${error.message}`);
   }
