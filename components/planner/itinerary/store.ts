@@ -2,7 +2,7 @@ import { create } from "zustand";
 import type { Itinerary, Activity } from "@/types/itinerary";
 import type { AccessContext } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
-import { calculateDragOverUpdate, DragData } from "./utils/drag-handlers";
+import { calculateDragOverUpdate } from "./utils/drag-handlers";
 import {
   ItineraryUnavailableError,
   loadItinerary,
@@ -105,7 +105,12 @@ interface ItineraryState {
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
-  handleDragOver: (active: Active, over: Over | null, activeData: DragData, overData: DragData) => void;
+  handleDragOver: (
+    active: Active,
+    over: Over | null,
+    activeData: unknown,
+    overData: unknown,
+  ) => void;
   setCrossDayDragInfo: (info: { sourceDayNumber: number; targetDayNumber: number } | null) => void;
   setDraggingActivityId: (id: string | null) => void;
 

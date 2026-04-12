@@ -15,6 +15,12 @@ export interface DragData {
   [key: string]: unknown;
 }
 
+export const isDragData = (data: unknown): data is DragData => {
+  if (!data || typeof data !== "object") return false;
+
+  return typeof (data as DragData).dayNumber === "number";
+};
+
 /**
  * Helper to clone a day and its activities array for immutable updates
  */
@@ -176,13 +182,15 @@ export const handleCrossDayDrag = ({
 export const calculateDragOverUpdate = (
   active: Active,
   over: Over,
-  activeData: DragData,
-  overData: DragData,
+  activeData: unknown,
+  overData: unknown,
   itinerary: Itinerary,
 ): {
   newItinerary: Itinerary;
   crossDayInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
 } | null => {
+  if (!isDragData(activeData) || !isDragData(overData)) return null;
+
   const newItinerary = structuredClone(itinerary);
 
   const cloneDay = (dayIndex: number) => cloneDayInItinerary(newItinerary, dayIndex);
@@ -198,11 +206,9 @@ export const calculateDragOverUpdate = (
   };
 
   // Handle dropping on empty day
-  if (overData?.isEmpty) {
+  if (overData.isEmpty) {
     return handleEmptyDayDrop(context);
   }
-
-  if (!overData) return null;
 
   const sourceDayNumber = activeData.dayNumber;
   const targetDayNumber = overData.dayNumber;
