@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useItineraryStore } from "../store";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { createActivityFormSchema, type ActivityFormValues } from "@/types/forms";
 
 interface AddActivityDialogProps {
@@ -38,7 +38,9 @@ export function AddActivityDialog({
   const isSaving = useItineraryStore((state) => state.isSaving);
 
   const form = useForm<ActivityFormValues>({
-    resolver: zodResolver(createActivityFormSchema((key) => tv(key))) as any,
+    resolver: zodResolver(
+      createActivityFormSchema((key) => tv(key)),
+    ) as Resolver<ActivityFormValues>,
     defaultValues: {
       title: "",
       locationName: "",
