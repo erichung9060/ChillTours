@@ -11,7 +11,7 @@
  * - Automatic save on message changes
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import type { ChatMessage } from "@/types/chat";
 
 const STORAGE_PREFIX = "tripai:chat:";
@@ -57,22 +57,11 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
     }
   });
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      setMessages(stored ? (JSON.parse(stored) as ChatMessage[]) : []);
-    } catch (error) {
-      console.error("Failed to load chat history:", error);
-      setMessages([]);
-    }
-  }, [storageKey]);
-
   // Save to localStorage helper
   const saveToStorage = useCallback(
     (msgs: ChatMessage[]) => {
-      const key = `${STORAGE_PREFIX}${itineraryId}`;
       try {
-        localStorage.setItem(key, JSON.stringify(msgs));
+        localStorage.setItem(storageKey, JSON.stringify(msgs));
       } catch (error) {
         console.error("Failed to save chat history:", error);
 
@@ -82,7 +71,7 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
         }
       }
     },
-    [itineraryId],
+    [storageKey],
   );
 
   /**
@@ -119,9 +108,8 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
    */
   const clearMessages = useCallback(() => {
     setMessages([]);
-    const key = `${STORAGE_PREFIX}${itineraryId}`;
-    localStorage.removeItem(key);
-  }, [itineraryId]);
+    localStorage.removeItem(storageKey);
+  }, [storageKey]);
 
   return {
     messages,
