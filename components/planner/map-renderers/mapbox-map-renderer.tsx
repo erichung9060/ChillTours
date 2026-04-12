@@ -246,6 +246,7 @@ export function MapboxMapRenderer({
               }}
               title={activity.title}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element -- marker icons are dynamic data URIs, next/image doesn't support them */}
               <img
                 src={iconData.url}
                 alt={activity.title}
