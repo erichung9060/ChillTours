@@ -220,10 +220,10 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
         previewItinerary: null,
       });
     } catch (err) {
-      console.error("Failed to load itinerary:", err);
       if (err instanceof ItineraryUnavailableError) {
         set({ errorKind: "access", errorCode: "ITINERARY_UNAVAILABLE" });
       } else {
+        console.error("Failed to load itinerary:", err);
         set({
           errorKind: "load",
           errorCode: "LOAD_FAILED",
@@ -659,8 +659,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           get().completeGeneration();
         },
         // onError
-        (data) => {
-          console.error("Generation error from server:", data.message);
+        () => {
           set({
             isGenerating: false,
             errorKind: "runtime",
@@ -673,7 +672,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     } catch (err) {
       // AbortError is expected on cleanup — not a real error
       if (err instanceof Error && err.name === "AbortError") return;
-      
+
       if (err instanceof ApiError) {
         if (err.code === "ALREADY_GENERATING") {
           // 發現已經在生成中，平滑切換到 Polling 模式
@@ -690,7 +689,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           return;
         }
       }
-      
+
       console.error("Stream failed:", err);
       set({
         isGenerating: false,
@@ -765,8 +764,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
           });
         }
         // status === "generating" → keep polling
-      } catch (err) {
-        console.error("Polling error:", err);
+      } catch {
         // Transient errors: keep polling
       }
     }, 3000);
