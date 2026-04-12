@@ -7,6 +7,7 @@
 
 "use client";
 
+import React from "react";
 import { useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -51,7 +52,7 @@ export function MarkdownMessage({ content, className = "" }: MarkdownMessageProp
           ul: ({ children }) => <ul className="mb-2 ml-4 list-disc space-y-1">{children}</ul>,
           ol: ({ children }) => <ol className="mb-2 ml-4 list-decimal space-y-1">{children}</ol>,
           li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-          code: ({ inline, className, children, ...props }: any) => {
+          code: ({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<"code"> & { inline?: boolean }) => {
             if (inline) {
               return (
                 <code
