@@ -27,7 +27,6 @@ export function MapboxMapRenderer({
 }: MapRendererProps) {
   const mapRef = useRef<MapRef>(null);
   const [isLoaded, setIsLoaded] = useState(false);
-  const [loadError, setLoadError] = useState<Error | null>(null);
   const { resolvedTheme } = useTheme();
 
   const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_API_KEY;
@@ -41,11 +40,9 @@ export function MapboxMapRenderer({
       ? "mapbox://styles/mapbox/dark-v11"
       : "mapbox://styles/mapbox/streets-v12";
 
-  useEffect(() => {
-    if (!mapboxToken) {
-      setLoadError(new Error("Mapbox API key not configured"));
-    }
-  }, [mapboxToken]);
+  const [loadError] = useState<Error | null>(() =>
+    mapboxToken ? null : new Error("Mapbox API key not configured"),
+  );
 
   const handleMapLoad = useCallback(() => {
     setIsLoaded(true);
@@ -175,6 +172,7 @@ export function MapboxMapRenderer({
     activities,
     isLocationVisible,
     onMarkerClick,
+    onFocusComplete,
   ]);
 
   if (loadError || !mapboxToken) {
