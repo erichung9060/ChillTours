@@ -20,7 +20,7 @@ beforeEach(() => {
 
 describe("resolvePlaceDetails", () => {
   it("should return full place details on success", async () => {
-    mockFetch.mockImplementationOnce(async (url, options) => {
+    mockFetch.mockImplementationOnce(async (_url, options) => {
       const body = JSON.parse(options.body);
       const reqId = body.places[0].id;
       return {
