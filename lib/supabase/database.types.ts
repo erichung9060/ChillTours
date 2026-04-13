@@ -167,7 +167,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      deduct_credits: {
+      capture_credits: {
         Args: { p_amount: number; p_user_id: string };
         Returns: boolean;
       };
@@ -190,6 +190,10 @@ export type Database = {
         }[];
       };
       is_itinerary_owner: { Args: { itinerary_uuid: string }; Returns: boolean };
+      refund_credits: {
+        Args: { p_amount: number; p_user_id: string };
+        Returns: boolean;
+      };
       update_public_itinerary: {
         Args: { p_id: string; p_updates: Json };
         Returns: {
