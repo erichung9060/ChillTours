@@ -676,6 +676,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       if (err instanceof ApiError) {
         if (err.code === "ALREADY_GENERATING") {
           // 發現已經在生成中，平滑切換到 Polling 模式
+          set({ generationAbortController: null });
           get().startPolling(itineraryId);
           return;
         }
