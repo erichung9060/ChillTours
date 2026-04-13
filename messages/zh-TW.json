@@ -80,7 +80,7 @@
   },
   "auth": {
     "dialogTitle": "ChillTour",
-    "dialogDescription": "您的 AI 旅行夥伴",
+    "dialogDescription": "登入即可免費生成專屬行程",
     "continueWithGoogle": "使用 Google 繼續",
     "signingIn": "登入中...",
     "signInError": "登入失敗，請重試。",

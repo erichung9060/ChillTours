@@ -80,7 +80,7 @@
   },
   "auth": {
     "dialogTitle": "ChillTour",
-    "dialogDescription": "Your AI-powered travel companion",
+    "dialogDescription": "Sign in to generate your free personalized itinerary",
     "continueWithGoogle": "Continue with Google",
     "signingIn": "Signing in...",
     "signInError": "Failed to sign in. Please try again.",
