@@ -75,6 +75,7 @@ Deno.serve(async (req) => {
     const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
     if (!capture.success) {
       if (capture.error) {
+        // Backend/RPC error - return 500
         console.error(
           JSON.stringify({
             action: "GENERATE_ITINERARY",
@@ -85,7 +86,18 @@ Deno.serve(async (req) => {
             user_id: user.userId,
           }),
         );
+        return new Response(
+          JSON.stringify({
+            error: "Credit system error. Please try again later.",
+            code: "CREDIT_SYSTEM_ERROR",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
       }
+      // Insufficient credits - return 402
       return new Response(
         JSON.stringify({
           error: "Insufficient credits",
