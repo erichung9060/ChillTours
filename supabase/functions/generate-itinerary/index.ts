@@ -371,7 +371,7 @@ Deno.serve(async (req) => {
           await supabaseAdmin
             .from("itineraries")
             .update({ status: "failed" })
-            .eq("id", itinerary_id);  
+            .eq("id", itinerary_id);
 
           if (captured) {
             const refund = await refundCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
