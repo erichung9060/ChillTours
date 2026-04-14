@@ -112,6 +112,7 @@
     "accessErrorMessage": "找不到此行程，或您沒有存取權限。",
     "errorInsufficientCredits": "您的點數不足，無法產生此行程。",
     "generationFailed": "行程產生失敗，請再試一次。",
+    "generationTimeout": "行程產生處理逾時，請再試一次。",
     "generating": "正在產生您的行程中...",
     "errorUpdateDays": "更新行程順序失敗，請再試一次。",
     "editDialog": {
