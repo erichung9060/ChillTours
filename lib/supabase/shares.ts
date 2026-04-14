@@ -12,7 +12,7 @@
  * Pattern: Same as lib/supabase/itineraries.ts
  */
 
-import { supabase } from "./client";
+import { supabase, getCurrentUser } from "./client";
 import type { PostgrestError } from "@supabase/supabase-js";
 import type {
   AccessContext,
@@ -195,9 +195,7 @@ export async function getEffectivePermission(
   itineraryOwnerId: string,
   linkAccess: LinkAccess,
 ): Promise<AccessContext> {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   // 1. Check if user is owner
   if (user && user.id === itineraryOwnerId) {
