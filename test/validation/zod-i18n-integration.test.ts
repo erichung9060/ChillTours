@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  createTripFormSchema,
-  createActivityFormSchema,
-} from "@/types/forms";
+import { createTripFormSchema, createActivityFormSchema } from "@/types/forms";
 
 describe("Zod i18n Integration E2E", () => {
   describe("English translations", () => {

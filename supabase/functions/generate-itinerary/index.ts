@@ -113,10 +113,7 @@ Deno.serve(async (req) => {
     const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
     if (!capture.success) {
       // Roll back the status lock so the user can retry.
-      await supabaseAdmin
-        .from("itineraries")
-        .update({ status: "draft" })
-        .eq("id", itinerary_id);
+      await supabaseAdmin.from("itineraries").update({ status: "draft" }).eq("id", itinerary_id);
 
       if (capture.error) {
         // Backend/RPC error - return 500
@@ -395,10 +392,7 @@ Deno.serve(async (req) => {
     if (captured && userId) {
       const supabaseAdmin = createSupabaseAdminClient();
       if (itineraryId) {
-        await supabaseAdmin
-          .from("itineraries")
-          .update({ status: "failed" })
-          .eq("id", itineraryId);
+        await supabaseAdmin.from("itineraries").update({ status: "failed" }).eq("id", itineraryId);
       }
       const refund = await refundCredits(supabaseAdmin, userId, "GENERATE_ITINERARY");
       if (refund.success) {

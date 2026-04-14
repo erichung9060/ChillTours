@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  createTripFormSchema,
-  createActivityFormSchema,
-} from "@/types/forms";
+import { createTripFormSchema, createActivityFormSchema } from "@/types/forms";
 
 describe("Form Schema Factories", () => {
   const mockT = (key: string) => `translated-${key}`;

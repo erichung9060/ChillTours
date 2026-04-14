@@ -142,7 +142,9 @@ describe("Property 24: Itinerary Deletion", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as unknown as typeof supabase.from);
+        vi.mocked(supabase.from).mockImplementation(
+          mockDeleteFrom as unknown as typeof supabase.from,
+        );
 
         // Delete the itinerary
         await deleteItinerary(itineraryId);
@@ -163,7 +165,9 @@ describe("Property 24: Itinerary Deletion", () => {
           }),
         }));
 
-        vi.mocked(supabase.from).mockImplementation(mockLoadFrom as unknown as typeof supabase.from);
+        vi.mocked(supabase.from).mockImplementation(
+          mockLoadFrom as unknown as typeof supabase.from,
+        );
         vi.mocked(supabase.rpc).mockReturnValue({
           single: vi.fn().mockResolvedValue({
             data: null,
@@ -227,7 +231,9 @@ describe("Property 24: Itinerary Deletion", () => {
             }),
           }));
 
-          vi.mocked(supabase.from).mockImplementation(mockDeleteFrom as unknown as typeof supabase.from);
+          vi.mocked(supabase.from).mockImplementation(
+            mockDeleteFrom as unknown as typeof supabase.from,
+          );
 
           // Delete one itinerary
           await deleteItinerary(itineraryToDelete.id);
@@ -250,7 +256,9 @@ describe("Property 24: Itinerary Deletion", () => {
             }),
           }));
 
-          vi.mocked(supabase.from).mockImplementation(mockListFrom as unknown as typeof supabase.from);
+          vi.mocked(supabase.from).mockImplementation(
+            mockListFrom as unknown as typeof supabase.from,
+          );
 
           // List itineraries
           const list = await listUserItineraries();

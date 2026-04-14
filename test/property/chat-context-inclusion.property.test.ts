@@ -95,11 +95,13 @@ describe("Chat Context Inclusion Properties", () => {
           expect(request.context.days.length).toBe(itinerary.days.length);
 
           // Property: Each day should include activities
-          request.context.days.forEach((day: { day_number: number; activities: unknown[] }, dayIndex: number) => {
-            expect(day.day_number).toBe(itinerary.days[dayIndex].day_number);
-            expect(Array.isArray(day.activities)).toBe(true);
-            expect(day.activities.length).toBe(itinerary.days[dayIndex].activities.length);
-          });
+          request.context.days.forEach(
+            (day: { day_number: number; activities: unknown[] }, dayIndex: number) => {
+              expect(day.day_number).toBe(itinerary.days[dayIndex].day_number);
+              expect(Array.isArray(day.activities)).toBe(true);
+              expect(day.activities.length).toBe(itinerary.days[dayIndex].activities.length);
+            },
+          );
         },
       ),
       { numRuns: 20 },

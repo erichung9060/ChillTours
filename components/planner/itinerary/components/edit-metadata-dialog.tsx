@@ -36,11 +36,7 @@ interface EditMetadataDialogProps {
 }
 
 // ─── Outer shell: controls Dialog visibility only ─────────────────────────
-export function EditMetadataDialog({
-  isOpen,
-  onClose,
-  ...contentProps
-}: EditMetadataDialogProps) {
+export function EditMetadataDialog({ isOpen, onClose, ...contentProps }: EditMetadataDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[600px]" onClose={onClose}>
@@ -80,7 +76,6 @@ function EditMetadataDialogContent({
   });
 
   const { isDirty } = form.formState;
-
 
   // ─── Derived: how many days will be affected by shrinking ───────────────
   const watchedDates = useWatch({ control: form.control, name: "dates" });

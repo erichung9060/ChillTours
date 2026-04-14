@@ -25,23 +25,37 @@ function parseItinerary(aiResponse: string): Itinerary | null {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() + 7);
 
-    const days: Day[] = (parsed.days || []).map((day: { day_number?: number; activities?: unknown[] }, dayIndex: number) => ({
-      day_number: day.day_number || dayIndex + 1,
-      activities: (day.activities || []).map((activity: { id?: string; time?: string; title?: string; note?: string; location?: { name?: string; lat?: number; lng?: number; place_id?: string }; duration_minutes?: number }, actIndex: number) => ({
-        id: activity.id || crypto.randomUUID(),
-        time: activity.time || "09:00",
-        title: activity.title || "Untitled Activity",
-        note: activity.note || "",
-        location: {
-          name: activity.location?.name || "Unknown Location",
-          lat: activity.location?.lat || 0,
-          lng: activity.location?.lng || 0,
-          place_id: activity.location?.place_id,
-        },
-        duration_minutes: activity.duration_minutes || 120,
-        order: actIndex,
-      })),
-    }));
+    const days: Day[] = (parsed.days || []).map(
+      (day: { day_number?: number; activities?: unknown[] }, dayIndex: number) => ({
+        day_number: day.day_number || dayIndex + 1,
+        activities: (day.activities || []).map(
+          (
+            activity: {
+              id?: string;
+              time?: string;
+              title?: string;
+              note?: string;
+              location?: { name?: string; lat?: number; lng?: number; place_id?: string };
+              duration_minutes?: number;
+            },
+            actIndex: number,
+          ) => ({
+            id: activity.id || crypto.randomUUID(),
+            time: activity.time || "09:00",
+            title: activity.title || "Untitled Activity",
+            note: activity.note || "",
+            location: {
+              name: activity.location?.name || "Unknown Location",
+              lat: activity.location?.lat || 0,
+              lng: activity.location?.lng || 0,
+              place_id: activity.location?.place_id,
+            },
+            duration_minutes: activity.duration_minutes || 120,
+            order: actIndex,
+          }),
+        ),
+      }),
+    );
 
     const endDate = new Date(startDate);
     endDate.setDate(endDate.getDate() + days.length - 1);

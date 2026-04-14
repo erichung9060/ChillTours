@@ -166,12 +166,7 @@ function AddActivityDialogContent({
         <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>
           {t("cancel")}
         </Button>
-        <Button
-          type="submit"
-          isLoading={isSaving}
-          loadingText={t("saving")}
-          disabled={!isDirty}
-        >
+        <Button type="submit" isLoading={isSaving} loadingText={t("saving")} disabled={!isDirty}>
           {t("save")}
         </Button>
       </DialogFooter>

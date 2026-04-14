@@ -97,7 +97,9 @@ describe("Property 1: Authentication Profile Management", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+          vi.mocked(mockSupabase.from).mockImplementation(
+            mockFrom as unknown as typeof mockSupabase.from,
+          );
 
           // Get the user
           const {
@@ -151,7 +153,9 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+        vi.mocked(mockSupabase.from).mockImplementation(
+          mockFrom as unknown as typeof mockSupabase.from,
+        );
 
         // First authentication - get profile
         const { data: profile1 } = await mockSupabase
@@ -196,7 +200,9 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+        vi.mocked(mockSupabase.from).mockImplementation(
+          mockFrom as unknown as typeof mockSupabase.from,
+        );
 
         // User 1 authenticated, trying to access User 2's profile
         const { data: profile, error } = await mockSupabase
@@ -233,7 +239,9 @@ describe("Property 1: Authentication Profile Management", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+          vi.mocked(mockSupabase.from).mockImplementation(
+            mockFrom as unknown as typeof mockSupabase.from,
+          );
 
           // Update profile
           const { data: updatedProfile, error } = await mockSupabase
@@ -277,7 +285,9 @@ describe("Property 1: Authentication Profile Management", () => {
           }),
         }));
 
-        vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+        vi.mocked(mockSupabase.from).mockImplementation(
+          mockFrom as unknown as typeof mockSupabase.from,
+        );
 
         // Create new profile
         const { data: newProfile } = await mockSupabase
@@ -335,7 +345,9 @@ describe("RLS Policy Tests: Itineraries", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+          vi.mocked(mockSupabase.from).mockImplementation(
+            mockFrom as unknown as typeof mockSupabase.from,
+          );
 
           // User 1 trying to access User 2's itinerary
           const { data: itinerary, error } = await mockSupabase
@@ -381,7 +393,9 @@ describe("RLS Policy Tests: Itineraries", () => {
             }),
           }));
 
-          vi.mocked(mockSupabase.from).mockImplementation(mockFrom as unknown as typeof mockSupabase.from);
+          vi.mocked(mockSupabase.from).mockImplementation(
+            mockFrom as unknown as typeof mockSupabase.from,
+          );
 
           // Create itinerary
           const { data: newItinerary, error } = await mockSupabase

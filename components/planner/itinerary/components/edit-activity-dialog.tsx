@@ -41,10 +41,7 @@ export function EditActivityDialog({ isOpen, onClose, ...contentProps }: EditAct
 // ─── Inner content: all state is fresh on every mount ─────────────────────
 type Step = "edit" | "confirm-delete";
 
-function EditActivityDialogContent({
-  activity,
-  onClose,
-}: Omit<EditActivityDialogProps, "isOpen">) {
+function EditActivityDialogContent({ activity, onClose }: Omit<EditActivityDialogProps, "isOpen">) {
   const t = useTranslations("planner.editDialog");
   const tv = useTranslations();
   const updateActivity = useItineraryStore((state) => state.updateActivity);
@@ -187,12 +184,7 @@ function EditActivityDialogContent({
             <Trash2 className="h-4 w-4 mr-2" />
             {t("delete")}
           </Button>
-          <Button
-            type="submit"
-            isLoading={isSaving}
-            loadingText={t("saving")}
-            disabled={!isDirty}
-          >
+          <Button type="submit" isLoading={isSaving} loadingText={t("saving")} disabled={!isDirty}>
             {t("save")}
           </Button>
         </DialogFooter>

@@ -91,14 +91,23 @@ export function ActivityCard({
               variant="ghost"
               className="flex items-center gap-1 text-xs opacity-100 mb-1 h-auto p-1 -ml-1 cursor-pointer w-fit max-w-full"
               onClick={handleNavigationConfig}
-              title={hasValidCoordinates(activity.location) ? "Navigate with Google Maps" : "No location data"}
+              title={
+                hasValidCoordinates(activity.location)
+                  ? "Navigate with Google Maps"
+                  : "No location data"
+              }
             >
               {hasValidCoordinates(activity.location) ? (
                 <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
               ) : (
                 <MapPinOff className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               )}
-              <span className={cn("truncate", !hasValidCoordinates(activity.location) && "text-muted-foreground")}>
+              <span
+                className={cn(
+                  "truncate",
+                  !hasValidCoordinates(activity.location) && "text-muted-foreground",
+                )}
+              >
                 {activity.location.name}
               </span>
             </Button>
