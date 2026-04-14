@@ -72,46 +72,6 @@ Deno.serve(async (req) => {
 
     operationId = crypto.randomUUID();
 
-    const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
-    if (!capture.success) {
-      if (capture.error) {
-        // Backend/RPC error - return 500
-        console.error(
-          JSON.stringify({
-            action: "GENERATE_ITINERARY",
-            error: capture.error,
-            event: "credit_event",
-            operation_id: operationId,
-            phase: "capture_failed",
-            user_id: user.userId,
-          }),
-        );
-        return new Response(
-          JSON.stringify({
-            error: "Credit system error. Please try again later.",
-            code: "CREDIT_SYSTEM_ERROR",
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-      // Insufficient credits - return 402
-      return new Response(
-        JSON.stringify({
-          error: "Insufficient credits",
-          code: "INSUFFICIENT_CREDITS",
-        }),
-        {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-    captured = true;
-
-    // Only mark generating after credits are captured.
     const { data: updateResult, error: updateError } = await supabaseAdmin
       .from("itineraries")
       .update({ status: "generating" })
@@ -121,22 +81,6 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError || !updateResult) {
-      const refund = await refundCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
-      if (refund.success) {
-        captured = false;
-      } else {
-        console.error(
-          JSON.stringify({
-            action: "GENERATE_ITINERARY",
-            error: refund.error ?? "refund failed",
-            event: "credit_event",
-            operation_id: operationId,
-            phase: "refund_failed",
-            user_id: user.userId,
-          }),
-        );
-      }
-
       const { data: currentRow } = await supabaseAdmin
         .from("itineraries")
         .select("status")
@@ -186,6 +130,52 @@ Deno.serve(async (req) => {
         },
       );
     }
+
+    // deduct credits.
+    const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+    if (!capture.success) {
+      // Roll back the status lock so the user can retry.
+      await supabaseAdmin
+        .from("itineraries")
+        .update({ status: "draft" })
+        .eq("id", itinerary_id);
+
+      if (capture.error) {
+        // Backend/RPC error - return 500
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: capture.error,
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "capture_failed",
+            user_id: user.userId,
+          }),
+        );
+        return new Response(
+          JSON.stringify({
+            error: "Credit system error. Please try again later.",
+            code: "CREDIT_SYSTEM_ERROR",
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        );
+      }
+      // Insufficient credits - return 402
+      return new Response(
+        JSON.stringify({
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+        }),
+        {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    captured = true;
 
     const prompt = buildItineraryPrompt(
       destination,
