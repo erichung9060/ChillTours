@@ -112,6 +112,7 @@
     "accessErrorMessage": "This itinerary could not be found or you do not have access to it.",
     "errorInsufficientCredits": "You do not have enough credits to generate this itinerary.",
     "generationFailed": "Failed to generate itinerary. Please try again.",
+    "generationTimeout": "Generation timed out. Please try again.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
     "editDialog": {

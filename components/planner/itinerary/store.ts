@@ -748,6 +748,10 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
 
       if (attempts > MAX_ATTEMPTS) {
         get().stopPolling();
+        set({
+          errorKind: "runtime",
+          errorCode: "GENERATION_TIMEOUT",
+        });
         return;
       }
 

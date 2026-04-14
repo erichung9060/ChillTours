@@ -150,6 +150,8 @@ export default function PlanningPage() {
         return t("errorInsufficientCredits");
       case "LOAD_FAILED":
         return t("loadErrorMessage");
+      case "GENERATION_TIMEOUT":
+        return t("generationTimeout");
       case "GENERATION_FAILED":
       default:
         return t("generationFailed");
