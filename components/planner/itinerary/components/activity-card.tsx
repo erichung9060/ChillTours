@@ -9,9 +9,11 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Pencil, MapPin, Star } from "lucide-react";
+import { ExternalLink, Pencil, MapPin, Star, MapPinOff } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 import type { ActivityCardProps } from "../types";
 import { createDirectionsLink, createPlaceSearchLink } from "@/lib/maps/utils";
+import { hasValidCoordinates } from "@/lib/utils/geo";
 import { EditActivityDialog } from "./edit-activity-dialog";
 import { useItineraryPermission } from "@/hooks/use-itinerary-permission";
 
@@ -89,10 +91,16 @@ export function ActivityCard({
               variant="ghost"
               className="flex items-center gap-1 text-xs opacity-100 mb-1 h-auto p-1 -ml-1 cursor-pointer w-fit max-w-full"
               onClick={handleNavigationConfig}
-              title="Navigate with Google Maps"
+              title={hasValidCoordinates(activity.location) ? "Navigate with Google Maps" : "No location data"}
             >
-              <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-              <span className="truncate">{activity.location.name}</span>
+              {hasValidCoordinates(activity.location) ? (
+                <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
+              ) : (
+                <MapPinOff className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              )}
+              <span className={cn("truncate", !hasValidCoordinates(activity.location) && "text-muted-foreground")}>
+                {activity.location.name}
+              </span>
             </Button>
 
             {typeof activity.location.rating === "number" && (
