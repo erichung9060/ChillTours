@@ -1,9 +1,9 @@
 import { getAIClient, VERTEX_CONFIG } from "../_shared/vertex-ai.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
-import { checkCredits, deductCredits } from "../_shared/credits.ts";
+import { captureCredits, refundCredits } from "../_shared/credits.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
-import { createSupabaseAdminClient, createSupabaseClient } from "../_shared/supabase.ts";
+import { createSupabaseAdminClient } from "../_shared/supabase.ts";
 import { z } from "npm:zod";
 
 const ChatRequestSchema = z.object({
@@ -194,6 +194,10 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let captured = false;
+  let operationId: string | null = null;
+  let userId: string | null = null;
+
   try {
     // 驗證用戶是否已登入
     const user = await verifyUser(req);
@@ -202,30 +206,33 @@ Deno.serve(async (req) => {
       return unauthorizedResponse();
     }
 
-    const supabaseClient = createSupabaseClient(req.headers.get("Authorization")!);
+    userId = user.userId;
+
     const supabaseAdmin = createSupabaseAdminClient();
 
-    const { sufficient, error: creditsError } = await checkCredits(
-      supabaseClient,
-      user.userId,
-      "CHAT",
-    );
-
-    if (creditsError) {
-      console.error("Credit check error:", creditsError);
-      return new Response(
-        JSON.stringify({
-          error: "Internal error checking credits. Please try again later.",
-          code: "CREDITS_CHECK_ERROR",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+    // Parse request body
+    const parsed = await parseJsonRequest(req, ChatRequestSchema);
+    if (parsed instanceof Response) {
+      return parsed;
     }
 
-    if (!sufficient) {
+    const { message, history, itinerary_context }: ChatRequest = parsed.data;
+    operationId = crypto.randomUUID();
+
+    const capture = await captureCredits(supabaseAdmin, user.userId, "CHAT");
+    if (!capture.success) {
+      if (capture.error) {
+        console.error(
+          JSON.stringify({
+            action: "CHAT",
+            error: capture.error,
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "capture_failed",
+            user_id: user.userId,
+          }),
+        );
+      }
       return new Response(
         JSON.stringify({
           error: "Insufficient credits",
@@ -237,14 +244,7 @@ Deno.serve(async (req) => {
         },
       );
     }
-
-    // Parse request body
-    const parsed = await parseJsonRequest(req, ChatRequestSchema);
-    if (parsed instanceof Response) {
-      return parsed;
-    }
-
-    const { message, history, itinerary_context }: ChatRequest = parsed.data;
+    captured = true;
 
     const ai = getAIClient();
 
@@ -278,19 +278,26 @@ Deno.serve(async (req) => {
             }
           }
 
-          const deduction = await deductCredits(supabaseAdmin, user.userId, "CHAT");
-          if (!deduction.success) {
-            console.error(
-              "Failed to deduct chat credits:",
-              deduction.error ?? "insufficient credits",
-            );
-            controller.error(new Error("Failed to deduct chat credits"));
-            return;
-          }
-
           controller.close();
         } catch (error) {
           console.error("Error during streaming:", error);
+          if (captured) {
+            const refund = await refundCredits(supabaseAdmin, user.userId, "CHAT");
+            if (refund.success) {
+              captured = false;
+            } else {
+              console.error(
+                JSON.stringify({
+                  action: "CHAT",
+                  error: refund.error ?? "refund failed",
+                  event: "credit_event",
+                  operation_id: operationId,
+                  phase: "refund_failed",
+                  user_id: user.userId,
+                }),
+              );
+            }
+          }
           controller.error(error);
         }
       },
@@ -307,6 +314,25 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in chat function:", error);
+
+    if (captured && userId) {
+      const supabaseAdmin = createSupabaseAdminClient();
+      const refund = await refundCredits(supabaseAdmin, userId, "CHAT");
+      if (refund.success) {
+        captured = false;
+      } else {
+        console.error(
+          JSON.stringify({
+            action: "CHAT",
+            error: refund.error ?? "refund failed",
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "refund_failed",
+            user_id: userId,
+          }),
+        );
+      }
+    }
 
     // Implement retry logic for transient errors
     const isTransientError =

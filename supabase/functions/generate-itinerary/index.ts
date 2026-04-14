@@ -3,7 +3,7 @@ import { JSONParser } from "npm:@streamparser/json";
 import { corsHeaders } from "../_shared/cors.ts";
 import { verifyUser } from "../_shared/auth.ts";
 import { parseJsonRequest, unauthorizedResponse } from "../_shared/request-guards.ts";
-import { checkCredits, deductCredits } from "../_shared/credits.ts";
+import { captureCredits, refundCredits } from "../_shared/credits.ts";
 import { createSupabaseAdminClient, createSupabaseClient } from "../_shared/supabase.ts";
 
 import { z } from "npm:zod";
@@ -23,11 +23,17 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  let captured = false;
+  let operationId: string | null = null;
+  let userId: string | null = null;
+  let itineraryId: string | null = null;
+
   try {
     const user = await verifyUser(req);
     if (!user) {
       return unauthorizedResponse();
     }
+    userId = user.userId;
 
     const parsed = await parseJsonRequest(req, GenerateRequestSchema);
     if (parsed instanceof Response) {
@@ -35,6 +41,7 @@ Deno.serve(async (req) => {
     }
 
     const { itinerary_id, locale }: GenerateItineraryRequest = parsed.data;
+    itineraryId = itinerary_id;
 
     const ai = getAIClient();
 
@@ -63,9 +70,36 @@ Deno.serve(async (req) => {
 
     const { destination, start_date: startDate, end_date: endDate, preferences } = itineraryRow;
 
-    // Atomic concurrency guard: use conditional update to prevent race conditions
-    // Only allow transition from draft/failed to generating
-    // Using Admin client to bypass RLS for background updates
+    operationId = crypto.randomUUID();
+
+    const capture = await captureCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+    if (!capture.success) {
+      if (capture.error) {
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: capture.error,
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "capture_failed",
+            user_id: user.userId,
+          }),
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          error: "Insufficient credits",
+          code: "INSUFFICIENT_CREDITS",
+        }),
+        {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    captured = true;
+
+    // Only mark generating after credits are captured.
     const { data: updateResult, error: updateError } = await supabaseAdmin
       .from("itineraries")
       .update({ status: "generating" })
@@ -75,8 +109,22 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError || !updateResult) {
-      // Update failed — either already generating or already completed
-      // Re-fetch to get current status for accurate error message
+      const refund = await refundCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+      if (refund.success) {
+        captured = false;
+      } else {
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: refund.error ?? "refund failed",
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "refund_failed",
+            user_id: user.userId,
+          }),
+        );
+      }
+
       const { data: currentRow } = await supabaseAdmin
         .from("itineraries")
         .select("status")
@@ -109,7 +157,6 @@ Deno.serve(async (req) => {
         );
       }
 
-      // Unknown error
       console.error(
         "Failed to start generation:",
         updateError,
@@ -123,41 +170,6 @@ Deno.serve(async (req) => {
         }),
         {
           status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    const { sufficient, error: creditsError } = await checkCredits(
-      supabaseClient,
-      user.userId,
-      "GENERATE_ITINERARY",
-    );
-
-    if (creditsError) {
-      console.error("Credit check error:", creditsError);
-      await supabaseAdmin.from("itineraries").update({ status: "failed" }).eq("id", itinerary_id);
-      return new Response(
-        JSON.stringify({
-          error: "Internal error checking credits",
-          code: "CREDITS_CHECK_ERROR",
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
-
-    if (!sufficient) {
-      await supabaseAdmin.from("itineraries").update({ status: "failed" }).eq("id", itinerary_id);
-      return new Response(
-        JSON.stringify({
-          error: "Insufficient credits",
-          code: "INSUFFICIENT_CREDITS",
-        }),
-        {
-          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         },
       );
@@ -343,26 +355,9 @@ Deno.serve(async (req) => {
 
           if (updateError) {
             console.error("Failed to save itinerary to DB:", updateError);
-            await supabaseAdmin
-              .from("itineraries")
-              .update({ status: "failed" })
-              .eq("id", itinerary_id);
-            emitSSE("error", { message: "Internal server error" });
-            if (!clientDisconnected) {
-              try {
-                controller.close();
-              } catch {}
-            }
-            return;
+            throw updateError;
           }
-
-          const deduction = await deductCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
-          if (!deduction.success) {
-            console.error(
-              "Failed to deduct itinerary generation credits:",
-              deduction.error ?? "insufficient credits",
-            );
-          }
+          captured = false;
 
           emitSSE("complete", {});
           if (!clientDisconnected) {
@@ -376,7 +371,25 @@ Deno.serve(async (req) => {
           await supabaseAdmin
             .from("itineraries")
             .update({ status: "failed" })
-            .eq("id", itinerary_id);
+            .eq("id", itinerary_id);  
+
+          if (captured) {
+            const refund = await refundCredits(supabaseAdmin, user.userId, "GENERATE_ITINERARY");
+            if (refund.success) {
+              captured = false;
+            } else {
+              console.error(
+                JSON.stringify({
+                  action: "GENERATE_ITINERARY",
+                  error: refund.error ?? "refund failed",
+                  event: "credit_event",
+                  operation_id: operationId,
+                  phase: "refund_failed",
+                  user_id: user.userId,
+                }),
+              );
+            }
+          }
 
           emitSSE("error", { message: "Internal server error" });
           if (!clientDisconnected) {
@@ -398,6 +411,32 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("Handler error:", error);
+
+    if (captured && userId) {
+      const supabaseAdmin = createSupabaseAdminClient();
+      if (itineraryId) {
+        await supabaseAdmin
+          .from("itineraries")
+          .update({ status: "failed" })
+          .eq("id", itineraryId);
+      }
+      const refund = await refundCredits(supabaseAdmin, userId, "GENERATE_ITINERARY");
+      if (refund.success) {
+        captured = false;
+      } else {
+        console.error(
+          JSON.stringify({
+            action: "GENERATE_ITINERARY",
+            error: refund.error ?? "refund failed",
+            event: "credit_event",
+            operation_id: operationId,
+            phase: "refund_failed",
+            user_id: userId,
+          }),
+        );
+      }
+    }
+
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
