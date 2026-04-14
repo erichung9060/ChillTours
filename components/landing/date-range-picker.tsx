@@ -130,6 +130,8 @@ export function DateRangePicker({
   };
 
   const renderMonth = (offset: number) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const monthDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + offset, 1);
     const year = monthDate.getFullYear();
     const month = monthDate.getMonth();
@@ -144,6 +146,7 @@ export function DateRangePicker({
 
     for (let d = 1; d <= daysInMonth; d++) {
       const date = new Date(year, month, d);
+      const isPast = date < today;
 
       let isSelected = isSameDay(date, startDate) || isSameDay(date, endDate);
       let isRange = false;
@@ -170,11 +173,13 @@ export function DateRangePicker({
         <button
           key={d}
           type="button" // Prevent form submission
+          disabled={isPast}
           onClick={() => handleDateClick(date)}
           onMouseEnter={() => setHoverDate(date)}
           className={cn(
             "h-10 w-10 text-sm flex items-center justify-center relative z-10",
             "hover:bg-[hsl(var(--primary))]/20 transition-colors rounded-full",
+            "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent",
             isSelected &&
               "bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] hover:bg-[hsl(var(--primary))]",
             isRange && !isSelected && "bg-[hsl(var(--primary))]/10 rounded-none",
