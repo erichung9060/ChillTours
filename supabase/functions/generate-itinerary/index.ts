@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
         return new Response(
           JSON.stringify({
             error: "Cannot start generation: itinerary is not in a startable state",
-            code: "CONFLICT",
+            code: "ALREADY_GENERATING",
           }),
           {
             status: 409,
