@@ -81,17 +81,12 @@ Deno.serve(async (req) => {
       .single();
 
     if (updateError || !updateResult) {
-      const { data: currentRow } = await supabaseAdmin
-        .from("itineraries")
-        .select("status")
-        .eq("id", itinerary_id)
-        .single();
-
-      if (currentRow?.status === "generating") {
+      // PGRST116 = no rows matched the WHERE clause → status is not draft/failed (conflict).
+      if (updateError?.code === "PGRST116") {
         return new Response(
           JSON.stringify({
-            error: "Generation already in progress",
-            code: "ALREADY_GENERATING",
+            error: "Cannot start generation: itinerary is not in a startable state",
+            code: "CONFLICT",
           }),
           {
             status: 409,
@@ -100,25 +95,8 @@ Deno.serve(async (req) => {
         );
       }
 
-      if (currentRow?.status === "completed") {
-        return new Response(
-          JSON.stringify({
-            error: "Itinerary already generated",
-            code: "ALREADY_COMPLETED",
-          }),
-          {
-            status: 409,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
-      }
-
-      console.error(
-        "Failed to start generation:",
-        updateError,
-        "Current status:",
-        currentRow?.status,
-      );
+      // Any other error code = real DB failure.
+      console.error("Failed to acquire generating lock:", updateError);
       return new Response(
         JSON.stringify({
           error: "Failed to start generation",
