@@ -79,10 +79,26 @@ vi.mock("next-intl", () => {
     "validation.datesRequired": "Dates are required",
     "validation.bothDatesRequired": "Please select both start and end dates",
     "validation.endDateAfterStart": "End date must be on or after start date",
+    // Error messages
+    "landing.form.itineraryLimitError": "You have reached your itinerary limit for the current plan.",
+    "landing.form.createError": "Failed to create itinerary. Please try again.",
+    // Itineraries
+    "itineraries.titleFormat": "{destination} Trip",
+    // Landing form
+    "landing.form.whereToNext": "whereToNext",
+    "landing.form.destinationPlaceholder": "destinationPlaceholder",
+    "landing.form.whenAreYouGoing": "whenAreYouGoing",
+    "landing.form.describeYourPreferences": "describeYourPreferences",
+    "landing.form.preferencesPlaceholder": "preferencesPlaceholder",
+    "landing.form.generateButton": "generateButton",
+    "landing.form.generating": "generating",
   };
 
   return {
-    useTranslations: () => (key: string) => translations[key] || key,
+    useTranslations: (namespace?: string) => (key: string) => {
+      const fullKey = namespace ? `${namespace}.${key}` : key;
+      return translations[fullKey] || translations[key] || key;
+    },
     useLocale: () => "en",
     useTimeZone: () => "UTC",
     useMessages: () => ({}),

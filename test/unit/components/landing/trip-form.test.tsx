@@ -34,6 +34,19 @@ vi.mock("@/lib/auth/auth-context", () => ({
   }),
 }));
 
+// Mock i18n navigation
+vi.mock("@/lib/i18n/navigation", () => ({
+  useRouter: () => ({
+    push: pushMock,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => "",
+}));
+
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -52,11 +65,25 @@ vi.mock("next/navigation", () => ({
 
 // Mock DateRangePicker
 vi.mock("@/components/landing/date-range-picker", () => ({
-  DateRangePicker: ({ onChange }: { onChange: (start: Date, end: Date) => void }) => (
+  DateRangePicker: ({
+    onChange,
+  }: {
+    onChange: (start?: Date, end?: Date) => void;
+    startDate?: Date;
+    endDate?: Date;
+  }) => (
     <button
       type="button"
       data-testid="mock-date-picker"
-      onClick={() => onChange(new Date("2024-05-20"), new Date("2024-05-25"))}
+      onClick={() => {
+        // Use dates relative to today to avoid future test failures
+        const today = new Date();
+        const start = new Date(today);
+        start.setDate(today.getDate() + 30); // 30 days from now
+        const end = new Date(start);
+        end.setDate(start.getDate() + 5); // 5 days after start
+        onChange(start, end);
+      }}
     >
       Mock Select Dates
     </button>
@@ -165,19 +192,36 @@ describe("TripForm - Form Validation", () => {
 
     render(<TripForm />);
 
-    fireEvent.change(screen.getByPlaceholderText(/destinationPlaceholder/i), {
+    const destinationInput = screen.getByPlaceholderText(/destinationPlaceholder/i);
+    fireEvent.change(destinationInput, {
       target: { value: "Tokyo" },
     });
-    fireEvent.click(screen.getByTestId("mock-date-picker"));
-    fireEvent.click(
-      screen.getByRole("button", {
-        name: /generateButton/i,
-      }),
+
+    const datePicker = screen.getByTestId("mock-date-picker");
+    fireEvent.click(datePicker);
+
+    const submitButton = screen.getByRole("button", {
+      name: /generateButton/i,
+    });
+    fireEvent.click(submitButton);
+
+    // Wait for the mock to be called
+    await waitFor(
+      () => {
+        expect(createItineraryMetadataMock).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
     );
 
-    await waitFor(() => {
-      expect(screen.getByText("itineraryLimitError")).toBeInTheDocument();
-    });
+    // Then check for the error message
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("You have reached your itinerary limit for the current plan."),
+        ).toBeInTheDocument();
+      },
+      { timeout: 3000 },
+    );
     expect(pushMock).not.toHaveBeenCalled();
   });
 });

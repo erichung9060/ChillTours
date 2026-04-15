@@ -49,12 +49,21 @@ describe("ActivityCard", () => {
   });
 
   it("opens the Google Maps directions link when the location name is clicked", () => {
-    render(<ActivityCard activity={baseActivity} />);
+    const activityWithCoords: Activity = {
+      ...baseActivity,
+      location: {
+        ...baseActivity.location,
+        lat: 40.7128,
+        lng: -74.006,
+      },
+    };
+
+    render(<ActivityCard activity={activityWithCoords} />);
 
     fireEvent.click(screen.getByTitle("Navigate with Google Maps"));
 
     expect(createDirectionsLinkMock).toHaveBeenCalledTimes(1);
-    expect(createDirectionsLinkMock).toHaveBeenCalledWith(baseActivity.location);
+    expect(createDirectionsLinkMock).toHaveBeenCalledWith(activityWithCoords.location);
     expect(openSpy).toHaveBeenCalledWith("https://maps.example.com/route", "_blank");
     expect(createPlaceSearchLinkMock).not.toHaveBeenCalled();
   });
