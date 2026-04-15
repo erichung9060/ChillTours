@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  test:
+  ci:
     runs-on: ubuntu-latest
     
     steps:
@@ -34,4 +34,9 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          SKIP_ENV_VALIDATION: true
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+          API_GATEWAY_SECRET: placeholder-secret
+          NEXT_PUBLIC_MAP_PROVIDER: google
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: placeholder-key
+          NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID: placeholder-map-id
