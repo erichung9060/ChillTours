@@ -44,6 +44,8 @@ export type ActivityWithDay = Activity & { dayNumber: number };
 export const DaySchema = z.object({
   day_number: z.number().int().min(1).max(30),
   activities: z.array(ActivitySchema),
+  start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+  end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
 });
 
 export type Day = z.infer<typeof DaySchema>;

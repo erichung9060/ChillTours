@@ -58,6 +58,11 @@ export interface ChatToggleButtonProps {
   isChatOpen?: boolean;
 }
 
+export interface DayTimeWindowProps {
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
+}
+
 export interface ExpandableViewProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
