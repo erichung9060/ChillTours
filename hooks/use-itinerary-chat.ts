@@ -11,7 +11,7 @@
  * - Automatic save on message changes
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import type { ChatMessage } from "@/types/chat";
 
 const STORAGE_PREFIX = "tripai:chat:";
@@ -56,17 +56,6 @@ export function useItineraryChat(itineraryId: string): UseItineraryChatReturn {
       return [];
     }
   });
-
-  // Reload messages when itinerary ID changes
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const stored = localStorage.getItem(storageKey);
-      setMessages(stored ? (JSON.parse(stored) as ChatMessage[]) : []);
-    } catch {
-      setMessages([]);
-    }
-  }, [storageKey]);
 
   // Save to localStorage helper
   const saveToStorage = useCallback(

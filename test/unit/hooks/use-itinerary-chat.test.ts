@@ -211,48 +211,4 @@ describe("useItineraryChat", () => {
     localStorage.setItem = originalSetItem;
     consoleErrorSpy.mockRestore();
   });
-
-  it("should reload messages when itinerary ID changes", () => {
-    const itinerary1 = "itinerary-1";
-    const itinerary2 = "itinerary-2";
-
-    // Add messages for itinerary 1
-    localStorage.setItem(
-      `tripai:chat:${itinerary1}`,
-      JSON.stringify([
-        {
-          id: "1",
-          role: "user",
-          content: "Message 1",
-          timestamp: Date.now(),
-        },
-      ]),
-    );
-
-    // Add messages for itinerary 2
-    localStorage.setItem(
-      `tripai:chat:${itinerary2}`,
-      JSON.stringify([
-        {
-          id: "2",
-          role: "user",
-          content: "Message 2",
-          timestamp: Date.now(),
-        },
-      ]),
-    );
-
-    const { result, rerender } = renderHook(({ id }) => useItineraryChat(id), {
-      initialProps: { id: itinerary1 },
-    });
-
-    expect(result.current.messages).toHaveLength(1);
-    expect(result.current.messages[0].content).toBe("Message 1");
-
-    // Change itinerary ID
-    rerender({ id: itinerary2 });
-
-    expect(result.current.messages).toHaveLength(1);
-    expect(result.current.messages[0].content).toBe("Message 2");
-  });
 });
