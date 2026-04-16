@@ -19,10 +19,9 @@ vi.mock("@/lib/ai/client", async () => {
 });
 
 vi.mock("@/lib/supabase/itineraries", async () => {
-  const actual =
-    await vi.importActual<typeof import("@/lib/supabase/itineraries")>(
-      "@/lib/supabase/itineraries",
-    );
+  const actual = await vi.importActual<typeof import("@/lib/supabase/itineraries")>(
+    "@/lib/supabase/itineraries",
+  );
   return { ...actual, loadItinerary: mocks.loadItinerary };
 });
 
