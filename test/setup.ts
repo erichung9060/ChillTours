@@ -80,7 +80,8 @@ vi.mock("next-intl", () => {
     "validation.bothDatesRequired": "Please select both start and end dates",
     "validation.endDateAfterStart": "End date must be on or after start date",
     // Error messages
-    "landing.form.itineraryLimitError": "You have reached your itinerary limit for the current plan.",
+    "landing.form.itineraryLimitError":
+      "You have reached your itinerary limit for the current plan.",
     "landing.form.createError": "Failed to create itinerary. Please try again.",
     // Itineraries
     "itineraries.titleFormat": "{destination} Trip",
