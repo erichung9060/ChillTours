@@ -78,6 +78,13 @@
     "signOut": "Sign out",
     "logIn": "Log in"
   },
+  "profile": {
+    "credits": "credits",
+    "tier": "Plan",
+    "free": "Free",
+    "pro": "Pro",
+    "insufficientCredits": "Insufficient credits"
+  },
   "auth": {
     "dialogTitle": "ChillTour",
     "dialogDescription": "Sign in to generate your free personalized itinerary",

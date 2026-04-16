@@ -1,11 +1,8 @@
 import { type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { CREDIT_COSTS } from "../../../shared/credit-costs.ts";
 
-export const CREDIT_COSTS = {
-  GENERATE_ITINERARY: 100,
-  CHAT: 10,
-} as const;
-
-export type CreditAction = keyof typeof CREDIT_COSTS;
+export { CREDIT_COSTS };
+export type { CreditAction } from "../../../shared/credit-costs.ts";
 
 export async function captureCredits(
   supabaseAdmin: SupabaseClient,

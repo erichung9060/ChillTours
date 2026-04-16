@@ -9,6 +9,7 @@ import { Logo } from "@/components/ui/logo";
 import { useAuth } from "@/hooks/use-auth";
 import { LoginDialog } from "@/components/auth/login-dialog";
 import { LanguageSelector } from "@/components/ui/language-selector";
+import { CreditsBadge } from "@/components/ui/credits-badge";
 
 export function Header() {
   const t = useTranslations("navigation");
@@ -41,6 +42,7 @@ export function Header() {
                     {t("myItineraries")}
                   </Button>
                 </Link>
+                <CreditsBadge />
                 <div className="flex items-center gap-2">
                   {user.user_metadata?.avatar_url ? (
                     // eslint-disable-next-line @next/next/no-img-element

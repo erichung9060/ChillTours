@@ -29,6 +29,7 @@ import { useItineraryStore } from "@/components/planner/itinerary/store";
 import type { Itinerary } from "@/types/itinerary";
 import type { ChatMessage } from "@/types/chat";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/use-profile";
 
 interface ChatPanelProps {
   itinerary: Itinerary;
@@ -41,6 +42,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   const t = useTranslations("chat");
   const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
   const applyOperations = useItineraryStore((state) => state.applyOperations);
+  const { refreshProfile } = useProfile();
 
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -162,9 +164,23 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         addMessage(errorMessage);
       } finally {
         setIsStreaming(false);
+        // Always refresh profile after chat completes (success or failure)
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile:", err);
+        });
       }
     },
-    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations, t],
+    [
+      input,
+      isStreaming,
+      messages,
+      itinerary,
+      locale,
+      addMessage,
+      applyOperations,
+      t,
+      refreshProfile,
+    ],
   );
 
   return (

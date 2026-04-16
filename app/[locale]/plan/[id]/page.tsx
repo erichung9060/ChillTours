@@ -19,6 +19,7 @@ import { ChatPanel } from "@/components/planner/chat-panel";
 import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
+import { useProfile } from "@/hooks/use-profile";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 700;
@@ -67,6 +68,8 @@ export default function PlanningPage() {
   const stopGeneration = useItineraryStore((state) => state.stopGeneration);
   const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
+  const { refreshProfile } = useProfile();
+
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isMapVisible, setIsMapVisible] = useState(true);
@@ -109,7 +112,11 @@ export default function PlanningPage() {
     const isResumingInFlight = itinerary.status === "generating";
 
     if (isFreshDraft || isResumingInFlight) {
-      startGeneration(itinerary.id, locale);
+      startGeneration(itinerary.id, locale, () => {
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile after generation:", err);
+        });
+      });
     }
 
     return () => stopGeneration();
@@ -147,6 +154,29 @@ export default function PlanningPage() {
       case "GENERATION_FAILED":
       default:
         return t("generationFailed");
+    }
+  };
+
+  // Handle retry: refetch itinerary and restart generation if needed
+  const handleRetry = async () => {
+    await fetchItinerary(itineraryId);
+
+    const state = useItineraryStore.getState();
+    if (!state.itinerary) return;
+
+    const isFreshDraft =
+      (!state.itinerary.status ||
+        state.itinerary.status === "draft" ||
+        state.itinerary.status === "failed") &&
+      state.itinerary.days.length === 0;
+    const isResumingInFlight = state.itinerary.status === "generating";
+
+    if (isFreshDraft || isResumingInFlight) {
+      startGeneration(state.itinerary.id, locale, () => {
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile after generation:", err);
+        });
+      });
     }
   };
 
@@ -269,11 +299,7 @@ export default function PlanningPage() {
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
-          <ErrorMessage
-            title={title}
-            message={message}
-            onRetry={() => fetchItinerary(itineraryId)}
-          />
+          <ErrorMessage title={title} message={message} onRetry={handleRetry} />
         </main>
       </>
     );
