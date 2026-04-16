@@ -78,6 +78,13 @@
     "signOut": "登出",
     "logIn": "登入"
   },
+  "profile": {
+    "credits": "點數",
+    "tier": "方案",
+    "free": "免費",
+    "pro": "專業",
+    "insufficientCredits": "點數不足"
+  },
   "auth": {
     "dialogTitle": "ChillTour",
     "dialogDescription": "登入即可免費生成專屬行程",
