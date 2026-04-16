@@ -12,7 +12,13 @@ interface DayTimeEditorProps {
   onApplyAll: (startTime: string, endTime: string) => Promise<void>;
 }
 
-export function DayTimeEditor({ dayNumber, startTime, endTime, onSave, onApplyAll }: DayTimeEditorProps) {
+export function DayTimeEditor({
+  dayNumber,
+  startTime,
+  endTime,
+  onSave,
+  onApplyAll,
+}: DayTimeEditorProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState({ startTime, endTime });
   const [saving, setSaving] = useState(false);
@@ -46,7 +52,14 @@ export function DayTimeEditor({ dayNumber, startTime, endTime, onSave, onApplyAl
         onClick={handleOpen}
         type="button"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-3 w-3"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
@@ -75,7 +88,13 @@ export function DayTimeEditor({ dayNumber, startTime, endTime, onSave, onApplyAl
             <Button size="sm" className="h-7 text-xs flex-1" onClick={save} disabled={saving}>
               儲存
             </Button>
-            <Button size="sm" variant="outline" className="h-7 text-xs flex-1" onClick={applyAll} disabled={saving}>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 text-xs flex-1"
+              onClick={applyAll}
+              disabled={saving}
+            >
               套用全部天
             </Button>
           </div>

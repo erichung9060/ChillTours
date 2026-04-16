@@ -21,7 +21,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     expect(screen.getByText("08:00 – 21:00")).toBeInTheDocument();
   });
@@ -34,7 +34,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     expect(screen.queryByText("儲存")).not.toBeInTheDocument();
   });
@@ -47,7 +47,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
     expect(screen.getByText("儲存")).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe("DayTimeEditor", () => {
         endTime="20:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("09:00 – 20:00"));
     expect(screen.getByText("Day 3 時間範圍")).toBeInTheDocument();
@@ -76,7 +76,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
     fireEvent.click(screen.getByText("儲存"));
@@ -94,7 +94,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
     fireEvent.click(screen.getByText("套用全部天"));
@@ -112,7 +112,7 @@ describe("DayTimeEditor", () => {
         endTime="21:00"
         onSave={onSave}
         onApplyAll={onApplyAll}
-      />
+      />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
     fireEvent.click(screen.getByText("儲存"));
