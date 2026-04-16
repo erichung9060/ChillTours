@@ -43,7 +43,7 @@ export function useProfile(): UseProfileReturn {
         console.error("Failed to load profile:", err);
         setProfile(null); // Show 0 credits, don't crash UI
       });
-  }, [user?.id, setProfile]);
+  }, [user, setProfile]);
 
   const optimisticUpdateCredits = useCallback(
     (delta: number) => {
@@ -60,7 +60,7 @@ export function useProfile(): UseProfileReturn {
 
     const p = await getProfile(user.id);
     setProfile(p);
-  }, [user?.id, setProfile]);
+  }, [user, setProfile]);
 
   return {
     profile,

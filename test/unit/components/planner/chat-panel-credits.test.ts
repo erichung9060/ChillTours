@@ -14,7 +14,6 @@ describe("CREDIT_COSTS constants", () => {
 describe("ChatPanel credit deduction contract", () => {
   it("should call optimisticUpdateCredits(-CHAT) before API, refreshProfile on success", () => {
     const COST = CREDIT_COSTS.CHAT;
-    const optimisticUpdateCredits = (delta: number) => delta;
     const calls: number[] = [];
 
     const track = (delta: number) => { calls.push(delta); };

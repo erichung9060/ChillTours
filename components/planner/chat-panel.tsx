@@ -179,7 +179,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
         setIsStreaming(false);
       }
     },
-    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations, t],
+    [input, isStreaming, messages, itinerary, locale, addMessage, applyOperations, t, optimisticUpdateCredits, refreshProfile],
   );
 
   return (
