@@ -35,22 +35,4 @@ describe("useProfileStore", () => {
 
     expect(useProfileStore.getState().profile).toBeNull();
   });
-
-  it("should apply updater function via updateProfile", () => {
-    useProfileStore.getState().setProfile(mockProfile);
-
-    useProfileStore.getState().updateProfile((prev) =>
-      prev ? { ...prev, credits: prev.credits! - 10 } : prev
-    );
-
-    expect(useProfileStore.getState().profile?.credits).toBe(490);
-  });
-
-  it("should do nothing via updateProfile when profile is null", () => {
-    useProfileStore.getState().updateProfile((prev) =>
-      prev ? { ...prev, credits: 0 } : prev
-    );
-
-    expect(useProfileStore.getState().profile).toBeNull();
-  });
 });

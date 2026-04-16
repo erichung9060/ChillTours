@@ -8,9 +8,7 @@ interface UseProfileReturn {
   profile: ProfileRow | null;
   credits: number;
   tier: UserTier;
-  /** Instantly adjust credits in UI before server confirms. */
-  optimisticUpdateCredits: (delta: number) => void;
-  /** Re-fetch profile from server (call after successful API operation). */
+  /** Re-fetch profile from server (call after API operation completes). */
   refreshProfile: () => Promise<void>;
 }
 
@@ -26,7 +24,7 @@ interface UseProfileReturn {
  */
 export function useProfile(): UseProfileReturn {
   const { user } = useAuth();
-  const { profile, setProfile, updateProfile } = useProfileStore();
+  const { profile, setProfile } = useProfileStore();
 
   useEffect(() => {
     if (!user) {
@@ -45,16 +43,6 @@ export function useProfile(): UseProfileReturn {
       });
   }, [user, setProfile]);
 
-  const optimisticUpdateCredits = useCallback(
-    (delta: number) => {
-      updateProfile((prev) => {
-        if (!prev) return prev;
-        return { ...prev, credits: Math.max(0, (prev.credits ?? 0) + delta) };
-      });
-    },
-    [updateProfile],
-  );
-
   const refreshProfile = useCallback(async () => {
     if (!user) return;
 
@@ -66,7 +54,6 @@ export function useProfile(): UseProfileReturn {
     profile,
     credits: profile?.credits ?? 0,
     tier: (profile?.tier as UserTier) ?? "free",
-    optimisticUpdateCredits,
     refreshProfile,
   };
 }

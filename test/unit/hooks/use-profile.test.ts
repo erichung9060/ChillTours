@@ -70,40 +70,6 @@ describe("useProfile", () => {
     expect(profilesModule.getProfile).not.toHaveBeenCalled();
   });
 
-  it("should apply optimistic credit deduction", async () => {
-    vi.mocked(useAuth).mockReturnValue({ user: mockUser } as never);
-    vi.mocked(profilesModule.getProfile).mockResolvedValue(mockProfile);
-
-    const { result } = renderHook(() => useProfile());
-
-    await waitFor(() => {
-      expect(result.current.credits).toBe(500);
-    });
-
-    act(() => {
-      result.current.optimisticUpdateCredits(-10);
-    });
-
-    expect(result.current.credits).toBe(490);
-  });
-
-  it("should not let credits go below 0 from optimistic update", async () => {
-    vi.mocked(useAuth).mockReturnValue({ user: mockUser } as never);
-    vi.mocked(profilesModule.getProfile).mockResolvedValue({ ...mockProfile, credits: 5 });
-
-    const { result } = renderHook(() => useProfile());
-
-    await waitFor(() => {
-      expect(result.current.credits).toBe(5);
-    });
-
-    act(() => {
-      result.current.optimisticUpdateCredits(-100);
-    });
-
-    expect(result.current.credits).toBe(0);
-  });
-
   it("should re-fetch from server on refreshProfile()", async () => {
     vi.mocked(useAuth).mockReturnValue({ user: mockUser } as never);
     const updatedProfile = { ...mockProfile, credits: 300 };
