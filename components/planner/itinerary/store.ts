@@ -639,7 +639,7 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     const status = state.itinerary?.status;
     if (status === "generating") {
       // Resumed mid-generation (user refreshed / navigated back) → poll DB.
-      startPollingInternal(itineraryId, get, set);
+      startPollingInternal(itineraryId, set);
     } else {
       // Fresh draft / retry after failure → open SSE stream.
       startStreamingInternal(itineraryId, locale, get, set);
@@ -703,9 +703,7 @@ function serializeItinerary(itinerary: Itinerary): string {
 
 type StoreGet = () => ItineraryState;
 type StoreSet = (
-  partial:
-    | Partial<ItineraryState>
-    | ((state: ItineraryState) => Partial<ItineraryState>),
+  partial: Partial<ItineraryState> | ((state: ItineraryState) => Partial<ItineraryState>),
 ) => void;
 
 async function startStreamingInternal(
@@ -743,7 +741,7 @@ async function startStreamingInternal(
     if (err instanceof ApiError) {
       if (err.code === "ALREADY_GENERATING") {
         set({ generationAbortController: null });
-        startPollingInternal(itineraryId, get, set);
+        startPollingInternal(itineraryId, set);
         return;
       }
 
@@ -768,7 +766,7 @@ async function startStreamingInternal(
   }
 }
 
-function startPollingInternal(itineraryId: string, get: StoreGet, set: StoreSet): void {
+function startPollingInternal(itineraryId: string, set: StoreSet): void {
   if (pollingIntervalHandle) clearInterval(pollingIntervalHandle);
 
   set({ isGenerating: true });
