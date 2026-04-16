@@ -20,7 +20,6 @@ import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 import { useProfile } from "@/hooks/use-profile";
-import { CREDIT_COSTS } from "@/shared/credit-costs";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 700;
@@ -69,7 +68,7 @@ export default function PlanningPage() {
   const stopGeneration = useItineraryStore((state) => state.stopGeneration);
   const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
-  const { optimisticUpdateCredits, refreshProfile } = useProfile();
+  const { refreshProfile } = useProfile();
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -114,6 +113,10 @@ export default function PlanningPage() {
 
     if (isFreshDraft || isResumingInFlight) {
       startGeneration(itinerary.id, locale);
+
+      refreshProfile().catch((err) => {
+        console.error("Failed to refresh profile:", err);
+      });
     }
 
     return () => stopGeneration();
@@ -122,7 +125,7 @@ export default function PlanningPage() {
     // excluded: tracking only id + status prevents this effect from re-firing
     // on every activity append during streaming, which would restart generation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itinerary?.id, itinerary?.status, locale, optimisticUpdateCredits, refreshProfile]);
+  }, [itinerary?.id, itinerary?.status, locale, refreshProfile]);
 
   const getErrorTitle = () => {
     switch (errorKind) {
