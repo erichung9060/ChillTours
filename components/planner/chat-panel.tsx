@@ -29,6 +29,8 @@ import { useItineraryStore } from "@/components/planner/itinerary/store";
 import type { Itinerary } from "@/types/itinerary";
 import type { ChatMessage } from "@/types/chat";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/use-profile";
+import { CREDIT_COSTS } from "@/shared/credit-costs";
 
 interface ChatPanelProps {
   itinerary: Itinerary;
@@ -41,6 +43,7 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
   const t = useTranslations("chat");
   const { messages, addMessage, clearMessages } = useItineraryChat(itinerary.id);
   const applyOperations = useItineraryStore((state) => state.applyOperations);
+  const { optimisticUpdateCredits, refreshProfile } = useProfile();
 
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -82,6 +85,9 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
       setIsStreaming(true);
 
       const assistantMessageId = crypto.randomUUID();
+
+      // Deduct credits optimistically before API call
+      optimisticUpdateCredits(-CREDIT_COSTS.CHAT);
 
       try {
         // Create streaming assistant message (Requirement 18.2)
@@ -138,7 +144,16 @@ export function ChatPanel({ itinerary, isOpen, onClose }: ChatPanelProps) {
             toast.error(t("errorApplyOperations"));
           }
         }
+
+        // Sync with server after successful chat (non-blocking)
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile after chat:", err);
+          // Silent failure - chat succeeded, just credit sync failed
+        });
       } catch (error) {
+        // Rollback: server didn't deduct credits
+        optimisticUpdateCredits(CREDIT_COSTS.CHAT);
+
         let errorContent = t("error");
         if (error instanceof ApiError) {
           if (error.code === "UNAUTHORIZED") {
