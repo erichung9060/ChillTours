@@ -63,9 +63,8 @@ export default function PlanningPage() {
   const errorCode = useItineraryStore((state) => state.errorCode);
   const errorKind = useItineraryStore((state) => state.errorKind);
   const isGenerating = useItineraryStore((state) => state.isGenerating);
-  const startStreaming = useItineraryStore((state) => state.startStreaming);
-  const startPolling = useItineraryStore((state) => state.startPolling);
-  const stopPolling = useItineraryStore((state) => state.stopPolling);
+  const startGeneration = useItineraryStore((state) => state.startGeneration);
+  const stopGeneration = useItineraryStore((state) => state.stopGeneration);
   const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
   // UI State
@@ -104,27 +103,20 @@ export default function PlanningPage() {
   useEffect(() => {
     if (!itinerary) return;
 
-    if (
+    const isFreshDraft =
       (!itinerary.status || itinerary.status === "draft" || itinerary.status === "failed") &&
-      itinerary.days.length === 0
-    ) {
-      // Fresh itinerary — trigger SSE streaming
-      startStreaming(itinerary.id, locale); // metadata read from DB in Edge Function
-    } else if (itinerary.status === "generating") {
-      // User returned mid-generation — use polling
-      startPolling(itinerary.id);
+      itinerary.days.length === 0;
+    const isResumingInFlight = itinerary.status === "generating";
+
+    if (isFreshDraft || isResumingInFlight) {
+      startGeneration(itinerary.id, locale);
     }
 
-    return () => {
-      // Cleanup: stop polling and abort any in-flight SSE streaming
-      stopPolling();
-      const controller = useItineraryStore.getState().generationAbortController;
-      controller?.abort();
-    };
-    // Zustand actions (startStreaming, startPolling, stopPolling) are stable refs
-    // and do not need to be listed. The full `itinerary` object is intentionally
-    // excluded: tracking only id + status prevents this effect from re-firing on
-    // every activity append during streaming, which would restart the stream.
+    return () => stopGeneration();
+    // Zustand actions (startGeneration, stopGeneration) are stable refs and do
+    // not need to be listed. The full `itinerary` object is intentionally
+    // excluded: tracking only id + status prevents this effect from re-firing
+    // on every activity append during streaming, which would restart generation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [itinerary?.id, itinerary?.status, locale]);
 

@@ -15,6 +15,8 @@ import { calcDayCount } from "@/lib/utils/date";
 import { adjustDays } from "@/lib/utils/itinerary";
 import { resolvePlaceDetails } from "@/lib/places/place-resolver";
 
+let pollingIntervalHandle: ReturnType<typeof setInterval> | null = null;
+
 const MAX_HISTORY_ENTRIES = 50;
 type ItineraryErrorKind = "access" | "load" | "runtime" | null;
 
@@ -33,7 +35,6 @@ interface ItineraryState {
   isSaving: boolean;
   saveError: boolean;
   generationAbortController: AbortController | null;
-  pollingIntervalId: ReturnType<typeof setInterval> | null;
 
   // Interaction State
   previewBaseItinerary: Itinerary | null;
@@ -97,11 +98,8 @@ interface ItineraryState {
   deleteActivity: (activityId: string) => Promise<void>;
 
   // Generation Actions
-  startStreaming: (itineraryId: string, locale: string) => Promise<void>;
-  appendStreamedActivity: (dayNumber: number, activity: Activity) => void;
-  completeGeneration: () => void;
-  startPolling: (itineraryId: string) => void;
-  stopPolling: () => void;
+  startGeneration: (itineraryId: string, locale: string) => void;
+  stopGeneration: () => void;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
   // Drag & Drop Actions
@@ -142,7 +140,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   isSaving: false,
   saveError: false,
   generationAbortController: null,
-  pollingIntervalId: null,
   previewBaseItinerary: null,
   previewItinerary: null,
   crossDayDragInfo: null,
@@ -635,152 +632,32 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  startStreaming: async (itineraryId, locale) => {
+  startGeneration: (itineraryId, locale) => {
     const state = get();
+    if (state.isGenerating) return; // guard against double-invoke (StrictMode)
 
-    // Concurrency guard: abort any in-flight stream (handles React StrictMode double-invoke)
-    if (state.generationAbortController) {
-      state.generationAbortController.abort();
-    }
-
-    const controller = new AbortController();
-    set({ isGenerating: true, generationAbortController: controller });
-
-    try {
-      await aiClient.streamItinerary(
-        itineraryId,
-        locale,
-        // onActivity
-        (data) => {
-          get().appendStreamedActivity(data.day_number, data.activity);
-        },
-        // onComplete
-        () => {
-          get().completeGeneration();
-        },
-        // onError
-        () => {
-          set({
-            isGenerating: false,
-            errorKind: "runtime",
-            errorCode: "GENERATION_FAILED",
-            generationAbortController: null,
-          });
-        },
-        controller.signal,
-      );
-    } catch (err) {
-      // AbortError is expected on cleanup — not a real error
-      if (err instanceof Error && err.name === "AbortError") return;
-
-      if (err instanceof ApiError) {
-        if (err.code === "ALREADY_GENERATING") {
-          // 發現已經在生成中，平滑切換到 Polling 模式
-          set({ generationAbortController: null });
-          get().startPolling(itineraryId);
-          return;
-        }
-        if (err.code === "INSUFFICIENT_CREDITS") {
-          set({
-            isGenerating: false,
-            errorKind: "runtime",
-            errorCode: "INSUFFICIENT_CREDITS",
-            generationAbortController: null,
-          });
-          return;
-        }
-      }
-
-      console.error("Stream failed:", err);
-      set({
-        isGenerating: false,
-        errorKind: "runtime",
-        errorCode: "GENERATION_FAILED",
-        generationAbortController: null,
-      });
+    const status = state.itinerary?.status;
+    if (status === "generating") {
+      // Resumed mid-generation (user refreshed / navigated back) → poll DB.
+      startPollingInternal(itineraryId, set);
+    } else {
+      // Fresh draft / retry after failure → open SSE stream.
+      startStreamingInternal(itineraryId, locale, get, set);
     }
   },
 
-  appendStreamedActivity: (dayNumber, activity) =>
-    set((state) => {
-      if (!state.itinerary) return state;
+  stopGeneration: () => {
+    // Abort any in-flight SSE stream.
+    const { generationAbortController } = get();
+    generationAbortController?.abort();
 
-      const days = [...state.itinerary.days];
-      const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
+    // Clear polling timer.
+    if (pollingIntervalHandle) {
+      clearInterval(pollingIntervalHandle);
+      pollingIntervalHandle = null;
+    }
 
-      if (existingDayIdx !== -1) {
-        // Day already exists, add activity to it and sort by its native order
-        const updatedActivities = [...days[existingDayIdx].activities, activity];
-        updatedActivities.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-
-        days[existingDayIdx] = {
-          ...days[existingDayIdx],
-          activities: updatedActivities,
-        };
-      } else {
-        // Day doesn't exist, create new day
-        days.push({ day_number: dayNumber, activities: [activity] });
-        days.sort((a, b) => a.day_number - b.day_number);
-      }
-
-      return {
-        itinerary: {
-          ...state.itinerary,
-          days,
-          updated_at: new Date().toISOString(),
-        },
-      };
-    }),
-
-  completeGeneration: () => set({ isGenerating: false, generationAbortController: null }),
-
-  startPolling: (itineraryId) => {
-    const existing = get().pollingIntervalId;
-    if (existing) clearInterval(existing);
-
-    set({ isGenerating: true });
-
-    let attempts = 0;
-    const MAX_ATTEMPTS = 100; // ~5 minutes at 3s interval
-
-    const intervalId = setInterval(async () => {
-      attempts++;
-
-      if (attempts > MAX_ATTEMPTS) {
-        get().stopPolling();
-        set({
-          errorKind: "runtime",
-          errorCode: "GENERATION_TIMEOUT",
-        });
-        return;
-      }
-
-      try {
-        const data = await loadItinerary(itineraryId);
-        if (data.status === "completed") {
-          get().stopPolling();
-          set({ itinerary: data, isGenerating: false });
-        } else if (data.status === "failed") {
-          get().stopPolling();
-          set({
-            isGenerating: false,
-            errorKind: "runtime",
-            errorCode: "GENERATION_FAILED",
-          });
-        }
-        // status === "generating" → keep polling
-      } catch {
-        // Transient errors: keep polling
-      }
-    }, 3000);
-
-    set({ pollingIntervalId: intervalId });
-  },
-
-  stopPolling: () => {
-    const { pollingIntervalId } = get();
-    if (pollingIntervalId) clearInterval(pollingIntervalId);
-    set({ pollingIntervalId: null, isGenerating: false });
+    set({ isGenerating: false, generationAbortController: null });
   },
 
   // Drag & Drop Logic
@@ -822,4 +699,155 @@ function cloneItinerarySnapshot(itinerary: Itinerary): Itinerary {
 
 function serializeItinerary(itinerary: Itinerary): string {
   return JSON.stringify(itinerary);
+}
+
+type StoreGet = () => ItineraryState;
+type StoreSet = (
+  partial: Partial<ItineraryState> | ((state: ItineraryState) => Partial<ItineraryState>),
+) => void;
+
+async function startStreamingInternal(
+  itineraryId: string,
+  locale: string,
+  get: StoreGet,
+  set: StoreSet,
+): Promise<void> {
+  // Concurrency guard
+  const existingController = get().generationAbortController;
+  existingController?.abort();
+
+  const controller = new AbortController();
+  set({ isGenerating: true, generationAbortController: controller });
+
+  try {
+    await aiClient.streamItinerary(
+      itineraryId,
+      locale,
+      (data) => appendStreamedActivityInternal(data.day_number, data.activity, set),
+      () => set({ isGenerating: false, generationAbortController: null }),
+      () => {
+        set({
+          isGenerating: false,
+          errorKind: "runtime",
+          errorCode: "GENERATION_FAILED",
+          generationAbortController: null,
+        });
+      },
+      controller.signal,
+    );
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") return;
+
+    if (err instanceof ApiError) {
+      if (err.code === "ALREADY_GENERATING") {
+        set({ generationAbortController: null });
+        startPollingInternal(itineraryId, set);
+        return;
+      }
+
+      if (err.code === "INSUFFICIENT_CREDITS") {
+        set({
+          isGenerating: false,
+          errorKind: "runtime",
+          errorCode: "INSUFFICIENT_CREDITS",
+          generationAbortController: null,
+        });
+        return;
+      }
+    }
+
+    console.error("Stream failed:", err);
+    set({
+      isGenerating: false,
+      errorKind: "runtime",
+      errorCode: "GENERATION_FAILED",
+      generationAbortController: null,
+    });
+  }
+}
+
+function startPollingInternal(itineraryId: string, set: StoreSet): void {
+  if (pollingIntervalHandle) clearInterval(pollingIntervalHandle);
+
+  set({ isGenerating: true });
+
+  let attempts = 0;
+  // ~1 minute at 3s interval
+  const MAX_ATTEMPTS = 20;
+  const ATTEMPT_INTERVAL = 3000;
+
+  pollingIntervalHandle = setInterval(async () => {
+    attempts++;
+
+    if (attempts > MAX_ATTEMPTS) {
+      if (pollingIntervalHandle) {
+        clearInterval(pollingIntervalHandle);
+        pollingIntervalHandle = null;
+      }
+      set({
+        isGenerating: false,
+        errorKind: "runtime",
+        errorCode: "GENERATION_TIMEOUT",
+      });
+      return;
+    }
+
+    try {
+      const data = await loadItinerary(itineraryId);
+      if (data.status === "completed") {
+        if (pollingIntervalHandle) {
+          clearInterval(pollingIntervalHandle);
+          pollingIntervalHandle = null;
+        }
+        set({ itinerary: data, isGenerating: false });
+      } else if (data.status === "failed") {
+        if (pollingIntervalHandle) {
+          clearInterval(pollingIntervalHandle);
+          pollingIntervalHandle = null;
+        }
+        set({
+          isGenerating: false,
+          errorKind: "runtime",
+          errorCode: "GENERATION_FAILED",
+        });
+      }
+      // status === "generating" → keep polling.
+    } catch {
+      // Transient errors: keep polling (the next tick will retry).
+    }
+  }, ATTEMPT_INTERVAL);
+}
+
+function appendStreamedActivityInternal(
+  dayNumber: number,
+  activity: Activity,
+  set: StoreSet,
+): void {
+  set((state) => {
+    if (!state.itinerary) return state;
+
+    const days = [...state.itinerary.days];
+    const existingDayIdx = days.findIndex((d) => d.day_number === dayNumber);
+
+    if (existingDayIdx !== -1) {
+      const updatedActivities = [...days[existingDayIdx].activities, activity];
+      updatedActivities.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+      days[existingDayIdx] = {
+        ...days[existingDayIdx],
+        activities: updatedActivities,
+      };
+    } else {
+      days.push({ day_number: dayNumber, activities: [activity] });
+      days.sort((a, b) => a.day_number - b.day_number);
+    }
+
+    return {
+      itinerary: {
+        ...state.itinerary,
+        days,
+        updated_at: new Date().toISOString(),
+      },
+    };
+  });
 }
