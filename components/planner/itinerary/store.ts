@@ -772,7 +772,7 @@ function startPollingInternal(itineraryId: string, set: StoreSet): void {
   set({ isGenerating: true });
 
   let attempts = 0;
-  // ~1 minutes at 3s interval
+  // ~1 minute at 3s interval
   const MAX_ATTEMPTS = 20;
   const ATTEMPT_INTERVAL = 3000;
 
