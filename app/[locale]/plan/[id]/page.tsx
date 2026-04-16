@@ -112,10 +112,10 @@ export default function PlanningPage() {
     const isResumingInFlight = itinerary.status === "generating";
 
     if (isFreshDraft || isResumingInFlight) {
-      startGeneration(itinerary.id, locale);
-
-      refreshProfile().catch((err) => {
-        console.error("Failed to refresh profile:", err);
+      startGeneration(itinerary.id, locale, () => {
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile after generation:", err);
+        });
       });
     }
 
@@ -125,7 +125,7 @@ export default function PlanningPage() {
     // excluded: tracking only id + status prevents this effect from re-firing
     // on every activity append during streaming, which would restart generation.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itinerary?.id, itinerary?.status, locale, refreshProfile]);
+  }, [itinerary?.id, itinerary?.status, locale]);
 
   const getErrorTitle = () => {
     switch (errorKind) {

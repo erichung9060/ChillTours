@@ -98,7 +98,7 @@ interface ItineraryState {
   deleteActivity: (activityId: string) => Promise<void>;
 
   // Generation Actions
-  startGeneration: (itineraryId: string, locale: string) => void;
+  startGeneration: (itineraryId: string, locale: string, onComplete?: () => void) => void;
   stopGeneration: () => void;
   applyOperations: (ops: OperationsUpdate) => Promise<void>;
 
@@ -632,17 +632,22 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
   },
 
   // Generation Actions
-  startGeneration: (itineraryId, locale) => {
+  startGeneration: async (itineraryId, locale, onComplete) => {
     const state = get();
     if (state.isGenerating) return; // guard against double-invoke (StrictMode)
 
-    const status = state.itinerary?.status;
-    if (status === "generating") {
-      // Resumed mid-generation (user refreshed / navigated back) → poll DB.
-      startPollingInternal(itineraryId, set);
-    } else {
-      // Fresh draft / retry after failure → open SSE stream.
-      startStreamingInternal(itineraryId, locale, get, set);
+    try {
+      const status = state.itinerary?.status;
+      if (status === "generating") {
+        // Resumed mid-generation (user refreshed / navigated back) → poll DB.
+        await startPollingInternal(itineraryId, set);
+      } else {
+        // Fresh draft / retry after failure → open SSE stream.
+        await startStreamingInternal(itineraryId, locale, get, set);
+      }
+    } finally {
+      // Always call onComplete, regardless of success or failure
+      onComplete?.();
     }
   },
 
@@ -724,7 +729,9 @@ async function startStreamingInternal(
       itineraryId,
       locale,
       (data) => appendStreamedActivityInternal(data.day_number, data.activity, set),
-      () => set({ isGenerating: false, generationAbortController: null }),
+      () => {
+        set({ isGenerating: false, generationAbortController: null });
+      },
       () => {
         set({
           isGenerating: false,
@@ -741,8 +748,7 @@ async function startStreamingInternal(
     if (err instanceof ApiError) {
       if (err.code === "ALREADY_GENERATING") {
         set({ generationAbortController: null });
-        startPollingInternal(itineraryId, set);
-        return;
+        return startPollingInternal(itineraryId, set);
       }
 
       if (err.code === "INSUFFICIENT_CREDITS") {
@@ -766,41 +772,21 @@ async function startStreamingInternal(
   }
 }
 
-function startPollingInternal(itineraryId: string, set: StoreSet): void {
+async function startPollingInternal(itineraryId: string, set: StoreSet): Promise<void> {
   if (pollingIntervalHandle) clearInterval(pollingIntervalHandle);
 
   set({ isGenerating: true });
 
-  let attempts = 0;
-  // ~1 minute at 3s interval
-  const MAX_ATTEMPTS = 20;
-  const ATTEMPT_INTERVAL = 3000;
+  return new Promise((resolve) => {
+    let attempts = 0;
+    // ~1 minute at 3s interval
+    const MAX_ATTEMPTS = 20;
+    const ATTEMPT_INTERVAL = 3000;
 
-  pollingIntervalHandle = setInterval(async () => {
-    attempts++;
+    pollingIntervalHandle = setInterval(async () => {
+      attempts++;
 
-    if (attempts > MAX_ATTEMPTS) {
-      if (pollingIntervalHandle) {
-        clearInterval(pollingIntervalHandle);
-        pollingIntervalHandle = null;
-      }
-      set({
-        isGenerating: false,
-        errorKind: "runtime",
-        errorCode: "GENERATION_TIMEOUT",
-      });
-      return;
-    }
-
-    try {
-      const data = await loadItinerary(itineraryId);
-      if (data.status === "completed") {
-        if (pollingIntervalHandle) {
-          clearInterval(pollingIntervalHandle);
-          pollingIntervalHandle = null;
-        }
-        set({ itinerary: data, isGenerating: false });
-      } else if (data.status === "failed") {
+      if (attempts > MAX_ATTEMPTS) {
         if (pollingIntervalHandle) {
           clearInterval(pollingIntervalHandle);
           pollingIntervalHandle = null;
@@ -808,14 +794,39 @@ function startPollingInternal(itineraryId: string, set: StoreSet): void {
         set({
           isGenerating: false,
           errorKind: "runtime",
-          errorCode: "GENERATION_FAILED",
+          errorCode: "GENERATION_TIMEOUT",
         });
+        resolve(); // Resolve on timeout
+        return;
       }
-      // status === "generating" → keep polling.
-    } catch {
-      // Transient errors: keep polling (the next tick will retry).
-    }
-  }, ATTEMPT_INTERVAL);
+
+      try {
+        const data = await loadItinerary(itineraryId);
+        if (data.status === "completed") {
+          if (pollingIntervalHandle) {
+            clearInterval(pollingIntervalHandle);
+            pollingIntervalHandle = null;
+          }
+          set({ itinerary: data, isGenerating: false });
+          resolve(); // Resolve on success
+        } else if (data.status === "failed") {
+          if (pollingIntervalHandle) {
+            clearInterval(pollingIntervalHandle);
+            pollingIntervalHandle = null;
+          }
+          set({
+            isGenerating: false,
+            errorKind: "runtime",
+            errorCode: "GENERATION_FAILED",
+          });
+          resolve(); // Resolve on failure
+        }
+        // status === "generating" → keep polling.
+      } catch {
+        // Transient errors: keep polling (the next tick will retry).
+      }
+    }, ATTEMPT_INTERVAL);
+  });
 }
 
 function appendStreamedActivityInternal(
