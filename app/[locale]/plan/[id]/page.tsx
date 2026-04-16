@@ -157,6 +157,29 @@ export default function PlanningPage() {
     }
   };
 
+  // Handle retry: refetch itinerary and restart generation if needed
+  const handleRetry = async () => {
+    await fetchItinerary(itineraryId);
+
+    const state = useItineraryStore.getState();
+    if (!state.itinerary) return;
+
+    const isFreshDraft =
+      (!state.itinerary.status ||
+        state.itinerary.status === "draft" ||
+        state.itinerary.status === "failed") &&
+      state.itinerary.days.length === 0;
+    const isResumingInFlight = state.itinerary.status === "generating";
+
+    if (isFreshDraft || isResumingInFlight) {
+      startGeneration(state.itinerary.id, locale, () => {
+        refreshProfile().catch((err) => {
+          console.error("Failed to refresh profile after generation:", err);
+        });
+      });
+    }
+  };
+
   // Handle fullscreen mode change
   const handleFullscreenChange = (isFullscreen: boolean) => {
     setIsMapVisible(!isFullscreen);
@@ -276,11 +299,7 @@ export default function PlanningPage() {
       <>
         <Header />
         <main className="min-h-screen flex items-center justify-center pt-16 px-4">
-          <ErrorMessage
-            title={title}
-            message={message}
-            onRetry={() => fetchItinerary(itineraryId)}
-          />
+          <ErrorMessage title={title} message={message} onRetry={handleRetry} />
         </main>
       </>
     );
