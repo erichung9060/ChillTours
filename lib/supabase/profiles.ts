@@ -9,11 +9,7 @@ export type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
  * Returns null only if profile doesn't exist (404).
  */
 export async function getProfile(userId: string): Promise<ProfileRow | null> {
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", userId)
-    .single();
+  const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
   if (error) {
     // not found (profile doesn't exist)

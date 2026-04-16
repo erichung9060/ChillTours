@@ -16,7 +16,9 @@ describe("ChatPanel credit deduction contract", () => {
     const COST = CREDIT_COSTS.CHAT;
     const calls: number[] = [];
 
-    const track = (delta: number) => { calls.push(delta); };
+    const track = (delta: number) => {
+      calls.push(delta);
+    };
 
     // Simulate: deduct → success → refresh (refresh is a separate call, no delta)
     track(-COST);
@@ -28,7 +30,9 @@ describe("ChatPanel credit deduction contract", () => {
   it("should call optimisticUpdateCredits(+CHAT) on error to rollback", () => {
     const COST = CREDIT_COSTS.CHAT;
     const calls: number[] = [];
-    const track = (delta: number) => { calls.push(delta); };
+    const track = (delta: number) => {
+      calls.push(delta);
+    };
 
     // Simulate: deduct → error → rollback
     track(-COST);

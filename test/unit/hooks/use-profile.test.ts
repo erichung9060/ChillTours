@@ -103,10 +103,7 @@ describe("useProfile", () => {
     });
 
     expect(result.current.credits).toBe(0);
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to load profile:",
-      expect.any(Error)
-    );
+    expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to load profile:", expect.any(Error));
 
     consoleErrorSpy.mockRestore();
   });
