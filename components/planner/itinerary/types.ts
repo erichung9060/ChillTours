@@ -59,8 +59,15 @@ export interface ChatToggleButtonProps {
 }
 
 export interface DayTimeWindowProps {
-  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
-  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
+  setDayTimeWindow?: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+  setAllDaysTimeWindow?: (
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
 }
 
 export interface ExpandableViewProps {

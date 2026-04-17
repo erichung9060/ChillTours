@@ -120,4 +120,44 @@ describe("DayTimeEditor", () => {
       expect(screen.queryByText("儲存")).not.toBeInTheDocument();
     });
   });
+
+  it("點擊外部關閉面板", async () => {
+    render(
+      <div>
+        <DayTimeEditor
+          dayNumber={1}
+          startTime="08:00"
+          endTime="21:00"
+          onSave={onSave}
+          onApplyAll={onApplyAll}
+        />
+        <div data-testid="outside">outside</div>
+      </div>,
+    );
+    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    expect(screen.getByText("儲存")).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByTestId("outside"));
+    await waitFor(() => {
+      expect(screen.queryByText("儲存")).not.toBeInTheDocument();
+    });
+  });
+
+  it("onSave 拋錯時 saving 不卡住（按鈕恢復可用）", async () => {
+    onSave.mockRejectedValue(new Error("save failed"));
+    render(
+      <DayTimeEditor
+        dayNumber={1}
+        startTime="08:00"
+        endTime="21:00"
+        onSave={onSave}
+        onApplyAll={onApplyAll}
+      />,
+    );
+    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const saveButton = screen.getByText("儲存").closest("button")!;
+    fireEvent.click(saveButton);
+    await waitFor(() => {
+      expect(saveButton).not.toBeDisabled();
+    });
+  });
 });

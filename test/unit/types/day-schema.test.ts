@@ -23,9 +23,8 @@ describe("DaySchema - start_time / end_time", () => {
     ).not.toThrow();
   });
 
-  it("缺少前導零的格式（8:00）應通過", () => {
-    // regex 允許 [0-1]?[0-9] 開頭，所以 8:00 合法
-    expect(() => DaySchema.parse({ ...baseDay, start_time: "8:00" })).not.toThrow();
+  it("缺少前導零的格式（8:00）應拋錯，格式必須為 HH:MM", () => {
+    expect(() => DaySchema.parse({ ...baseDay, start_time: "8:00" })).toThrow();
   });
 
   it("小時超過 23 應拋錯", () => {
