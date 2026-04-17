@@ -8,7 +8,11 @@ interface DayTimeEditorProps {
   dayNumber: number;
   startTime: string;
   endTime: string;
-  onSave: (dayNumber: number, startTime: string | undefined, endTime: string | undefined) => Promise<void>;
+  onSave: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
   onApplyAll: (startTime: string | undefined, endTime: string | undefined) => Promise<void>;
 }
 
