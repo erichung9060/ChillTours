@@ -64,6 +64,16 @@ export const createTripFormSchema = (t: TranslationFunction) =>
           message: t("validation.pastDateNotAllowed"),
           path: ["dates"],
         });
+        return;
+      }
+
+      const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      if (days > 14) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("validation.dateTooLong"),
+          path: ["dates"],
+        });
       }
     });
 
@@ -120,6 +130,15 @@ export const createEditMetadataFormSchema = (t: TranslationFunction) =>
           path: ["dates"],
         });
         return;
+      }
+
+      const days = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      if (days > 14) {
+        ctx.addIssue({
+          code: "custom",
+          message: t("validation.dateTooLong"),
+          path: ["dates"],
+        });
       }
     });
 
