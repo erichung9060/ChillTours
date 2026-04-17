@@ -112,8 +112,7 @@ export function DateRangePicker({
     } else {
       // We only have a startDate, complete the selection
       if (date < startDate) {
-        onChange(date, startDate); // Swap if clicked before start
-        setIsOpen(false);
+        onChange(date, undefined); // Reset with new startDate
       } else {
         onChange(startDate, date);
         setIsOpen(false);
@@ -154,12 +153,9 @@ export function DateRangePicker({
       // Check range logic (including hover)
       if (startDate && endDate) {
         isRange = isBetween(date, startDate, endDate);
-      } else if (startDate && hoverDate && !endDate) {
-        // Preview range on hover
-        const start = startDate < hoverDate ? startDate : hoverDate;
-        const end = startDate < hoverDate ? hoverDate : startDate;
-        isRange = isBetween(date, start, end);
-        // Also highlight the hovered date if it will be the endpoint
+      } else if (startDate && hoverDate && !endDate && hoverDate > startDate) {
+        // Preview range on hover (only when hovering after startDate)
+        isRange = isBetween(date, startDate, hoverDate);
         if (isSameDay(date, hoverDate)) isSelected = true;
       }
 
@@ -167,7 +163,7 @@ export function DateRangePicker({
       const isStart = startDate && isSameDay(date, startDate);
       const isEnd =
         (endDate && isSameDay(date, endDate)) ||
-        (!endDate && hoverDate && isSameDay(date, hoverDate));
+        (!endDate && hoverDate && startDate && hoverDate > startDate && isSameDay(date, hoverDate));
 
       days.push(
         <button
