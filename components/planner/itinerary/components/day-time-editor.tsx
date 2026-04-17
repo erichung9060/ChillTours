@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -27,6 +28,7 @@ export function DayTimeEditor({
   const [draft, setDraft] = useState({ startTime, endTime });
   const [saving, setSaving] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations("planner.dayTimeEditor");
 
   useEffect(() => {
     if (!open) return;
@@ -106,7 +108,7 @@ export function DayTimeEditor({
 
       {open && (
         <div className="absolute z-50 top-full mt-1 left-0 bg-popover border border-border rounded-md shadow-md p-3 w-56">
-          <p className="text-xs font-medium mb-2">Day {dayNumber} 時間範圍</p>
+          <p className="text-xs font-medium mb-2">{t("title", { dayNumber })}</p>
           <div className="flex items-center gap-2 mb-3">
             <Input
               type="time"
@@ -124,7 +126,7 @@ export function DayTimeEditor({
           </div>
           <div className="flex gap-2">
             <Button size="sm" className="h-7 text-xs flex-1" onClick={save} disabled={saving}>
-              儲存
+              {t("save")}
             </Button>
             <Button
               size="sm"
@@ -133,7 +135,7 @@ export function DayTimeEditor({
               onClick={applyAll}
               disabled={saving}
             >
-              套用全部天
+              {t("applyAll")}
             </Button>
           </div>
         </div>

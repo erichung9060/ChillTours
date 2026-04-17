@@ -70,7 +70,7 @@ export interface DayTimeWindowProps {
   ) => Promise<void>;
 }
 
-export interface ExpandableViewProps {
+export interface ExpandableViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;
@@ -81,7 +81,7 @@ export interface ExpandableViewProps {
   onActivityClick?: (activityId: string) => void;
 }
 
-export interface SingleDayViewProps {
+export interface SingleDayViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   currentDayIndex: number;
   draggingActivityId: string | null;
@@ -92,7 +92,7 @@ export interface SingleDayViewProps {
   onActivityClick?: (activityId: string) => void;
 }
 
-export interface SideBySideViewProps {
+export interface SideBySideViewProps extends DayTimeWindowProps {
   itinerary: Itinerary;
   draggingActivityId: string | null;
   crossDayDragInfo: { sourceDayNumber: number; targetDayNumber: number } | null;

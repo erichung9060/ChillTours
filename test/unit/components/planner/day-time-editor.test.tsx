@@ -36,7 +36,7 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    expect(screen.queryByText("儲存")).not.toBeInTheDocument();
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
   });
 
   it("opens the time panel when clicked", () => {
@@ -50,8 +50,8 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    expect(screen.getByText("儲存")).toBeInTheDocument();
-    expect(screen.getByText("套用全部天")).toBeInTheDocument();
+    expect(screen.getByText("Save")).toBeInTheDocument();
+    expect(screen.getByText("Apply to all days")).toBeInTheDocument();
   });
 
   it("shows the Day N title in the panel", () => {
@@ -65,7 +65,7 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("09:00 – 20:00"));
-    expect(screen.getByText("Day 3 時間範圍")).toBeInTheDocument();
+    expect(screen.getByText("Day 3 Time Range")).toBeInTheDocument();
   });
 
   it("calls onSave with correct arguments when save button is clicked", async () => {
@@ -79,7 +79,7 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    fireEvent.click(screen.getByText("儲存"));
+    fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledOnce();
       expect(onSave).toHaveBeenCalledWith(2, "08:00", "21:00");
@@ -97,7 +97,7 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    fireEvent.click(screen.getByText("套用全部天"));
+    fireEvent.click(screen.getByText("Apply to all days"));
     await waitFor(() => {
       expect(onApplyAll).toHaveBeenCalledOnce();
       expect(onApplyAll).toHaveBeenCalledWith("08:00", "21:00");
@@ -115,9 +115,9 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    fireEvent.click(screen.getByText("儲存"));
+    fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
-      expect(screen.queryByText("儲存")).not.toBeInTheDocument();
+      expect(screen.queryByText("Save")).not.toBeInTheDocument();
     });
   });
 
@@ -135,10 +135,10 @@ describe("DayTimeEditor", () => {
       </div>,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    expect(screen.getByText("儲存")).toBeInTheDocument();
+    expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.mouseDown(screen.getByTestId("outside"));
     await waitFor(() => {
-      expect(screen.queryByText("儲存")).not.toBeInTheDocument();
+      expect(screen.queryByText("Save")).not.toBeInTheDocument();
     });
   });
 
@@ -154,7 +154,7 @@ describe("DayTimeEditor", () => {
       />,
     );
     fireEvent.click(screen.getByText("08:00 – 21:00"));
-    const saveButton = screen.getByText("儲存").closest("button")!;
+    const saveButton = screen.getByText("Save").closest("button")!;
     fireEvent.click(saveButton);
     await waitFor(() => {
       expect(saveButton).not.toBeDisabled();

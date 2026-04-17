@@ -85,6 +85,11 @@ vi.mock("next-intl", () => {
     "landing.form.createError": "Failed to create itinerary. Please try again.",
     // Itineraries
     "itineraries.titleFormat": "{destination} Trip",
+    // Day time editor
+    "planner.dayTimeEditor.title": "Day {dayNumber} Time Range",
+    "planner.dayTimeEditor.save": "Save",
+    "planner.dayTimeEditor.applyAll": "Apply to all days",
+    "planner.dayTimeEditor.errorSave": "Failed to save time range. Please try again.",
     // Landing form
     "landing.form.whereToNext": "whereToNext",
     "landing.form.destinationPlaceholder": "destinationPlaceholder",
@@ -96,9 +101,15 @@ vi.mock("next-intl", () => {
   };
 
   return {
-    useTranslations: (namespace?: string) => (key: string) => {
+    useTranslations: (namespace?: string) => (key: string, params?: Record<string, unknown>) => {
       const fullKey = namespace ? `${namespace}.${key}` : key;
-      return translations[fullKey] || translations[key] || key;
+      let result = translations[fullKey] || translations[key] || key;
+      if (params) {
+        result = result.replace(/\{(\w+)\}/g, (_: string, k: string) =>
+          params[k] !== undefined ? String(params[k]) : `{${k}}`,
+        );
+      }
+      return result;
     },
     useLocale: () => "en",
     useTimeZone: () => "UTC",
