@@ -13,7 +13,7 @@ describe("DayTimeEditor", () => {
     onApplyAll.mockResolvedValue(undefined);
   });
 
-  it("預設顯示 startTime – endTime", () => {
+  it("displays startTime – endTime by default", () => {
     render(
       <DayTimeEditor
         dayNumber={1}
@@ -26,7 +26,7 @@ describe("DayTimeEditor", () => {
     expect(screen.getByText("08:00 – 21:00")).toBeInTheDocument();
   });
 
-  it("預設不顯示時間面板", () => {
+  it("does not show the time panel by default", () => {
     render(
       <DayTimeEditor
         dayNumber={1}
@@ -39,7 +39,7 @@ describe("DayTimeEditor", () => {
     expect(screen.queryByText("儲存")).not.toBeInTheDocument();
   });
 
-  it("點擊後展開時間面板", () => {
+  it("opens the time panel when clicked", () => {
     render(
       <DayTimeEditor
         dayNumber={1}
@@ -54,7 +54,7 @@ describe("DayTimeEditor", () => {
     expect(screen.getByText("套用全部天")).toBeInTheDocument();
   });
 
-  it("面板顯示 Day N 標題", () => {
+  it("shows the Day N title in the panel", () => {
     render(
       <DayTimeEditor
         dayNumber={3}
@@ -68,7 +68,7 @@ describe("DayTimeEditor", () => {
     expect(screen.getByText("Day 3 時間範圍")).toBeInTheDocument();
   });
 
-  it("點擊「儲存」呼叫 onSave 並帶正確參數", async () => {
+  it("calls onSave with correct arguments when save button is clicked", async () => {
     render(
       <DayTimeEditor
         dayNumber={2}
@@ -86,7 +86,7 @@ describe("DayTimeEditor", () => {
     });
   });
 
-  it("點擊「套用全部天」呼叫 onApplyAll 並帶正確參數", async () => {
+  it("calls onApplyAll with correct arguments when apply-all button is clicked", async () => {
     render(
       <DayTimeEditor
         dayNumber={1}
@@ -104,7 +104,7 @@ describe("DayTimeEditor", () => {
     });
   });
 
-  it("儲存後面板關閉", async () => {
+  it("closes the panel after saving", async () => {
     render(
       <DayTimeEditor
         dayNumber={1}
@@ -121,7 +121,7 @@ describe("DayTimeEditor", () => {
     });
   });
 
-  it("點擊外部關閉面板", async () => {
+  it("closes the panel when clicking outside", async () => {
     render(
       <div>
         <DayTimeEditor
@@ -142,7 +142,7 @@ describe("DayTimeEditor", () => {
     });
   });
 
-  it("onSave 拋錯時 saving 不卡住（按鈕恢復可用）", async () => {
+  it("re-enables the save button after onSave throws", async () => {
     onSave.mockRejectedValue(new Error("save failed"));
     render(
       <DayTimeEditor
