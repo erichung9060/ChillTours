@@ -53,7 +53,7 @@ wss.on("connection", async (ws, req) => {
 
   console.log(
     `[connect] user=${user.userId} room=${roomId} ` +
-    `room_size=${roomManager.connectionCount(roomId)}`,
+      `room_size=${roomManager.connectionCount(roomId)}`,
   );
 
   ws.on("close", () => {

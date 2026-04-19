@@ -1,6 +1,9 @@
 // hooks/use-collaboration.ts
 import { useEffect, useRef, useState } from "react";
-import { createCollaborationSession, destroyCollaborationSession } from "@/lib/collaboration/provider";
+import {
+  createCollaborationSession,
+  destroyCollaborationSession,
+} from "@/lib/collaboration/provider";
 import type { CollaborationSession } from "@/types/collaboration";
 import { getAccessToken } from "@/lib/supabase/client";
 

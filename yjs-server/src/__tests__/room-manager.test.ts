@@ -7,7 +7,9 @@ const MAX = 3;
 
 describe("RoomManager", () => {
   let mgr: RoomManager;
-  beforeEach(() => { mgr = new RoomManager(MAX); });
+  beforeEach(() => {
+    mgr = new RoomManager(MAX);
+  });
 
   it("canJoin returns true when room is empty", () => {
     expect(mgr.canJoin(ROOM)).toBe(true);
