@@ -157,7 +157,7 @@ MAX_CONNECTIONS_PER_ROOM=20
 3. Start with PM2:
 
 ```bash
-pm2 start ecosystem.config.cjs --env production
+pm2 start ecosystem.config.cjs
 pm2 save
 pm2 startup  # Enable auto-restart on system reboot
 ```
