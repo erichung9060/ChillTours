@@ -2,32 +2,55 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
 
-// service role client — 只在 server 端用，可以驗證任意 JWT
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: { persistSession: false },
-});
-
-export interface AuthResult {
+export interface AccessResult {
   userId: string;
-  email: string;
+  isAnonymous: boolean;
+  hasAccess: boolean;
 }
 
-/**
- * Verifies a Supabase JWT and returns user info.
- * Returns null if token is invalid or missing.
- */
-export async function verifyToken(token: string): Promise<AuthResult | null> {
+export async function checkAccess(
+  token: string,
+  roomId: string,
+): Promise<AccessResult | null> {
   if (!token) return null;
+
+  const client = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false },
+  });
 
   try {
     const {
       data: { user },
-      error,
-    } = await supabase.auth.getUser(token);
-    if (error || !user) return null;
-    return { userId: user.id, email: user.email ?? "" };
+      error: userError,
+    } = await client.auth.getUser();
+    if (userError || !user) return null;
+
+    const { data: directData } = await client
+      .from("itineraries")
+      .select("id")
+      .eq("id", roomId)
+      .single();
+
+    if (directData) {
+      return {
+        userId: user.id,
+        isAnonymous: user.is_anonymous ?? false,
+        hasAccess: true,
+      };
+    }
+
+    const { data: rpcData, error: rpcError } = await client
+      .rpc("get_public_itinerary", { p_id: roomId })
+      .single();
+
+    return {
+      userId: user.id,
+      isAnonymous: user.is_anonymous ?? false,
+      hasAccess: !!(rpcData && !rpcError),
+    };
   } catch {
     return null;
   }
