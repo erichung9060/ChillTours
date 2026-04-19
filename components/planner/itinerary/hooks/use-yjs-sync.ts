@@ -19,6 +19,11 @@ export function useYjsSync(
 ) {
   const lastBroadcastRef = useRef<string | null>(null);
   const isApplyingRemoteRef = useRef(false);
+  const itineraryRef = useRef<Itinerary | null>(null);
+
+  useEffect(() => {
+    itineraryRef.current = itinerary;
+  }, [itinerary]);
 
   // ── 1. Broadcast local changes to Y.Doc ────────────────────────────
   useEffect(() => {
@@ -58,7 +63,8 @@ export function useYjsSync(
       if (!remoteData || !remoteUpdatedAt) return;
 
       // Only apply if remote is newer
-      if (itinerary && remoteUpdatedAt <= itinerary.updated_at) return;
+      const currentItinerary = itineraryRef.current;
+      if (currentItinerary && remoteUpdatedAt <= currentItinerary.updated_at) return;
 
       // Mark that we're applying a remote update to prevent echo
       isApplyingRemoteRef.current = true;
@@ -77,5 +83,5 @@ export function useYjsSync(
     return () => {
       yItinerary.unobserve(handleRemoteChange);
     };
-  }, [session, itinerary, onRemoteUpdate]);
+  }, [session, onRemoteUpdate]);
 }
