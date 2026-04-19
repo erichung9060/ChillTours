@@ -3,7 +3,11 @@ import * as Y from "yjs";
 import { WebsocketProvider } from "y-websocket";
 import type { CollaborationSession } from "@/types/collaboration";
 
-const WS_SERVER_URL = process.env.NEXT_PUBLIC_YJS_SERVER_URL!;
+const WS_SERVER_URL = process.env.NEXT_PUBLIC_YJS_SERVER_URL;
+
+if (!WS_SERVER_URL) {
+  throw new Error("Missing NEXT_PUBLIC_YJS_SERVER_URL environment variable.");
+}
 
 /**
  * Creates a Yjs collaboration session for a given itinerary room.
