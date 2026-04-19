@@ -64,7 +64,7 @@ export function useYjsSync(
 
       // Only apply if remote is newer
       const currentItinerary = itineraryRef.current;
-      if (currentItinerary && remoteUpdatedAt <= currentItinerary.updated_at) return;
+      if (currentItinerary && new Date(remoteUpdatedAt).getTime() <= new Date(currentItinerary.updated_at).getTime()) return;
 
       // Mark that we're applying a remote update to prevent echo
       isApplyingRemoteRef.current = true;
