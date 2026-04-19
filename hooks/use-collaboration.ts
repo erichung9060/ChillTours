@@ -1,5 +1,5 @@
 // hooks/use-collaboration.ts
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createCollaborationSession,
   destroyCollaborationSession,
@@ -17,20 +17,22 @@ interface UseCollaborationReturn {
  * Connects when mounted, disconnects when unmounted or itineraryId changes.
  */
 export function useCollaboration(itineraryId: string | null): UseCollaborationReturn {
-  const sessionRef = useRef<CollaborationSession | null>(null);
+  const [session, setSession] = useState<CollaborationSession | null>(null);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
-    let session: CollaborationSession | null = null;
+    if (!itineraryId) return;
+
+    let currentSession: CollaborationSession | null = null;
 
     async function connect() {
       const token = await getAccessToken();
       if (!token || !itineraryId) return;
 
-      session = createCollaborationSession(itineraryId, token);
-      sessionRef.current = session;
+      currentSession = createCollaborationSession(itineraryId, token);
+      setSession(currentSession);
 
-      session.provider.on("status", (event: { status: string }) => {
+      currentSession.provider.on("status", (event: { status: string }) => {
         setConnected(event.status === "connected");
       });
     }
@@ -38,13 +40,13 @@ export function useCollaboration(itineraryId: string | null): UseCollaborationRe
     connect();
 
     return () => {
-      if (session) {
-        destroyCollaborationSession(session);
-        sessionRef.current = null;
+      if (currentSession) {
+        destroyCollaborationSession(currentSession);
+        setSession(null);
         setConnected(false);
       }
     };
   }, [itineraryId]);
 
-  return { session: sessionRef.current, connected };
+  return { session, connected };
 }

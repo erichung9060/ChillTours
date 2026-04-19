@@ -74,7 +74,7 @@ export default function PlanningPage() {
   const { refreshProfile } = useProfile();
 
   // Real-time Collaboration (Yjs)
-  const { session, connected } = useCollaboration(itineraryId);
+  const { session } = useCollaboration(itineraryId);
   useYjsSync(session, itinerary, applyRemoteChange);
 
   // UI State
