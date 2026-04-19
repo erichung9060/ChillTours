@@ -20,6 +20,8 @@ import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 import { useProfile } from "@/hooks/use-profile";
+import { useCollaboration } from "@/hooks/use-collaboration";
+import { useYjsSync } from "@/components/planner/itinerary/hooks/use-yjs-sync";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 700;
@@ -60,6 +62,7 @@ export default function PlanningPage() {
   // Store Lifecycle & Data
   const fetchItinerary = useItineraryStore((state) => state.fetchItinerary);
   const itinerary = useItineraryStore((state) => state.itinerary);
+  const applyRemoteChange = useItineraryStore((state) => state.applyRemoteChange);
   const isLoading = useItineraryStore((state) => state.isLoading);
   const errorCode = useItineraryStore((state) => state.errorCode);
   const errorKind = useItineraryStore((state) => state.errorKind);
@@ -69,6 +72,10 @@ export default function PlanningPage() {
   const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
   const { refreshProfile } = useProfile();
+
+  // Real-time Collaboration (Yjs)
+  const { session, connected } = useCollaboration(itineraryId);
+  useYjsSync(session, itinerary, applyRemoteChange);
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
