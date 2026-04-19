@@ -2,7 +2,7 @@
 import "dotenv/config";
 import http from "http";
 import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket/bin/utils";
+import { setupWSConnection } from "y-websocket/dist/src/utils.js";
 import { RoomManager } from "./room-manager.js";
 import { verifyToken } from "./auth.js";
 
