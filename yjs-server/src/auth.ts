@@ -22,7 +22,10 @@ export async function verifyToken(token: string): Promise<AuthResult | null> {
   if (!token) return null;
 
   try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
     if (error || !user) return null;
     return { userId: user.id, email: user.email ?? "" };
   } catch {
