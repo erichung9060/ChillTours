@@ -23,5 +23,8 @@ export { ExpandableView } from "./views/expandable-view";
 export { SingleDayView } from "./views/single-day-view";
 export { SideBySideView } from "./views/side-by-side-view";
 
+// Hooks
+export { useYjsSync } from "./hooks/use-yjs-sync";
+
 // Utilities
 export * from "./utils/drag-handlers";
