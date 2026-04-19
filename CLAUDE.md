@@ -16,13 +16,13 @@ npx vitest run path/to/file.test.ts  # Run a single test file
 npm run supabase:gen     # Regenerate Supabase DB types
 ```
 
-### Yjs Server (server/)
+### Yjs Server (yjs-server/)
 
 ```bash
-cd server && npm run dev     # Dev server on :1234
-cd server && npm run build   # TypeScript build
-cd server && npm test        # Run server tests
-pm2 logs yjs-server          # VM 上查看 logs（需已部署）
+cd yjs-server && npm run dev     # Dev server on :1234
+cd yjs-server && npm run build   # TypeScript build
+cd yjs-server && npm test        # Run server tests
+pm2 logs yjs-server              # VM 上查看 logs（需已部署）
 ```
 
 ## Architecture
