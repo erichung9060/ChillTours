@@ -9,6 +9,8 @@ if (!WS_SERVER_URL) {
   throw new Error("Missing NEXT_PUBLIC_YJS_SERVER_URL environment variable.");
 }
 
+const wsServerUrl: string = WS_SERVER_URL;
+
 /**
  * Creates a Yjs collaboration session for a given itinerary room.
  *
@@ -18,7 +20,7 @@ if (!WS_SERVER_URL) {
 export function createCollaborationSession(roomId: string, token: string): CollaborationSession {
   const doc = new Y.Doc();
 
-  const provider = new WebsocketProvider(WS_SERVER_URL, roomId, doc, {
+  const provider = new WebsocketProvider(wsServerUrl, roomId, doc, {
     params: { token },
     connect: true,
   });
