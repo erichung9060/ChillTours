@@ -85,6 +85,12 @@ vi.mock("next-intl", () => {
     "landing.form.createError": "Failed to create itinerary. Please try again.",
     // Itineraries
     "itineraries.titleFormat": "{destination} Trip",
+    // Transport mode
+    "planner.transportMode.driving": "Driving",
+    "planner.transportMode.walking": "Walking",
+    "planner.transportMode.transit": "Transit",
+    "planner.transportMode.bicycling": "Bicycling",
+    "planner.transportMode.applyAll": "Apply to all days",
     // Day time display
     "planner.dayTimeDisplay.title": "Day {dayNumber} Time Range",
     "planner.dayTimeDisplay.save": "Save",
