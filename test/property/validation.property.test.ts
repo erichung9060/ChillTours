@@ -304,7 +304,7 @@ describe("Data Model Validation Properties", () => {
               expect(result.success).toBe(false);
               if (!result.success) {
                 expect(result.error.issues[0].message).toContain(
-                  "start_time must be before end_time",
+                  "End time must be after start time",
                 );
               }
             } else {

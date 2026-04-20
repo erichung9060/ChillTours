@@ -64,19 +64,19 @@ describe("DaySchema - start_time / end_time", () => {
   // Time range validation tests
   it("throws when start_time equals end_time", () => {
     expect(() => DaySchema.parse({ ...baseDay, start_time: "10:00", end_time: "10:00" })).toThrow(
-      "start_time must be before end_time",
+      "End time must be after start time",
     );
   });
 
   it("throws when start_time is after end_time", () => {
     expect(() => DaySchema.parse({ ...baseDay, start_time: "20:00", end_time: "08:00" })).toThrow(
-      "start_time must be before end_time",
+      "End time must be after start time",
     );
   });
 
   it("throws when start_time is one minute before midnight and end_time is midnight", () => {
     expect(() => DaySchema.parse({ ...baseDay, start_time: "23:59", end_time: "00:00" })).toThrow(
-      "start_time must be before end_time",
+      "End time must be after start time",
     );
   });
 
