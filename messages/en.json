@@ -123,7 +123,7 @@
     "generationTimeout": "Generation timed out. Please try again.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
-    "dayTimeEditor": {
+    "dayTimeDisplay": {
       "title": "Day {dayNumber} Time Range",
       "save": "Save",
       "applyAll": "Apply to all days",

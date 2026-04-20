@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
-interface DayTimeEditorProps {
+interface DayTimeDisplayProps {
   dayNumber: number;
   startTime: string | null | undefined;
   endTime: string | null | undefined;
@@ -61,13 +61,13 @@ function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-export function DayTimeEditor({
+export function DayTimeDisplay({
   dayNumber,
   startTime,
   endTime,
   onSave,
   onApplyAll,
-}: DayTimeEditorProps) {
+}: DayTimeDisplayProps) {
   const [localStartTime, setLocalStartTime] = useState(startTime ?? DEFAULT_START_TIME);
   const [localEndTime, setLocalEndTime] = useState(endTime ?? DEFAULT_END_TIME);
   const [open, setOpen] = useState(false);
@@ -77,7 +77,7 @@ export function DayTimeEditor({
   const [panelPos, setPanelPos] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const t = useTranslations("planner.dayTimeEditor");
+  const t = useTranslations("planner.dayTimeDisplay");
 
   const isEditable = !!(onSave && onApplyAll);
 
@@ -140,7 +140,7 @@ export function DayTimeEditor({
       setLocalEndTime(draft.endTime);
       setOpen(false);
     } catch (err) {
-      console.error("[DayTimeEditor] save failed:", err);
+      console.error("[DayTimeDisplay] save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -162,7 +162,7 @@ export function DayTimeEditor({
       setLocalEndTime(draft.endTime);
       setOpen(false);
     } catch (err) {
-      console.error("[DayTimeEditor] applyAll failed:", err);
+      console.error("[DayTimeDisplay] applyAll failed:", err);
     } finally {
       setSaving(false);
     }

@@ -10,7 +10,7 @@ import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
-import { DayTimeEditor } from "../components/day-time-editor";
+import { DayTimeDisplay } from "../components/day-time-display";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
@@ -65,7 +65,7 @@ export function SingleDayView({
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
           <div className="flex justify-center mt-1">
-            <DayTimeEditor
+            <DayTimeDisplay
               dayNumber={day.day_number}
               startTime={day.start_time}
               endTime={day.end_time}

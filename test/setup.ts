@@ -85,12 +85,12 @@ vi.mock("next-intl", () => {
     "landing.form.createError": "Failed to create itinerary. Please try again.",
     // Itineraries
     "itineraries.titleFormat": "{destination} Trip",
-    // Day time editor
-    "planner.dayTimeEditor.title": "Day {dayNumber} Time Range",
-    "planner.dayTimeEditor.save": "Save",
-    "planner.dayTimeEditor.applyAll": "Apply to all days",
-    "planner.dayTimeEditor.errorSave": "Failed to save time range. Please try again.",
-    "planner.dayTimeEditor.errorTimeRange": "Start time must be before end time.",
+    // Day time display
+    "planner.dayTimeDisplay.title": "Day {dayNumber} Time Range",
+    "planner.dayTimeDisplay.save": "Save",
+    "planner.dayTimeDisplay.applyAll": "Apply to all days",
+    "planner.dayTimeDisplay.errorSave": "Failed to save time range. Please try again.",
+    "planner.dayTimeDisplay.errorTimeRange": "Start time must be before end time.",
     // Landing form
     "landing.form.whereToNext": "whereToNext",
     "landing.form.destinationPlaceholder": "destinationPlaceholder",

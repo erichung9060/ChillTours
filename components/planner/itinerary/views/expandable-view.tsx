@@ -10,7 +10,7 @@ import { useLocale } from "next-intl";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
-import { DayTimeEditor } from "../components/day-time-editor";
+import { DayTimeDisplay } from "../components/day-time-display";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -55,7 +55,7 @@ export function ExpandableView({
                       {day.activities.length}{" "}
                       {day.activities.length === 1 ? "activity" : "activities"}
                     </p>
-                    <DayTimeEditor
+                    <DayTimeDisplay
                       dayNumber={day.day_number}
                       startTime={day.start_time}
                       endTime={day.end_time}
