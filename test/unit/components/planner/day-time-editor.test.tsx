@@ -23,7 +23,9 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    expect(screen.getByText("08:00 – 21:00")).toBeInTheDocument();
+    const button = screen.getByRole("button");
+    expect(button).toHaveTextContent("08:00");
+    expect(button).toHaveTextContent("21:00");
   });
 
   it("does not show the time panel by default", () => {
@@ -49,7 +51,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     expect(screen.getByText("Save")).toBeInTheDocument();
     expect(screen.getByText("Apply to all days")).toBeInTheDocument();
   });
@@ -64,7 +67,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("09:00 – 20:00"));
+    const button = screen.getByRole("button", { name: /09:00.*20:00/i });
+    fireEvent.click(button);
     expect(screen.getByText("Day 3 Time Range")).toBeInTheDocument();
   });
 
@@ -78,7 +82,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledOnce();
@@ -96,7 +101,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Apply to all days"));
     await waitFor(() => {
       expect(onApplyAll).toHaveBeenCalledOnce();
@@ -114,7 +120,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
       expect(screen.queryByText("Save")).not.toBeInTheDocument();
@@ -134,7 +141,8 @@ describe("DayTimeEditor", () => {
         <div data-testid="outside">outside</div>
       </div>,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     expect(screen.getByText("Save")).toBeInTheDocument();
     fireEvent.mouseDown(screen.getByTestId("outside"));
     await waitFor(() => {
@@ -153,7 +161,8 @@ describe("DayTimeEditor", () => {
         onApplyAll={onApplyAll}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     const saveButton = screen.getByText("Save").closest("button")!;
     fireEvent.click(saveButton);
     await waitFor(() => {

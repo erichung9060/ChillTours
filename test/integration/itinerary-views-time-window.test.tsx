@@ -54,8 +54,11 @@ describe("ExpandableView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    expect(screen.getByText("09:00 – 20:00")).toBeInTheDocument();
-    expect(screen.getByText("08:00 – 21:00")).toBeInTheDocument();
+    const buttons = screen.getAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons[0]).toHaveTextContent("09:00");
+    expect(buttons[0]).toHaveTextContent("20:00");
+    expect(buttons[1]).toHaveTextContent("08:00");
+    expect(buttons[1]).toHaveTextContent("21:00");
   });
 
   it("does not show time display when callbacks are not provided", () => {
@@ -68,8 +71,8 @@ describe("ExpandableView - DayTimeEditor integration", () => {
         toggleDay={vi.fn()}
       />,
     );
-    expect(screen.queryByText("09:00 – 20:00")).not.toBeInTheDocument();
-    expect(screen.queryByText("08:00 – 21:00")).not.toBeInTheDocument();
+    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons).toHaveLength(0);
   });
 
   it("opens the time panel and calls onSave with correct args", async () => {
@@ -84,7 +87,8 @@ describe("ExpandableView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    fireEvent.click(screen.getByText("09:00 – 20:00"));
+    const button = screen.getByRole("button", { name: /09:00.*20:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
       expect(noop).toHaveBeenCalledWith(1, "09:00", "20:00");
@@ -107,7 +111,9 @@ describe("ExpandableView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    expect(screen.getByText("09:00 – 20:00")).toBeInTheDocument();
+    const button = screen.getByRole("button", { name: /09:00.*20:00/i });
+    expect(button).toHaveTextContent("09:00");
+    expect(button).toHaveTextContent("20:00");
   });
 });
 
@@ -131,7 +137,9 @@ describe("SingleDayView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    expect(screen.getByText("09:00 – 20:00")).toBeInTheDocument();
+    const button = screen.getByRole("button", { name: /09:00.*20:00/i });
+    expect(button).toHaveTextContent("09:00");
+    expect(button).toHaveTextContent("20:00");
   });
 
   it("does not show time display when callbacks are not provided", () => {
@@ -145,7 +153,8 @@ describe("SingleDayView - DayTimeEditor integration", () => {
         goToNextDay={vi.fn()}
       />,
     );
-    expect(screen.queryByText("09:00 – 20:00")).not.toBeInTheDocument();
+    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons).toHaveLength(0);
   });
 
   it("calls onApplyAll with correct args when apply-all is clicked", async () => {
@@ -161,7 +170,8 @@ describe("SingleDayView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    fireEvent.click(screen.getByText("09:00 – 20:00"));
+    const button = screen.getByRole("button", { name: /09:00.*20:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Apply to all days"));
     await waitFor(() => {
       expect(noop).toHaveBeenCalledWith("09:00", "20:00");
@@ -186,8 +196,11 @@ describe("SideBySideView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    expect(screen.getByText("09:00 – 20:00")).toBeInTheDocument();
-    expect(screen.getByText("08:00 – 21:00")).toBeInTheDocument();
+    const buttons = screen.getAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons[0]).toHaveTextContent("09:00");
+    expect(buttons[0]).toHaveTextContent("20:00");
+    expect(buttons[1]).toHaveTextContent("08:00");
+    expect(buttons[1]).toHaveTextContent("21:00");
   });
 
   it("does not show time display when callbacks are not provided", () => {
@@ -198,8 +211,8 @@ describe("SideBySideView - DayTimeEditor integration", () => {
         crossDayDragInfo={null}
       />,
     );
-    expect(screen.queryByText("09:00 – 20:00")).not.toBeInTheDocument();
-    expect(screen.queryByText("08:00 – 21:00")).not.toBeInTheDocument();
+    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons).toHaveLength(0);
   });
 
   it("calls onSave with correct args for the right day", async () => {
@@ -212,7 +225,8 @@ describe("SideBySideView - DayTimeEditor integration", () => {
         setAllDaysTimeWindow={noop}
       />,
     );
-    fireEvent.click(screen.getByText("08:00 – 21:00"));
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
     fireEvent.click(screen.getByText("Save"));
     await waitFor(() => {
       expect(noop).toHaveBeenCalledWith(2, "08:00", "21:00");
