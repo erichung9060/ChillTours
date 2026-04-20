@@ -280,5 +280,40 @@ describe("Data Model Validation Properties", () => {
         { numRuns: 100 },
       );
     });
+
+    test("DaySchema rejects invalid time ranges (start_time >= end_time)", () => {
+      fc.assert(
+        fc.property(
+          fc.integer({ min: 0, max: 23 }),
+          fc.integer({ min: 0, max: 59 }),
+          fc.integer({ min: 0, max: 23 }),
+          fc.integer({ min: 0, max: 59 }),
+          (startHour, startMin, endHour, endMin) => {
+            const start_time = `${String(startHour).padStart(2, "0")}:${String(startMin).padStart(2, "0")}`;
+            const end_time = `${String(endHour).padStart(2, "0")}:${String(endMin).padStart(2, "0")}`;
+
+            const result = DaySchema.safeParse({
+              day_number: 1,
+              activities: [],
+              start_time,
+              end_time,
+            });
+
+            // Should fail if start_time >= end_time
+            if (start_time >= end_time) {
+              expect(result.success).toBe(false);
+              if (!result.success) {
+                expect(result.error.issues[0].message).toContain(
+                  "start_time must be before end_time",
+                );
+              }
+            } else {
+              expect(result.success).toBe(true);
+            }
+          },
+        ),
+        { numRuns: 200 },
+      );
+    });
   });
 });
