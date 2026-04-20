@@ -97,6 +97,16 @@ interface ItineraryState {
   ) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
 
+  setDayTimeWindow: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+  setAllDaysTimeWindow: (
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+
   // Generation Actions
   startGeneration: (itineraryId: string, locale: string, onComplete?: () => void) => void;
   stopGeneration: () => void;
@@ -624,6 +634,52 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to delete activity:", err);
+      set({ saveError: true });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  setDayTimeWindow: async (dayNumber, startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    set({ isSaving: true, saveError: false });
+    try {
+      const newDays = state.itinerary.days.map((d) =>
+        d.day_number === dayNumber ? { ...d, start_time: startTime, end_time: endTime } : d,
+      );
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Failed to set day time window:", err);
+      set({ saveError: true });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  setAllDaysTimeWindow: async (startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    set({ isSaving: true, saveError: false });
+    try {
+      const newDays = state.itinerary.days.map((d) => ({
+        ...d,
+        start_time: startTime,
+        end_time: endTime,
+      }));
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Failed to set all days time window:", err);
       set({ saveError: true });
       throw err;
     } finally {

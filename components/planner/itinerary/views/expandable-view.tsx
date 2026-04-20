@@ -10,6 +10,7 @@ import { useLocale } from "next-intl";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
+import { DayTimeDisplay } from "../components/day-time-display";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -23,6 +24,8 @@ export function ExpandableView({
   onDayHover,
   onActivityHover,
   onActivityClick,
+  setDayTimeWindow,
+  setAllDaysTimeWindow,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -47,10 +50,19 @@ export function ExpandableView({
                 <div className="flex-1">
                   <CardTitle className="text-base font-semibold">Day {day.day_number}</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">{formattedDate}</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {day.activities.length}{" "}
-                    {day.activities.length === 1 ? "activity" : "activities"}
-                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-xs text-muted-foreground">
+                      {day.activities.length}{" "}
+                      {day.activities.length === 1 ? "activity" : "activities"}
+                    </p>
+                    <DayTimeDisplay
+                      dayNumber={day.day_number}
+                      startTime={day.start_time}
+                      endTime={day.end_time}
+                      onSave={setDayTimeWindow}
+                      onApplyAll={setAllDaysTimeWindow}
+                    />
+                  </div>
                 </div>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

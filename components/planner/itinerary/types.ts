@@ -67,6 +67,15 @@ export interface ExpandableViewProps {
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
+  setDayTimeWindow?: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+  setAllDaysTimeWindow?: (
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
 }
 
 export interface SingleDayViewProps {
@@ -78,6 +87,15 @@ export interface SingleDayViewProps {
   goToNextDay: () => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
+  setDayTimeWindow?: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+  setAllDaysTimeWindow?: (
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
 }
 
 export interface SideBySideViewProps {
@@ -87,4 +105,13 @@ export interface SideBySideViewProps {
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
+  setDayTimeWindow?: (
+    dayNumber: number,
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
+  setAllDaysTimeWindow?: (
+    startTime: string | undefined,
+    endTime: string | undefined,
+  ) => Promise<void>;
 }

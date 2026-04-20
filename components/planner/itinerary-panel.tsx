@@ -71,6 +71,8 @@ export function ItineraryPanel({
   const setIsAddingActivity = useItineraryStore((state) => state.setIsAddingActivity);
   const addingActivityTarget = useItineraryStore((state) => state.addingActivityTarget);
   const setAddingActivityTarget = useItineraryStore((state) => state.setAddingActivityTarget);
+  const setDayTimeWindow = useItineraryStore((state) => state.setDayTimeWindow);
+  const setAllDaysTimeWindow = useItineraryStore((state) => state.setAllDaysTimeWindow);
 
   // Global mouse tracking for add activity mode
   useGlobalAddModeTracking();
@@ -203,6 +205,8 @@ export function ItineraryPanel({
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
         onActivityClick={setFocusedActivity}
+        setDayTimeWindow={canEdit ? setDayTimeWindow : undefined}
+        setAllDaysTimeWindow={canEdit ? setAllDaysTimeWindow : undefined}
       />
     ),
     "single-day": () => (
@@ -215,6 +219,8 @@ export function ItineraryPanel({
         goToNextDay={goToNextDay}
         onActivityHover={setHoveredActivity}
         onActivityClick={setFocusedActivity}
+        setDayTimeWindow={canEdit ? setDayTimeWindow : undefined}
+        setAllDaysTimeWindow={canEdit ? setAllDaysTimeWindow : undefined}
       />
     ),
     "side-by-side": () => (
@@ -225,6 +231,8 @@ export function ItineraryPanel({
         onDayHover={setHoveredDay}
         onActivityHover={setHoveredActivity}
         onActivityClick={setFocusedActivity}
+        setDayTimeWindow={canEdit ? setDayTimeWindow : undefined}
+        setAllDaysTimeWindow={canEdit ? setAllDaysTimeWindow : undefined}
       />
     ),
   };
