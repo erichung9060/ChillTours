@@ -123,6 +123,13 @@
     "generationTimeout": "Generation timed out. Please try again.",
     "generating": "Generating your itinerary...",
     "errorUpdateDays": "Failed to update itinerary order. Please try again.",
+    "transportMode": {
+      "driving": "Driving",
+      "walking": "Walking",
+      "transit": "Transit",
+      "bicycling": "Bicycling",
+      "applyAll": "Apply to all days"
+    },
     "dayTimeDisplay": {
       "title": "Day {dayNumber} Time Range",
       "save": "Save",
