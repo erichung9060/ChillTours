@@ -64,17 +64,15 @@ export function SingleDayView({
         <div className="text-center">
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
-          {setDayTimeWindow && setAllDaysTimeWindow && (
-            <div className="flex justify-center mt-1">
-              <DayTimeEditor
-                dayNumber={day.day_number}
-                startTime={day.start_time}
-                endTime={day.end_time}
-                onSave={setDayTimeWindow}
-                onApplyAll={setAllDaysTimeWindow}
-              />
-            </div>
-          )}
+          <div className="flex justify-center mt-1">
+            <DayTimeEditor
+              dayNumber={day.day_number}
+              startTime={day.start_time}
+              endTime={day.end_time}
+              onSave={setDayTimeWindow}
+              onApplyAll={setAllDaysTimeWindow}
+            />
+          </div>
         </div>
 
         <Button

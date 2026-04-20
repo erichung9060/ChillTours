@@ -9,8 +9,8 @@ interface DayTimeEditorProps {
   dayNumber: number;
   startTime: string | null | undefined;
   endTime: string | null | undefined;
-  onSave: (dayNumber: number, start: string, end: string) => void;
-  onApplyAll: (start: string, end: string) => void;
+  onSave?: (dayNumber: number, start: string, end: string) => void;
+  onApplyAll?: (start: string, end: string) => void;
 }
 
 const DEFAULT_START_TIME = "09:00";
@@ -79,6 +79,8 @@ export function DayTimeEditor({
   const panelRef = useRef<HTMLDivElement>(null);
   const t = useTranslations("planner.dayTimeEditor");
 
+  const isEditable = !!(onSave && onApplyAll);
+
   useEffect(() => {
     setLocalStartTime(startTime ?? DEFAULT_START_TIME);
     setLocalEndTime(endTime ?? DEFAULT_END_TIME);
@@ -109,6 +111,9 @@ export function DayTimeEditor({
 
   const handleOpen = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    if (!isEditable) return;
+
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setPanelPos({ top: rect.bottom + 4, left: rect.left });
@@ -125,6 +130,8 @@ export function DayTimeEditor({
       setTimeError(true);
       return;
     }
+    if (!onSave) return;
+
     setTimeError(false);
     setSaving(true);
     try {
@@ -145,6 +152,8 @@ export function DayTimeEditor({
       setTimeError(true);
       return;
     }
+    if (!onApplyAll) return;
+
     setTimeError(false);
     setSaving(true);
     try {
@@ -163,9 +172,14 @@ export function DayTimeEditor({
     <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
       <button
         ref={buttonRef}
-        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-1 py-0.5 rounded hover:bg-accent"
+        className={`flex items-center gap-1 text-xs text-muted-foreground transition-colors px-1 py-0.5 rounded ${
+          isEditable
+            ? "hover:text-foreground hover:bg-accent cursor-pointer"
+            : "cursor-default opacity-75"
+        }`}
         onClick={handleOpen}
         type="button"
+        disabled={!isEditable}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"

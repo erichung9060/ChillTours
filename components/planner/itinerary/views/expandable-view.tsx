@@ -55,15 +55,13 @@ export function ExpandableView({
                       {day.activities.length}{" "}
                       {day.activities.length === 1 ? "activity" : "activities"}
                     </p>
-                    {setDayTimeWindow && setAllDaysTimeWindow && (
-                      <DayTimeEditor
-                        dayNumber={day.day_number}
-                        startTime={day.start_time}
-                        endTime={day.end_time}
-                        onSave={setDayTimeWindow}
-                        onApplyAll={setAllDaysTimeWindow}
-                      />
-                    )}
+                    <DayTimeEditor
+                      dayNumber={day.day_number}
+                      startTime={day.start_time}
+                      endTime={day.end_time}
+                      onSave={setDayTimeWindow}
+                      onApplyAll={setAllDaysTimeWindow}
+                    />
                   </div>
                 </div>
                 <svg

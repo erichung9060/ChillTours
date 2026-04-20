@@ -46,15 +46,13 @@ export function SideBySideView({
                 >
                   <CardTitle className="text-base font-semibold">Day {day.day_number}</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">{formattedDate}</p>
-                  {setDayTimeWindow && setAllDaysTimeWindow && (
-                    <DayTimeEditor
-                      dayNumber={day.day_number}
-                      startTime={day.start_time}
-                      endTime={day.end_time}
-                      onSave={setDayTimeWindow}
-                      onApplyAll={setAllDaysTimeWindow}
-                    />
-                  )}
+                  <DayTimeEditor
+                    dayNumber={day.day_number}
+                    startTime={day.start_time}
+                    endTime={day.end_time}
+                    onSave={setDayTimeWindow}
+                    onApplyAll={setAllDaysTimeWindow}
+                  />
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
                   <DayActivitiesList
