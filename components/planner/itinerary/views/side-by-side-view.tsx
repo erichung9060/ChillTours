@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeDisplay } from "../components/day-time-display";
+import { DayTransportMode } from "../components/day-transport-mode";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SideBySideViewProps } from "../types";
@@ -24,6 +25,7 @@ export function SideBySideView({
   onActivityClick,
   setDayTimeWindow,
   setAllDaysTimeWindow,
+  setDayTransportMode,
 }: SideBySideViewProps) {
   const locale = useLocale();
 
@@ -52,6 +54,11 @@ export function SideBySideView({
                     endTime={day.end_time}
                     onSave={setDayTimeWindow}
                     onApplyAll={setAllDaysTimeWindow}
+                  />
+                  <DayTransportMode
+                    dayNumber={day.day_number}
+                    mode={day.transport_mode}
+                    onSave={setDayTransportMode}
                   />
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">
