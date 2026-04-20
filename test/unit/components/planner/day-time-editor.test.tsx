@@ -169,4 +169,55 @@ describe("DayTimeEditor", () => {
       expect(saveButton).not.toBeDisabled();
     });
   });
+
+  it("renders as disabled when no callbacks are provided", () => {
+    render(
+      <DayTimeEditor
+        dayNumber={1}
+        startTime="08:00"
+        endTime="21:00"
+      />,
+    );
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    expect(button).toBeDisabled();
+  });
+
+  it("does not open panel when clicked in readonly mode", () => {
+    render(
+      <DayTimeEditor
+        dayNumber={1}
+        startTime="08:00"
+        endTime="21:00"
+      />,
+    );
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    fireEvent.click(button);
+    expect(screen.queryByText("Save")).not.toBeInTheDocument();
+  });
+
+  it("renders as disabled when only onSave is provided", () => {
+    render(
+      <DayTimeEditor
+        dayNumber={1}
+        startTime="08:00"
+        endTime="21:00"
+        onSave={onSave}
+      />,
+    );
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    expect(button).toBeDisabled();
+  });
+
+  it("renders as disabled when only onApplyAll is provided", () => {
+    render(
+      <DayTimeEditor
+        dayNumber={1}
+        startTime="08:00"
+        endTime="21:00"
+        onApplyAll={onApplyAll}
+      />,
+    );
+    const button = screen.getByRole("button", { name: /08:00.*21:00/i });
+    expect(button).toBeDisabled();
+  });
 });

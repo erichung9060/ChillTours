@@ -61,7 +61,7 @@ describe("ExpandableView - DayTimeEditor integration", () => {
     expect(buttons[1]).toHaveTextContent("21:00");
   });
 
-  it("does not show time display when callbacks are not provided", () => {
+  it("shows time display as disabled when callbacks are not provided", () => {
     render(
       <ExpandableView
         itinerary={baseItinerary}
@@ -71,8 +71,10 @@ describe("ExpandableView - DayTimeEditor integration", () => {
         toggleDay={vi.fn()}
       />,
     );
-    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
-    expect(buttons).toHaveLength(0);
+    const buttons = screen.getAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]).toBeDisabled();
+    expect(buttons[1]).toBeDisabled();
   });
 
   it("opens the time panel and calls onSave with correct args", async () => {
@@ -142,7 +144,7 @@ describe("SingleDayView - DayTimeEditor integration", () => {
     expect(button).toHaveTextContent("20:00");
   });
 
-  it("does not show time display when callbacks are not provided", () => {
+  it("shows time display as disabled when callbacks are not provided", () => {
     render(
       <SingleDayView
         itinerary={baseItinerary}
@@ -153,8 +155,8 @@ describe("SingleDayView - DayTimeEditor integration", () => {
         goToNextDay={vi.fn()}
       />,
     );
-    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
-    expect(buttons).toHaveLength(0);
+    const button = screen.getByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(button).toBeDisabled();
   });
 
   it("calls onApplyAll with correct args when apply-all is clicked", async () => {
@@ -203,7 +205,7 @@ describe("SideBySideView - DayTimeEditor integration", () => {
     expect(buttons[1]).toHaveTextContent("21:00");
   });
 
-  it("does not show time display when callbacks are not provided", () => {
+  it("shows time display as disabled when callbacks are not provided", () => {
     render(
       <SideBySideView
         itinerary={baseItinerary}
@@ -211,8 +213,10 @@ describe("SideBySideView - DayTimeEditor integration", () => {
         crossDayDragInfo={null}
       />,
     );
-    const buttons = screen.queryAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
-    expect(buttons).toHaveLength(0);
+    const buttons = screen.getAllByRole("button", { name: /\d{2}:\d{2}.*\d{2}:\d{2}/i });
+    expect(buttons).toHaveLength(2);
+    expect(buttons[0]).toBeDisabled();
+    expect(buttons[1]).toBeDisabled();
   });
 
   it("calls onSave with correct args for the right day", async () => {
