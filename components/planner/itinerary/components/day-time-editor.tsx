@@ -9,8 +9,8 @@ interface DayTimeEditorProps {
   dayNumber: number;
   startTime: string | null | undefined;
   endTime: string | null | undefined;
-  onSave?: (dayNumber: number, start: string, end: string) => void;
-  onApplyAll?: (start: string, end: string) => void;
+  onSave?: (dayNumber: number, start: string | undefined, end: string | undefined) => Promise<void>;
+  onApplyAll?: (start: string | undefined, end: string | undefined) => Promise<void>;
 }
 
 const DEFAULT_START_TIME = "09:00";
@@ -135,7 +135,7 @@ export function DayTimeEditor({
     setTimeError(false);
     setSaving(true);
     try {
-      onSave(dayNumber, draft.startTime, draft.endTime);
+      await onSave(dayNumber, draft.startTime, draft.endTime);
       setLocalStartTime(draft.startTime);
       setLocalEndTime(draft.endTime);
       setOpen(false);
@@ -157,7 +157,7 @@ export function DayTimeEditor({
     setTimeError(false);
     setSaving(true);
     try {
-      onApplyAll(draft.startTime, draft.endTime);
+      await onApplyAll(draft.startTime, draft.endTime);
       setLocalStartTime(draft.startTime);
       setLocalEndTime(draft.endTime);
       setOpen(false);
