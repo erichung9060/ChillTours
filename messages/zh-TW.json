@@ -123,6 +123,13 @@
     "generationTimeout": "行程產生處理逾時，請再試一次。",
     "generating": "正在產生您的行程中...",
     "errorUpdateDays": "更新行程順序失敗，請再試一次。",
+    "dayTimeEditor": {
+      "title": "第 {dayNumber} 天時間範圍",
+      "save": "儲存",
+      "applyAll": "套用全部天",
+      "errorSave": "儲存時間範圍失敗，請再試一次。",
+      "errorTimeRange": "開始時間必須早於結束時間。"
+    },
     "editDialog": {
       "title": "編輯活動",
       "description": "在此修改您的活動細節。完成後請點擊儲存。",
