@@ -1,5 +1,5 @@
-// Type declarations for y-websocket
-declare module "y-websocket/dist/src/utils.js" {
+// Type declarations for y-websocket v2
+declare module "y-websocket/bin/utils" {
   import type { IncomingMessage } from "http";
   import type WebSocket from "ws";
 
