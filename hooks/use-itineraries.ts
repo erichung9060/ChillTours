@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { listUserItineraries, type ItinerarySummary } from "@/lib/supabase/itineraries";
+import { useAuth } from "@/hooks/use-auth";
 
 export interface UseItinerariesReturn {
   itineraries: ItinerarySummary[];
@@ -34,6 +35,7 @@ export interface UseItinerariesReturn {
  * ```
  */
 export function useItineraries(): UseItinerariesReturn {
+  const { user, loading: authLoading } = useAuth();
   const [itineraries, setItineraries] = useState<ItinerarySummary[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -62,8 +64,11 @@ export function useItineraries(): UseItinerariesReturn {
   }, [fetchItineraries]);
 
   useEffect(() => {
-    fetchItineraries();
-  }, [fetchItineraries]);
+    // Only fetch if user is authenticated and not anonymous
+    if (!authLoading && user && !user.is_anonymous) {
+      fetchItineraries();
+    }
+  }, [authLoading, user, fetchItineraries]);
 
   return {
     itineraries,
