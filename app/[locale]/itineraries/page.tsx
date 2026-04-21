@@ -29,7 +29,7 @@ export default function ItinerariesPage() {
 
   // Authentication check and redirect
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && (!user || user.is_anonymous)) {
       router.push("/");
     }
   }, [user, authLoading, router]);
@@ -49,8 +49,8 @@ export default function ItinerariesPage() {
     return null;
   }
 
-  // Don't render anything if user is not authenticated (will redirect)
-  if (!user) {
+  // Don't render anything if user is not authenticated or is anonymous (will redirect)
+  if (!user || user.is_anonymous) {
     return null;
   }
 

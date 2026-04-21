@@ -46,7 +46,7 @@ export function TripForm() {
     try {
       const user = await getCurrentUser();
 
-      if (!user) {
+      if (!user || user.is_anonymous) {
         setLoginOpen(true);
         setIsLoading(false);
         return;

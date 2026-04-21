@@ -3,6 +3,7 @@ import { createSupabaseAnonClient } from "./supabase.ts";
 /**
  * 驗證用戶是否已登入
  * 使用 Supabase Auth 的 getUser() 方法驗證 JWT
+ * 拒絕匿名用戶的請求
  */
 export async function verifyUser(req: Request): Promise<{ userId: string; email: string } | null> {
   try {
@@ -25,6 +26,12 @@ export async function verifyUser(req: Request): Promise<{ userId: string; email:
 
     if (error || !user) {
       console.log("❌ Invalid token or user not found:", error?.message);
+      return null;
+    }
+
+    // 拒絕匿名用戶
+    if (user.is_anonymous) {
+      console.log("❌ Anonymous users are not allowed");
       return null;
     }
 

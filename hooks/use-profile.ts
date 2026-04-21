@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useProfileStore } from "@/lib/stores/profile-store";
 import { getProfile, type ProfileRow } from "@/lib/supabase/profiles";
@@ -25,14 +25,19 @@ interface UseProfileReturn {
 export function useProfile(): UseProfileReturn {
   const { user } = useAuth();
   const { profile, setProfile } = useProfileStore();
+  const fetchingForRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.is_anonymous) {
       setProfile(null);
+      fetchingForRef.current = null;
       return;
     }
 
     if (useProfileStore.getState().profile?.id === user.id) return;
+    if (fetchingForRef.current === user.id) return;
+
+    fetchingForRef.current = user.id;
 
     // Background fetch: silent degradation on error
     getProfile(user.id)

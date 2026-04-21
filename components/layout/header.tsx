@@ -35,7 +35,7 @@ export function Header() {
           <div className="flex items-center gap-3">
             <LanguageSelector />
             <ThemeToggle />
-            {user ? (
+            {user && !user.is_anonymous ? (
               <div className="flex items-center gap-3">
                 <Link href="/itineraries">
                   <Button variant="ghost" size="sm">
