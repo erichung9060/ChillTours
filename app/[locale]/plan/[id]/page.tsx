@@ -20,6 +20,7 @@ import { Loading } from "@/components/ui/loading";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useItineraryStore } from "@/components/planner/itinerary/store";
 import { useProfile } from "@/hooks/use-profile";
+import { useAnonymousAuth } from "@/hooks/use-anonymous-auth";
 
 // Panel width constraints
 const MIN_ITINERARY_PANEL_WIDTH = 700;
@@ -69,6 +70,7 @@ export default function PlanningPage() {
   const setSelectedDay = useItineraryStore((state) => state.setSelectedDay);
 
   const { refreshProfile } = useProfile();
+  const authReady = useAnonymousAuth();
 
   // UI State
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -95,10 +97,11 @@ export default function PlanningPage() {
     }
   }, [viewMode, itinerary, currentDayIndex, setSelectedDay]);
 
-  // Load itinerary data via Store Action
+  // Load itinerary data via Store Action — wait for auth (real or anonymous) first
   useEffect(() => {
+    if (!authReady) return;
     fetchItinerary(itineraryId);
-  }, [itineraryId, fetchItinerary]);
+  }, [itineraryId, fetchItinerary, authReady]);
 
   const itineraryPanelWidth =
     userAdjustedWidth ?? calculateInitialItineraryWidth(itinerary?.days.length ?? 0);

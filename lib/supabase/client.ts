@@ -33,20 +33,18 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 });
 
 /**
- * Type-safe helper for getting the current user
+ * Type-safe helper for getting the current user.
+ *
+ * Reads from the locally-cached session (no network call) to avoid
+ * AuthSessionMissingError when called without an active session.
+ * RLS on the server validates the JWT independently, so this is safe
+ * for client-side permission checks.
  */
 export async function getCurrentUser() {
   const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error) {
-    console.error("Error getting current user:", error);
-    return null;
-  }
-
-  return user;
+    data: { session },
+  } = await supabase.auth.getSession();
+  return session?.user ?? null;
 }
 
 /**
