@@ -57,7 +57,9 @@ export function createCollaborationSession(
       default:
         // For other errors, log but allow retry
         if (event.code >= 4000) {
-          console.warn(`[Collaboration] Connection closed with code ${event.code}: ${event.reason}`);
+          console.warn(
+            `[Collaboration] Connection closed with code ${event.code}: ${event.reason}`,
+          );
         }
     }
   });
