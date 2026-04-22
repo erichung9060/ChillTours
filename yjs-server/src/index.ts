@@ -2,7 +2,7 @@
 import "dotenv/config";
 import http from "http";
 import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket/bin/utils";
+import { setupWSConnection, docs } from "y-websocket/bin/utils";
 import { RoomManager } from "./room-manager.js";
 import { checkAccess } from "./auth.js";
 
@@ -57,6 +57,19 @@ wss.on("connection", async (ws, req) => {
   ws.on("close", () => {
     roomManager.leave(roomId, connId);
     console.log(`[disconnect] user=${result.userId} room=${roomId}`);
+
+    // When the last client leaves, destroy and remove the in-memory Y.Doc.
+    // This prevents CRDT tombstones from accumulating across sessions —
+    // a stale high-clientID tombstone would permanently win conflict resolution
+    // against any fresh client write, making the room unusable until server restart.
+    if (roomManager.connectionCount(roomId) === 0) {
+      const doc = docs.get(roomId);
+      if (doc) {
+        doc.destroy();
+        docs.delete(roomId);
+        console.log(`[room-cleared] room=${roomId}`);
+      }
+    }
   });
 
   setupWSConnection(ws, req, { docName: roomId });
