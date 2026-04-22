@@ -1,8 +1,16 @@
 // server/src/auth.ts
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+  return value;
+}
+
+const supabaseUrl = getRequiredEnv("SUPABASE_URL");
+const supabaseAnonKey = getRequiredEnv("SUPABASE_ANON_KEY");
 
 export interface AccessResult {
   userId: string;
