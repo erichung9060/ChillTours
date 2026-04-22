@@ -90,7 +90,8 @@ cd yjs-server
 cp .env.example .env
 # Edit .env and add your Supabase credentials:
 # - SUPABASE_URL
-# - SUPABASE_SERVICE_ROLE_KEY
+# - SUPABASE_ANON_KEY
+# Use the client access token for RLS; do not use the service role key here.
 npm install
 npm run dev
 ```
@@ -149,7 +150,7 @@ npm run build
 
 ```bash
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ANON_KEY=your-anon-key
 PORT=1234
 MAX_CONNECTIONS_PER_ROOM=20
 ```
