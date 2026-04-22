@@ -10,10 +10,7 @@ export interface AccessResult {
   hasAccess: boolean;
 }
 
-export async function checkAccess(
-  token: string,
-  roomId: string,
-): Promise<AccessResult | null> {
+export async function checkAccess(token: string, roomId: string): Promise<AccessResult | null> {
   if (!token) return null;
 
   const client = createClient(supabaseUrl, supabaseAnonKey, {

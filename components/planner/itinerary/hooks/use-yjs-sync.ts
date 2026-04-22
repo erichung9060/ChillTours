@@ -52,7 +52,6 @@ export function useYjsSync(
     const yItinerary = session.doc.getMap("itinerary");
 
     const handleRemoteChange = (_event: Y.YMapEvent<unknown>, transaction: Y.Transaction) => {
-
       // Skip changes that originated from this client (our own broadcasts)
       if (transaction.local) return;
 

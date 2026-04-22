@@ -18,17 +18,22 @@ describe("checkAccess", () => {
 
   it("returns access when user is owner or email shared", async () => {
     const mockClient = {
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-123", is_anonymous: false } }, error: null }) },
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-123", is_anonymous: false } },
+          error: null,
+        }),
+      },
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: { id: "room-1" } })
-          })
-        })
+            single: vi.fn().mockResolvedValue({ data: { id: "room-1" } }),
+          }),
+        }),
       }),
       rpc: vi.fn(),
     };
-    
+
     // @ts-ignore
     vi.mocked(createClient).mockReturnValue(mockClient);
 
@@ -40,19 +45,24 @@ describe("checkAccess", () => {
 
   it("returns access when link share allows", async () => {
     const mockClient = {
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-anon", is_anonymous: true } }, error: null }) },
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-anon", is_anonymous: true } },
+          error: null,
+        }),
+      },
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } })
-          })
-        })
+            single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } }),
+          }),
+        }),
       }),
       rpc: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ data: { id: "room-1" }, error: null })
-      })
+        single: vi.fn().mockResolvedValue({ data: { id: "room-1" }, error: null }),
+      }),
     };
-    
+
     // @ts-ignore
     vi.mocked(createClient).mockReturnValue(mockClient);
 
@@ -63,19 +73,24 @@ describe("checkAccess", () => {
 
   it("returns no access when both checks fail", async () => {
     const mockClient = {
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-123", is_anonymous: false } }, error: null }) },
+      auth: {
+        getUser: vi.fn().mockResolvedValue({
+          data: { user: { id: "user-123", is_anonymous: false } },
+          error: null,
+        }),
+      },
       from: vi.fn().mockReturnValue({
         select: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } })
-          })
-        })
+            single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } }),
+          }),
+        }),
       }),
       rpc: vi.fn().mockReturnValue({
-        single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } })
-      })
+        single: vi.fn().mockResolvedValue({ data: null, error: { code: "PGRST116" } }),
+      }),
     };
-    
+
     // @ts-ignore
     vi.mocked(createClient).mockReturnValue(mockClient);
 
@@ -85,9 +100,13 @@ describe("checkAccess", () => {
 
   it("returns null for invalid token", async () => {
     const mockClient = {
-      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: { message: "Invalid token" } }) },
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: null }, error: { message: "Invalid token" } }),
+      },
     };
-    
+
     // @ts-ignore
     vi.mocked(createClient).mockReturnValue(mockClient);
 
