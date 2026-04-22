@@ -1,5 +1,6 @@
 // components/planner/itinerary/hooks/use-yjs-sync.ts
 import { useEffect, useRef } from "react";
+import * as Y from "yjs";
 import type { Itinerary } from "@/types/itinerary";
 import type { CollaborationSession } from "@/types/collaboration";
 
@@ -18,12 +19,6 @@ export function useYjsSync(
   onRemoteUpdate: (itinerary: Itinerary) => void,
 ) {
   const lastBroadcastRef = useRef<string | null>(null);
-  const isApplyingRemoteRef = useRef(false);
-  const itineraryRef = useRef<Itinerary | null>(null);
-
-  useEffect(() => {
-    itineraryRef.current = itinerary;
-  }, [itinerary]);
 
   // ── 1. Broadcast local changes to Y.Doc ────────────────────────────
   useEffect(() => {
@@ -31,17 +26,20 @@ export function useYjsSync(
 
     const serialized = JSON.stringify(itinerary);
 
-    // Skip if this is the same state we just broadcast
+    // Skip if this is the same state we just broadcast or just received
     if (lastBroadcastRef.current === serialized) return;
 
-    // Skip if we're currently applying a remote update
-    if (isApplyingRemoteRef.current) return;
-
+    // On first availability (session + itinerary both ready), this is the
+    // initial DB load from Supabase. Record it without broadcasting — the DB
+    // is the source of truth for initial state.
+    if (lastBroadcastRef.current === null) {
+      lastBroadcastRef.current = serialized;
+      return;
+    }
     const yItinerary = session.doc.getMap("itinerary");
 
     session.doc.transact(() => {
       yItinerary.set("data", itinerary);
-      yItinerary.set("updated_at", itinerary.updated_at);
     });
 
     lastBroadcastRef.current = serialized;
@@ -53,33 +51,17 @@ export function useYjsSync(
 
     const yItinerary = session.doc.getMap("itinerary");
 
-    const handleRemoteChange = () => {
-      // Skip if this change came from us
-      if (isApplyingRemoteRef.current) return;
+    const handleRemoteChange = (_event: Y.YMapEvent<unknown>, transaction: Y.Transaction) => {
+
+      // Skip changes that originated from this client (our own broadcasts)
+      if (transaction.local) return;
 
       const remoteData = yItinerary.get("data") as Itinerary | undefined;
-      const remoteUpdatedAt = yItinerary.get("updated_at") as string | undefined;
+      if (!remoteData) return;
 
-      if (!remoteData || !remoteUpdatedAt) return;
-
-      // Only apply if remote is newer
-      const currentItinerary = itineraryRef.current;
-      if (
-        currentItinerary &&
-        new Date(remoteUpdatedAt).getTime() <= new Date(currentItinerary.updated_at).getTime()
-      )
-        return;
-
-      // Mark that we're applying a remote update to prevent echo
-      isApplyingRemoteRef.current = true;
       lastBroadcastRef.current = JSON.stringify(remoteData);
 
       onRemoteUpdate(remoteData);
-
-      // Reset flag after a tick to allow next local broadcast
-      setTimeout(() => {
-        isApplyingRemoteRef.current = false;
-      }, 0);
     };
 
     yItinerary.observe(handleRemoteChange);
