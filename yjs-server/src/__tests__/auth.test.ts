@@ -34,7 +34,7 @@ describe("checkAccess", () => {
       rpc: vi.fn(),
     };
 
-    // @ts-ignore
+    // @ts-expect-error - Mocking Supabase client for testing
     vi.mocked(createClient).mockReturnValue(mockClient);
 
     const result = await checkAccess("valid-token", "room-1");
@@ -63,7 +63,7 @@ describe("checkAccess", () => {
       }),
     };
 
-    // @ts-ignore
+    // @ts-expect-error - Mocking Supabase client for testing
     vi.mocked(createClient).mockReturnValue(mockClient);
 
     const result = await checkAccess("valid-anon-token", "room-1");
@@ -91,7 +91,7 @@ describe("checkAccess", () => {
       }),
     };
 
-    // @ts-ignore
+    // @ts-expect-error - Mocking Supabase client for testing
     vi.mocked(createClient).mockReturnValue(mockClient);
 
     const result = await checkAccess("valid-token", "room-2");
@@ -107,7 +107,7 @@ describe("checkAccess", () => {
       },
     };
 
-    // @ts-ignore
+    // @ts-expect-error - Mocking Supabase client for testing
     vi.mocked(createClient).mockReturnValue(mockClient);
 
     const result = await checkAccess("bad-token", "room-1");
