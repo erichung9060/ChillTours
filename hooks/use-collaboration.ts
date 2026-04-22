@@ -30,6 +30,14 @@ export function useCollaboration(itineraryId: string | null): UseCollaborationRe
       if (!token || !itineraryId) return;
 
       currentSession = createCollaborationSession(itineraryId, token);
+
+      // If collaboration is not configured, session will be null
+      if (!currentSession) {
+        setSession(null);
+        setConnected(false);
+        return;
+      }
+
       setSession(currentSession);
 
       currentSession.provider.on("status", (event: { status: string }) => {
