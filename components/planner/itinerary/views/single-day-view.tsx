@@ -28,6 +28,7 @@ export function SingleDayView({
   setDayTimeWindow,
   setAllDaysTimeWindow,
   setDayTransportMode,
+  setAllDaysTransportMode,
 }: SingleDayViewProps) {
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
@@ -78,6 +79,7 @@ export function SingleDayView({
               dayNumber={day.day_number}
               mode={day.transport_mode}
               onSave={setDayTransportMode}
+              onApplyAll={setAllDaysTransportMode}
             />
           </div>
         </div>

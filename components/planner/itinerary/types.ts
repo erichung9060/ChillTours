@@ -77,6 +77,7 @@ export interface ExpandableViewProps {
     endTime: string | undefined,
   ) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
 
 export interface SingleDayViewProps {
@@ -98,6 +99,7 @@ export interface SingleDayViewProps {
     endTime: string | undefined,
   ) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
 
 export interface SideBySideViewProps {
@@ -117,4 +119,5 @@ export interface SideBySideViewProps {
     endTime: string | undefined,
   ) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }

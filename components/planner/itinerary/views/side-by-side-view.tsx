@@ -26,6 +26,7 @@ export function SideBySideView({
   setDayTimeWindow,
   setAllDaysTimeWindow,
   setDayTransportMode,
+  setAllDaysTransportMode,
 }: SideBySideViewProps) {
   const locale = useLocale();
 
@@ -59,6 +60,7 @@ export function SideBySideView({
                     dayNumber={day.day_number}
                     mode={day.transport_mode}
                     onSave={setDayTransportMode}
+                    onApplyAll={setAllDaysTransportMode}
                   />
                 </CardHeader>
                 <CardContent className="p-4 flex-1 overflow-y-auto">

@@ -28,6 +28,7 @@ export function ExpandableView({
   setDayTimeWindow,
   setAllDaysTimeWindow,
   setDayTransportMode,
+  setAllDaysTransportMode,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -68,6 +69,7 @@ export function ExpandableView({
                       dayNumber={day.day_number}
                       mode={day.transport_mode}
                       onSave={setDayTransportMode}
+                      onApplyAll={setAllDaysTransportMode}
                     />
                   </div>
                 </div>
