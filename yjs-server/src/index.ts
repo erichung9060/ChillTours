@@ -42,12 +42,11 @@ wss.on("connection", async (ws, req) => {
     return;
   }
 
-  if (!roomManager.canJoin(roomId)) {
+  // Atomically check capacity and join room to prevent race conditions
+  if (!roomManager.tryJoin(roomId, connId)) {
     ws.close(4029, "Room is full");
     return;
   }
-
-  roomManager.join(roomId, connId);
 
   console.log(
     `[connect] user=${result.userId} anon=${result.isAnonymous} room=${roomId} ` +

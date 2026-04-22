@@ -13,18 +13,22 @@ export class RoomManager {
     this.maxPerRoom = maxPerRoom;
   }
 
-  canJoin(roomId: string): boolean {
-    const conns = this.rooms.get(roomId);
-    return !conns || conns.size < this.maxPerRoom;
-  }
 
-  join(roomId: string, connId: string): void {
+  tryJoin(roomId: string, connId: string): boolean {
     let conns = this.rooms.get(roomId);
+    
+    // Check capacity
+    if (conns && conns.size >= this.maxPerRoom) {
+      return false;
+    }
+    
+    // Add connection
     if (!conns) {
       conns = new Set();
       this.rooms.set(roomId, conns);
     }
     conns.add(connId);
+    return true;
   }
 
   leave(roomId: string, connId: string): void {
