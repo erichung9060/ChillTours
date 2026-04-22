@@ -57,6 +57,7 @@ interface ItineraryState {
   // Data Actions
   fetchItinerary: (id: string) => Promise<void>;
   commitItineraryChange: (nextItinerary: Itinerary) => Promise<void>;
+  applyRemoteChange: (nextItinerary: Itinerary) => void;
   undo: () => Promise<void>;
   redo: () => Promise<void>;
   canEdit: () => boolean;
@@ -277,6 +278,16 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
       throw err;
     }
+  },
+
+  applyRemoteChange: (nextItinerary) => {
+    const state = get();
+    const currentItinerary = state.itinerary;
+    if (!currentItinerary) return;
+
+    // Remote changes don't go into undo/redo history
+    // They just update the current state
+    set({ itinerary: nextItinerary });
   },
 
   undo: async () => {

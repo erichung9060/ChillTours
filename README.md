@@ -83,6 +83,21 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+5. (Optional) Run the Yjs WebSocket server for real-time collaboration:
+
+```bash
+cd yjs-server
+cp .env.example .env
+# Edit .env and add your Supabase credentials:
+# - SUPABASE_URL
+# - SUPABASE_ANON_KEY
+# Use the client access token for RLS; do not use the service role key here.
+npm install
+npm run dev
+```
+
+The Yjs server will run on port 1234 by default. For production deployment, see the [Yjs Server Deployment](#yjs-server-deployment) section.
+
 ### Testing
 
 Run unit tests:
@@ -109,6 +124,65 @@ npm run test:ui
 npm run build
 npm start
 ```
+
+## Yjs Server Deployment
+
+The Yjs WebSocket server enables real-time collaborative editing. It runs as a separate Node.js process.
+
+### Local Development
+
+```bash
+cd yjs-server
+npm run dev
+```
+
+### Production Deployment (VM)
+
+1. Build the server:
+
+```bash
+cd yjs-server
+npm install
+npm run build
+```
+
+2. Configure environment variables in `yjs-server/.env`:
+
+```bash
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_ANON_KEY=your-anon-key
+PORT=1234
+MAX_CONNECTIONS_PER_ROOM=20
+```
+
+3. Start with PM2:
+
+```bash
+pm2 start ecosystem.config.cjs
+pm2 save
+pm2 startup  # Enable auto-restart on system reboot
+```
+
+4. Configure Cloudflare Tunnel to expose the server:
+
+```bash
+cloudflared tunnel --url http://localhost:1234
+```
+
+Point your domain (e.g., `wss://yjs.chilltours.com.tw`) to the tunnel.
+
+5. Update the Next.js app environment variable:
+
+```bash
+NEXT_PUBLIC_YJS_SERVER_URL=wss://yjs.chilltours.com.tw
+```
+
+### Server Features
+
+- **JWT Authentication**: Validates Supabase access tokens
+- **Per-room Connection Limits**: Prevents room overcrowding (default: 20 users/room)
+- **Automatic Reconnection**: Handles network interruptions gracefully
+- **Health Check Endpoint**: `GET /` returns `ok` for monitoring
 
 ## API Documentation
 
@@ -185,9 +259,16 @@ _備註：每次請求的 `places` 數量必須介於 1 到 10 之間。_
 ├── test/                    # Test files and utilities
 │   ├── utils/               # Test helpers
 │   └── setup.ts             # Test setup
-└── supabase/                # Supabase configuration
-    ├── migrations/          # Database migrations
-    └── functions/           # Edge Functions
+├── supabase/                # Supabase configuration
+│   ├── migrations/          # Database migrations
+│   └── functions/           # Edge Functions
+└── yjs-server/              # Yjs WebSocket server (separate Node.js app)
+    ├── src/                 # Server source code
+    │   ├── index.ts         # Main server entry point
+    │   ├── auth.ts          # JWT verification
+    │   └── room-manager.ts  # Connection management
+    ├── ecosystem.config.cjs # PM2 configuration
+    └── package.json         # Server dependencies
 ```
 
 ## Architecture
