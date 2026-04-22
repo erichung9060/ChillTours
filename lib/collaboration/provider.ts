@@ -29,6 +29,37 @@ export function createCollaborationSession(
   const provider = new WebsocketProvider(WS_SERVER_URL, roomId, doc, {
     params: { token },
     connect: true,
+    maxBackoffTime: 5000, // Increase max backoff time to 5 seconds
+  });
+
+  // Handle connection close events
+  provider.on("connection-close", (event: CloseEvent | null) => {
+    if (!event) return;
+
+    // Handle specific error codes
+    switch (event.code) {
+      case 4000:
+        console.error("[Collaboration] Invalid room ID");
+        provider.shouldConnect = false;
+        break;
+      case 4001:
+        console.error("[Collaboration] Unauthorized - please sign in again");
+        provider.shouldConnect = false;
+        break;
+      case 4003:
+        console.error("[Collaboration] Forbidden - you don't have access to this itinerary");
+        provider.shouldConnect = false;
+        break;
+      case 4029:
+        console.error("[Collaboration] Room is full - too many people are editing this itinerary");
+        provider.shouldConnect = false;
+        break;
+      default:
+        // For other errors, log but allow retry
+        if (event.code >= 4000) {
+          console.warn(`[Collaboration] Connection closed with code ${event.code}: ${event.reason}`);
+        }
+    }
   });
 
   return { room_id: roomId, doc, provider };
