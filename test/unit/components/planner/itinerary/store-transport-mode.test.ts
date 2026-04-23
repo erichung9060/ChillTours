@@ -101,4 +101,49 @@ describe("store - setDayTransportMode", () => {
     await useItineraryStore.getState().setDayTransportMode(1, "driving");
     expect(mocks.updateItinerary).not.toHaveBeenCalled();
   });
+
+  it("skips save when mode is already set to the same value", async () => {
+    setupStore();
+    await useItineraryStore.getState().setDayTransportMode(1, "driving");
+    expect(mocks.updateItinerary).not.toHaveBeenCalled();
+  });
+});
+
+describe("store - setAllDaysTransportMode", () => {
+  beforeEach(() => {
+    mocks.updateItinerary.mockReset();
+    mocks.updateItinerary.mockImplementation((_id: string, updates: Partial<Itinerary>) =>
+      Promise.resolve({ ...baseItinerary, ...updates }),
+    );
+  });
+
+  it("applies transport_mode to every day", async () => {
+    setupStore();
+    await useItineraryStore.getState().setAllDaysTransportMode("walking");
+    const days = useItineraryStore.getState().itinerary!.days;
+    days.forEach((day) => {
+      expect(day.transport_mode).toBe("walking");
+    });
+  });
+
+  it("calls updateItinerary exactly once", async () => {
+    setupStore();
+    await useItineraryStore.getState().setAllDaysTransportMode("transit");
+    expect(mocks.updateItinerary).toHaveBeenCalledOnce();
+  });
+
+  it("overwrites existing transport_mode on all days", async () => {
+    setupStore();
+    await useItineraryStore.getState().setAllDaysTransportMode("bicycling");
+    const days = useItineraryStore.getState().itinerary!.days;
+    days.forEach((day) => {
+      expect(day.transport_mode).toBe("bicycling");
+    });
+  });
+
+  it("does nothing when itinerary is null", async () => {
+    useItineraryStore.setState({ itinerary: null });
+    await useItineraryStore.getState().setAllDaysTransportMode("driving");
+    expect(mocks.updateItinerary).not.toHaveBeenCalled();
+  });
 });
