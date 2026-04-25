@@ -677,6 +677,30 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
     }
   },
 
+  setAllDaysTimeWindow: async (startTime, endTime) => {
+    const state = get();
+    if (!state.itinerary) return;
+    set({ isSaving: true, saveError: false });
+    try {
+      const newDays = state.itinerary.days.map((d) => ({
+        ...d,
+        start_time: startTime,
+        end_time: endTime,
+      }));
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Failed to set all days time window:", err);
+      set({ saveError: true });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
   setDayTransportMode: async (dayNumber, mode) => {
     const state = get();
     if (!state.itinerary) return;
@@ -714,30 +738,6 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to set all days transport mode:", err);
-      set({ saveError: true });
-      throw err;
-    } finally {
-      set({ isSaving: false });
-    }
-  },
-
-  setAllDaysTimeWindow: async (startTime, endTime) => {
-    const state = get();
-    if (!state.itinerary) return;
-    set({ isSaving: true, saveError: false });
-    try {
-      const newDays = state.itinerary.days.map((d) => ({
-        ...d,
-        start_time: startTime,
-        end_time: endTime,
-      }));
-      await get().commitItineraryChange({
-        ...state.itinerary,
-        days: newDays,
-        updated_at: new Date().toISOString(),
-      });
-    } catch (err) {
-      console.error("Failed to set all days time window:", err);
       set({ saveError: true });
       throw err;
     } finally {
