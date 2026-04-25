@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { Car, PersonStanding, Bus, Bike, Check, ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
+import { TransportModeSchema } from "@/types/itinerary";
 import type { TransportMode } from "@/types/itinerary";
 
 interface DayTransportModeProps {
@@ -14,7 +15,7 @@ interface DayTransportModeProps {
   onApplyAll?: (mode: TransportMode) => Promise<void>;
 }
 
-const MODES: TransportMode[] = ["driving", "walking", "transit", "bicycling"];
+const MODES = TransportModeSchema.options;
 
 const MODE_ICONS: Record<TransportMode, React.ElementType> = {
   driving: Car,
