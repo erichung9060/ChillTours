@@ -92,14 +92,6 @@ describe("store - setDayTimeWindow", () => {
     expect(day2.end_time).toBe("19:00");
   });
 
-  it("accepts undefined to clear start_time and end_time", async () => {
-    setupStore();
-    await useItineraryStore.getState().setDayTimeWindow(1, undefined, undefined);
-    const day1 = useItineraryStore.getState().itinerary!.days.find((d) => d.day_number === 1)!;
-    expect(day1.start_time).toBeUndefined();
-    expect(day1.end_time).toBeUndefined();
-  });
-
   it("does nothing when itinerary is null", async () => {
     useItineraryStore.setState({ itinerary: null });
     await useItineraryStore.getState().setDayTimeWindow(1, "09:00", "20:00");
@@ -129,16 +121,6 @@ describe("store - setAllDaysTimeWindow", () => {
     setupStore();
     await useItineraryStore.getState().setAllDaysTimeWindow("09:00", "20:00");
     expect(mocks.updateItinerary).toHaveBeenCalledOnce();
-  });
-
-  it("accepts undefined to clear all days time windows", async () => {
-    setupStore();
-    await useItineraryStore.getState().setAllDaysTimeWindow(undefined, undefined);
-    const days = useItineraryStore.getState().itinerary!.days;
-    days.forEach((day) => {
-      expect(day.start_time).toBeUndefined();
-      expect(day.end_time).toBeUndefined();
-    });
   });
 
   it("does nothing when itinerary is null", async () => {

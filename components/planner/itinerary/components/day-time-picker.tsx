@@ -9,8 +9,8 @@ interface DayTimePickerProps {
   dayNumber: number;
   startTime: string | null | undefined;
   endTime: string | null | undefined;
-  onSave?: (dayNumber: number, start: string | undefined, end: string | undefined) => Promise<void>;
-  onApplyAll?: (start: string | undefined, end: string | undefined) => Promise<void>;
+  onSave?: (dayNumber: number, start: string, end: string) => Promise<void>;
+  onApplyAll?: (start: string, end: string) => Promise<void>;
 }
 
 const DEFAULT_START_TIME = "09:00";

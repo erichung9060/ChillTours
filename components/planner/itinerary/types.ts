@@ -67,15 +67,8 @@ export interface ExpandableViewProps {
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
-  setDayTimeWindow?: (
-    dayNumber: number,
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
-  setAllDaysTimeWindow?: (
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
   setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
@@ -89,15 +82,8 @@ export interface SingleDayViewProps {
   goToNextDay: () => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
-  setDayTimeWindow?: (
-    dayNumber: number,
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
-  setAllDaysTimeWindow?: (
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
   setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
@@ -109,15 +95,8 @@ export interface SideBySideViewProps {
   onDayHover?: (dayNumber: number | null) => void;
   onActivityHover?: (activityId: string | null) => void;
   onActivityClick?: (activityId: string) => void;
-  setDayTimeWindow?: (
-    dayNumber: number,
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
-  setAllDaysTimeWindow?: (
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
+  setDayTimeWindow?: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow?: (startTime: string, endTime: string) => Promise<void>;
   setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
   setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }

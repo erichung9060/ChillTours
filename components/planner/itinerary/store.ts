@@ -98,15 +98,8 @@ interface ItineraryState {
   ) => Promise<void>;
   deleteActivity: (activityId: string) => Promise<void>;
 
-  setDayTimeWindow: (
-    dayNumber: number,
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
-  setAllDaysTimeWindow: (
-    startTime: string | undefined,
-    endTime: string | undefined,
-  ) => Promise<void>;
+  setDayTimeWindow: (dayNumber: number, startTime: string, endTime: string) => Promise<void>;
+  setAllDaysTimeWindow: (startTime: string, endTime: string) => Promise<void>;
 
   setDayTransportMode: (dayNumber: number, mode: TransportMode) => Promise<void>;
   setAllDaysTransportMode: (mode: TransportMode) => Promise<void>;
