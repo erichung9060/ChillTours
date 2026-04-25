@@ -12,6 +12,8 @@
     "test": "vitest --run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
+    "type-check": "tsc --noEmit",
+    "ci": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\" && npm run lint && npm run type-check && npm run test && npm run build",
     "supabase:gen": "supabase gen types typescript --project-id rkxowkdqkplsqhxivynl > lib/supabase/database.types.ts && cp lib/supabase/database.types.ts supabase/functions/_shared/database.types.ts"
   },
   "keywords": [],
