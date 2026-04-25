@@ -109,9 +109,7 @@ export function DayTimePicker({
     };
   }, [open]);
 
-  const handleOpen = (e: React.MouseEvent) => {
-    e.stopPropagation();
-
+  const handleOpen = () => {
     if (!isEditable) return;
 
     if (buttonRef.current) {
@@ -124,14 +122,11 @@ export function DayTimePicker({
 
   const isValidRange = () => draft.startTime < draft.endTime;
 
-  const save = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isValidRange()) {
+  const handleSave = async () => {
+    if (!onSave || !isValidRange()) {
       setTimeError(true);
       return;
     }
-    if (!onSave) return;
-
     setTimeError(false);
     setSaving(true);
     try {
@@ -146,14 +141,11 @@ export function DayTimePicker({
     }
   };
 
-  const applyAll = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!isValidRange()) {
+  const handleApplyAll = async () => {
+    if (!onApplyAll || !isValidRange()) {
       setTimeError(true);
       return;
     }
-    if (!onApplyAll) return;
-
     setTimeError(false);
     setSaving(true);
     try {
@@ -221,14 +213,19 @@ export function DayTimePicker({
             </div>
             {timeError && <p className="text-xs text-destructive mb-2">{t("errorTimeRange")}</p>}
             <div className="flex gap-2">
-              <Button size="sm" className="h-7 text-xs flex-1" onClick={save} disabled={saving}>
+              <Button
+                size="sm"
+                className="h-7 text-xs flex-1"
+                onClick={handleSave}
+                disabled={saving}
+              >
                 {t("save")}
               </Button>
               <Button
                 size="sm"
                 variant="outline"
                 className="h-7 text-xs flex-1"
-                onClick={applyAll}
+                onClick={handleApplyAll}
                 disabled={saving}
               >
                 {t("applyAll")}
