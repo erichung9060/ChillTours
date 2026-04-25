@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DayTransportMode } from "@/components/planner/itinerary/components/day-transport-mode";
+import { DayTransportPicker } from "@/components/planner/itinerary/components/day-transport-picker";
 
 vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-describe("DayTransportMode", () => {
+describe("DayTransportPicker", () => {
   const onSave = vi.fn();
   const onApplyAll = vi.fn();
 
@@ -32,17 +32,17 @@ describe("DayTransportMode", () => {
   };
 
   it("renders a trigger button showing the active mode name", () => {
-    render(<DayTransportMode dayNumber={1} mode="walking" onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode="walking" onSave={onSave} />);
     expect(screen.getAllByRole("button")[0]).toHaveTextContent("Walking");
   });
 
   it("renders a trigger button showing placeholder when no mode is set", () => {
-    render(<DayTransportMode dayNumber={1} mode={undefined} onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode={undefined} onSave={onSave} />);
     expect(screen.getByRole("button")).toHaveTextContent("Mode");
   });
 
   it("opens dropdown with all four mode options on trigger click", () => {
-    render(<DayTransportMode dayNumber={1} mode={undefined} onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode={undefined} onSave={onSave} />);
     openDropdown();
     expect(screen.getByText("Driving")).toBeInTheDocument();
     expect(screen.getByText("Walking")).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe("DayTransportMode", () => {
   });
 
   it("shows a checkmark next to the active mode in the dropdown", () => {
-    render(<DayTransportMode dayNumber={1} mode="walking" onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode="walking" onSave={onSave} />);
     openDropdown();
     // The Walking dropdown option (index > 0) should have the active class
     const allButtons = screen.getAllByRole("button");
@@ -60,7 +60,7 @@ describe("DayTransportMode", () => {
   });
 
   it("calls onSave with correct dayNumber and mode when a dropdown option is clicked", async () => {
-    render(<DayTransportMode dayNumber={2} mode={undefined} onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={2} mode={undefined} onSave={onSave} />);
     openDropdown();
     clickDropdownOption("Driving");
     await waitFor(() => {
@@ -70,7 +70,7 @@ describe("DayTransportMode", () => {
   });
 
   it("closes the dropdown after selecting a mode", async () => {
-    render(<DayTransportMode dayNumber={1} mode={undefined} onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode={undefined} onSave={onSave} />);
     openDropdown();
     clickDropdownOption("Driving");
     await waitFor(() => {
@@ -79,7 +79,7 @@ describe("DayTransportMode", () => {
   });
 
   it("does not call onSave when clicking the already-active mode", async () => {
-    render(<DayTransportMode dayNumber={1} mode="transit" onSave={onSave} />);
+    render(<DayTransportPicker dayNumber={1} mode="transit" onSave={onSave} />);
     openDropdown();
     clickDropdownOption("Transit");
     await waitFor(() => {
@@ -89,7 +89,7 @@ describe("DayTransportMode", () => {
 
   it("shows apply-all option in dropdown when onApplyAll and mode are provided", () => {
     render(
-      <DayTransportMode dayNumber={1} mode="driving" onSave={onSave} onApplyAll={onApplyAll} />,
+      <DayTransportPicker dayNumber={1} mode="driving" onSave={onSave} onApplyAll={onApplyAll} />,
     );
     openDropdown();
     expect(screen.getByText("Apply Driving to all days")).toBeInTheDocument();
@@ -97,7 +97,7 @@ describe("DayTransportMode", () => {
 
   it("does not show apply-all option when mode is undefined", () => {
     render(
-      <DayTransportMode dayNumber={1} mode={undefined} onSave={onSave} onApplyAll={onApplyAll} />,
+      <DayTransportPicker dayNumber={1} mode={undefined} onSave={onSave} onApplyAll={onApplyAll} />,
     );
     openDropdown();
     expect(screen.queryByText(/Apply.*to all days/)).not.toBeInTheDocument();
@@ -105,7 +105,7 @@ describe("DayTransportMode", () => {
 
   it("calls onApplyAll with the current mode when apply-all option is clicked", async () => {
     render(
-      <DayTransportMode dayNumber={1} mode="bicycling" onSave={onSave} onApplyAll={onApplyAll} />,
+      <DayTransportPicker dayNumber={1} mode="bicycling" onSave={onSave} onApplyAll={onApplyAll} />,
     );
     openDropdown();
     clickDropdownOption("Apply Bicycling to all days");
@@ -116,12 +116,12 @@ describe("DayTransportMode", () => {
   });
 
   it("disables trigger button when onSave is not provided", () => {
-    render(<DayTransportMode dayNumber={1} mode="driving" />);
+    render(<DayTransportPicker dayNumber={1} mode="driving" />);
     expect(screen.getByRole("button")).toBeDisabled();
   });
 
   it("does not open dropdown when not editable", () => {
-    render(<DayTransportMode dayNumber={1} mode="driving" />);
+    render(<DayTransportPicker dayNumber={1} mode="driving" />);
     fireEvent.click(screen.getByRole("button"));
     expect(screen.queryByText("Walking")).not.toBeInTheDocument();
   });

@@ -39,7 +39,7 @@ const noop = vi.fn().mockResolvedValue(undefined);
 // ExpandableView
 // ──────────────────────────────────────────────────────────────────────────────
 
-describe("ExpandableView - DayTimeDisplay integration", () => {
+describe("ExpandableView - DayTimePicker integration", () => {
   beforeEach(() => noop.mockClear());
 
   it("shows time display for each day when callbacks are provided", () => {
@@ -123,7 +123,7 @@ describe("ExpandableView - DayTimeDisplay integration", () => {
 // SingleDayView
 // ──────────────────────────────────────────────────────────────────────────────
 
-describe("SingleDayView - DayTimeDisplay integration", () => {
+describe("SingleDayView - DayTimePicker integration", () => {
   beforeEach(() => noop.mockClear());
 
   it("shows time display when callbacks are provided", () => {
@@ -185,7 +185,7 @@ describe("SingleDayView - DayTimeDisplay integration", () => {
 // SideBySideView
 // ──────────────────────────────────────────────────────────────────────────────
 
-describe("SideBySideView - DayTimeDisplay integration", () => {
+describe("SideBySideView - DayTimePicker integration", () => {
   beforeEach(() => noop.mockClear());
 
   it("shows time display for each day when callbacks are provided", () => {

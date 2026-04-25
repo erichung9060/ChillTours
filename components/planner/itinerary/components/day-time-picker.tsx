@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
-interface DayTimeDisplayProps {
+interface DayTimePickerProps {
   dayNumber: number;
   startTime: string | null | undefined;
   endTime: string | null | undefined;
@@ -61,13 +61,13 @@ function TimeSelect({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-export function DayTimeDisplay({
+export function DayTimePicker({
   dayNumber,
   startTime,
   endTime,
   onSave,
   onApplyAll,
-}: DayTimeDisplayProps) {
+}: DayTimePickerProps) {
   const [localStartTime, setLocalStartTime] = useState(startTime ?? DEFAULT_START_TIME);
   const [localEndTime, setLocalEndTime] = useState(endTime ?? DEFAULT_END_TIME);
   const [open, setOpen] = useState(false);
@@ -140,7 +140,7 @@ export function DayTimeDisplay({
       setLocalEndTime(draft.endTime);
       setOpen(false);
     } catch (err) {
-      console.error("[DayTimeDisplay] save failed:", err);
+      console.error("[DayTimePicker] save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -162,7 +162,7 @@ export function DayTimeDisplay({
       setLocalEndTime(draft.endTime);
       setOpen(false);
     } catch (err) {
-      console.error("[DayTimeDisplay] applyAll failed:", err);
+      console.error("[DayTimePicker] applyAll failed:", err);
     } finally {
       setSaving(false);
     }

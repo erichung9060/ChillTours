@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { TransportModeSchema } from "@/types/itinerary";
 import type { TransportMode } from "@/types/itinerary";
 
-interface DayTransportModeProps {
+interface DayTransportPickerProps {
   dayNumber: number;
   mode: TransportMode | undefined;
   onSave?: (dayNumber: number, mode: TransportMode) => Promise<void>;
@@ -24,7 +24,12 @@ const MODE_ICONS: Record<TransportMode, React.ElementType> = {
   bicycling: Bike,
 };
 
-export function DayTransportMode({ dayNumber, mode, onSave, onApplyAll }: DayTransportModeProps) {
+export function DayTransportPicker({
+  dayNumber,
+  mode,
+  onSave,
+  onApplyAll,
+}: DayTransportPickerProps) {
   const t = useTranslations("planner.transportMode");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -78,7 +83,7 @@ export function DayTransportMode({ dayNumber, mode, onSave, onApplyAll }: DayTra
       await onSave(dayNumber, selected);
       setOpen(false);
     } catch (err) {
-      console.error("[DayTransportMode] save failed:", err);
+      console.error("[DayTransportPicker] save failed:", err);
     } finally {
       setSaving(false);
     }
@@ -92,7 +97,7 @@ export function DayTransportMode({ dayNumber, mode, onSave, onApplyAll }: DayTra
       setOpen(false);
       toast.success(t("applyAllSuccess", { mode: t(mode) }));
     } catch (err) {
-      console.error("[DayTransportMode] applyAll failed:", err);
+      console.error("[DayTransportPicker] applyAll failed:", err);
     } finally {
       setSaving(false);
     }

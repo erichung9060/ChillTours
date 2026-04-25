@@ -10,8 +10,8 @@ import { useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
-import { DayTimeDisplay } from "../components/day-time-display";
-import { DayTransportMode } from "../components/day-transport-mode";
+import { DayTimePicker } from "../components/day-time-picker";
+import { DayTransportPicker } from "../components/day-transport-picker";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
@@ -68,14 +68,14 @@ export function SingleDayView({
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
           <div className="flex justify-center items-center gap-2 mt-1">
-            <DayTimeDisplay
+            <DayTimePicker
               dayNumber={day.day_number}
               startTime={day.start_time}
               endTime={day.end_time}
               onSave={setDayTimeWindow}
               onApplyAll={setAllDaysTimeWindow}
             />
-            <DayTransportMode
+            <DayTransportPicker
               dayNumber={day.day_number}
               mode={day.transport_mode}
               onSave={setDayTransportMode}

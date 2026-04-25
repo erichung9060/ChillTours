@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { DayTimeDisplay } from "@/components/planner/itinerary/components/day-time-display";
+import { DayTimePicker } from "@/components/planner/itinerary/components/day-time-picker";
 
-describe("DayTimeDisplay", () => {
+describe("DayTimePicker", () => {
   const onSave = vi.fn();
   const onApplyAll = vi.fn();
 
@@ -15,7 +15,7 @@ describe("DayTimeDisplay", () => {
 
   it("displays startTime – endTime by default", () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -30,7 +30,7 @@ describe("DayTimeDisplay", () => {
 
   it("does not show the time panel by default", () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -43,7 +43,7 @@ describe("DayTimeDisplay", () => {
 
   it("opens the time panel when clicked", () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -59,7 +59,7 @@ describe("DayTimeDisplay", () => {
 
   it("shows the Day N title in the panel", () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={3}
         startTime="09:00"
         endTime="20:00"
@@ -74,7 +74,7 @@ describe("DayTimeDisplay", () => {
 
   it("calls onSave with correct arguments when save button is clicked", async () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={2}
         startTime="08:00"
         endTime="21:00"
@@ -93,7 +93,7 @@ describe("DayTimeDisplay", () => {
 
   it("calls onApplyAll with correct arguments when apply-all button is clicked", async () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -112,7 +112,7 @@ describe("DayTimeDisplay", () => {
 
   it("closes the panel after saving", async () => {
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -131,7 +131,7 @@ describe("DayTimeDisplay", () => {
   it("closes the panel when clicking outside", async () => {
     render(
       <div>
-        <DayTimeDisplay
+        <DayTimePicker
           dayNumber={1}
           startTime="08:00"
           endTime="21:00"
@@ -153,7 +153,7 @@ describe("DayTimeDisplay", () => {
   it("re-enables the save button after onSave throws", async () => {
     onSave.mockRejectedValue(new Error("save failed"));
     render(
-      <DayTimeDisplay
+      <DayTimePicker
         dayNumber={1}
         startTime="08:00"
         endTime="21:00"
@@ -171,27 +171,27 @@ describe("DayTimeDisplay", () => {
   });
 
   it("renders as disabled when no callbacks are provided", () => {
-    render(<DayTimeDisplay dayNumber={1} startTime="08:00" endTime="21:00" />);
+    render(<DayTimePicker dayNumber={1} startTime="08:00" endTime="21:00" />);
     const button = screen.getByRole("button", { name: /08:00.*21:00/i });
     expect(button).toBeDisabled();
   });
 
   it("does not open panel when clicked in readonly mode", () => {
-    render(<DayTimeDisplay dayNumber={1} startTime="08:00" endTime="21:00" />);
+    render(<DayTimePicker dayNumber={1} startTime="08:00" endTime="21:00" />);
     const button = screen.getByRole("button", { name: /08:00.*21:00/i });
     fireEvent.click(button);
     expect(screen.queryByText("Save")).not.toBeInTheDocument();
   });
 
   it("renders as disabled when only onSave is provided", () => {
-    render(<DayTimeDisplay dayNumber={1} startTime="08:00" endTime="21:00" onSave={onSave} />);
+    render(<DayTimePicker dayNumber={1} startTime="08:00" endTime="21:00" onSave={onSave} />);
     const button = screen.getByRole("button", { name: /08:00.*21:00/i });
     expect(button).toBeDisabled();
   });
 
   it("renders as disabled when only onApplyAll is provided", () => {
     render(
-      <DayTimeDisplay dayNumber={1} startTime="08:00" endTime="21:00" onApplyAll={onApplyAll} />,
+      <DayTimePicker dayNumber={1} startTime="08:00" endTime="21:00" onApplyAll={onApplyAll} />,
     );
     const button = screen.getByRole("button", { name: /08:00.*21:00/i });
     expect(button).toBeDisabled();
