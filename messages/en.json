@@ -128,7 +128,10 @@
       "walking": "Walking",
       "transit": "Transit",
       "bicycling": "Bicycling",
-      "applyAll": "Apply to all days"
+      "noMode": "Mode",
+      "title": "Day {dayNumber} transport",
+      "applyAllMode": "Apply {mode} to all days",
+      "applyAllSuccess": "Applied {mode} to all days"
     },
     "dayTimeDisplay": {
       "title": "Day {dayNumber} Time Range",

@@ -128,7 +128,10 @@
       "walking": "步行",
       "transit": "大眾運輸",
       "bicycling": "騎車",
-      "applyAll": "套用到全部天"
+      "noMode": "交通方式",
+      "title": "第 {dayNumber} 天交通方式",
+      "applyAllMode": "將{mode}套用到全部天",
+      "applyAllSuccess": "已將{mode}套用到全部天"
     },
     "dayTimeDisplay": {
       "title": "第 {dayNumber} 天時間範圍",

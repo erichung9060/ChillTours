@@ -90,7 +90,10 @@ vi.mock("next-intl", () => {
     "planner.transportMode.walking": "Walking",
     "planner.transportMode.transit": "Transit",
     "planner.transportMode.bicycling": "Bicycling",
-    "planner.transportMode.applyAll": "Apply to all days",
+    "planner.transportMode.noMode": "Mode",
+    "planner.transportMode.title": "Day {dayNumber} transport",
+    "planner.transportMode.applyAllMode": "Apply {mode} to all days",
+    "planner.transportMode.applyAllSuccess": "Applied {mode} to all days",
     // Day time display
     "planner.dayTimeDisplay.title": "Day {dayNumber} Time Range",
     "planner.dayTimeDisplay.save": "Save",
