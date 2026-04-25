@@ -1,6 +1,6 @@
 "use client";
 
-import { Car, PersonStanding, Bus, Bike, Layers } from "lucide-react";
+import { Car, PersonStanding, Bus, Bike, CopyCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { TransportMode } from "@/types/itinerary";
 
@@ -71,7 +71,7 @@ export function DayTransportMode({ dayNumber, mode, onSave, onApplyAll }: DayTra
           onClick={handleApplyAll}
           className="ml-0.5 p-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
         >
-          <Layers className="h-3.5 w-3.5" aria-hidden="true" />
+          <CopyCheck className="h-3.5 w-3.5" aria-hidden="true" />
         </button>
       )}
     </div>
