@@ -2,7 +2,7 @@
  * Type definitions for Itinerary Panel components
  */
 
-import type { Itinerary, Activity, Day } from "@/types/itinerary";
+import type { Itinerary, Activity, Day, TransportMode } from "@/types/itinerary";
 
 export type ViewMode = "expandable" | "single-day" | "side-by-side";
 
@@ -76,6 +76,8 @@ export interface ExpandableViewProps {
     startTime: string | undefined,
     endTime: string | undefined,
   ) => Promise<void>;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
 
 export interface SingleDayViewProps {
@@ -96,6 +98,8 @@ export interface SingleDayViewProps {
     startTime: string | undefined,
     endTime: string | undefined,
   ) => Promise<void>;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }
 
 export interface SideBySideViewProps {
@@ -114,4 +118,6 @@ export interface SideBySideViewProps {
     startTime: string | undefined,
     endTime: string | undefined,
   ) => Promise<void>;
+  setDayTransportMode?: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode?: (mode: TransportMode) => Promise<void>;
 }

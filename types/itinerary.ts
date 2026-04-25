@@ -41,6 +41,9 @@ export type ActivityWithDay = Activity & { dayNumber: number };
 // Day Types
 // ============================================================================
 
+export const TransportModeSchema = z.enum(["driving", "walking", "transit", "bicycling"]);
+export type TransportMode = z.infer<typeof TransportModeSchema>;
+
 export const DaySchema = z
   .object({
     day_number: z.number().int().min(1).max(30),
@@ -53,6 +56,7 @@ export const DaySchema = z
       .string()
       .regex(/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/, "Time must be in HH:MM format")
       .optional(),
+    transport_mode: TransportModeSchema.optional(),
   })
   .refine((data) => !data.start_time || !data.end_time || data.start_time < data.end_time, {
     message: "End time must be after start time",

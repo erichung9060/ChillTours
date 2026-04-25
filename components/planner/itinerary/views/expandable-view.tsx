@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeDisplay } from "../components/day-time-display";
+import { DayTransportMode } from "../components/day-transport-mode";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { ExpandableViewProps } from "../types";
@@ -26,6 +27,8 @@ export function ExpandableView({
   onActivityClick,
   setDayTimeWindow,
   setAllDaysTimeWindow,
+  setDayTransportMode,
+  setAllDaysTransportMode,
 }: ExpandableViewProps) {
   const locale = useLocale();
 
@@ -61,6 +64,12 @@ export function ExpandableView({
                       endTime={day.end_time}
                       onSave={setDayTimeWindow}
                       onApplyAll={setAllDaysTimeWindow}
+                    />
+                    <DayTransportMode
+                      dayNumber={day.day_number}
+                      mode={day.transport_mode}
+                      onSave={setDayTransportMode}
+                      onApplyAll={setAllDaysTransportMode}
                     />
                   </div>
                 </div>

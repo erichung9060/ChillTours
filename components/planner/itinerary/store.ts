@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Itinerary, Activity } from "@/types/itinerary";
+import type { Itinerary, Activity, TransportMode } from "@/types/itinerary";
 import type { AccessContext } from "@/types/share";
 import type { Active, Over } from "@dnd-kit/core";
 import { calculateDragOverUpdate } from "./utils/drag-handlers";
@@ -107,6 +107,9 @@ interface ItineraryState {
     startTime: string | undefined,
     endTime: string | undefined,
   ) => Promise<void>;
+
+  setDayTransportMode: (dayNumber: number, mode: TransportMode) => Promise<void>;
+  setAllDaysTransportMode: (mode: TransportMode) => Promise<void>;
 
   // Generation Actions
   startGeneration: (itineraryId: string, locale: string, onComplete?: () => void) => void;
@@ -691,6 +694,50 @@ export const useItineraryStore = create<ItineraryState>((set, get) => ({
       });
     } catch (err) {
       console.error("Failed to set all days time window:", err);
+      set({ saveError: true });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  setDayTransportMode: async (dayNumber, mode) => {
+    const state = get();
+    if (!state.itinerary) return;
+    const currentDay = state.itinerary.days.find((d) => d.day_number === dayNumber);
+    if (currentDay?.transport_mode === mode) return;
+    set({ isSaving: true, saveError: false });
+    try {
+      const newDays = state.itinerary.days.map((d) =>
+        d.day_number === dayNumber ? { ...d, transport_mode: mode } : d,
+      );
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Failed to set day transport mode:", err);
+      set({ saveError: true });
+      throw err;
+    } finally {
+      set({ isSaving: false });
+    }
+  },
+
+  setAllDaysTransportMode: async (mode) => {
+    const state = get();
+    if (!state.itinerary) return;
+    set({ isSaving: true, saveError: false });
+    try {
+      const newDays = state.itinerary.days.map((d) => ({ ...d, transport_mode: mode }));
+      await get().commitItineraryChange({
+        ...state.itinerary,
+        days: newDays,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.error("Failed to set all days transport mode:", err);
       set({ saveError: true });
       throw err;
     } finally {

@@ -11,6 +11,7 @@ import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { DayActivitiesList } from "../components/day-activities-list";
 import { DayTimeDisplay } from "../components/day-time-display";
+import { DayTransportMode } from "../components/day-transport-mode";
 import { formatDayHeader } from "@/lib/utils/date";
 import { calculateDayDate } from "@/lib/utils/date";
 import type { SingleDayViewProps } from "../types";
@@ -26,6 +27,8 @@ export function SingleDayView({
   onActivityClick,
   setDayTimeWindow,
   setAllDaysTimeWindow,
+  setDayTransportMode,
+  setAllDaysTransportMode,
 }: SingleDayViewProps) {
   const locale = useLocale();
   const day = itinerary.days[currentDayIndex];
@@ -64,13 +67,19 @@ export function SingleDayView({
         <div className="text-center">
           <h2 className="text-lg font-semibold">Day {day.day_number}</h2>
           <p className="text-sm text-muted-foreground">{formattedDate}</p>
-          <div className="flex justify-center mt-1">
+          <div className="flex justify-center items-center gap-2 mt-1">
             <DayTimeDisplay
               dayNumber={day.day_number}
               startTime={day.start_time}
               endTime={day.end_time}
               onSave={setDayTimeWindow}
               onApplyAll={setAllDaysTimeWindow}
+            />
+            <DayTransportMode
+              dayNumber={day.day_number}
+              mode={day.transport_mode}
+              onSave={setDayTransportMode}
+              onApplyAll={setAllDaysTransportMode}
             />
           </div>
         </div>
