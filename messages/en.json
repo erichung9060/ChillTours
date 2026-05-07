@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "ChillTour - Plan Your Perfect Trip",
+    "title": "RiluTrip - Plan Your Perfect Trip",
     "description": "Create personalized travel itineraries with AI-powered trip planning"
   },
   "common": {
@@ -67,7 +67,7 @@
         "short": ["S", "M", "T", "W", "T", "F", "S"]
       }
     },
-    "footer": "© 2026 ChillTour. All rights reserved.",
+    "footer": "© 2026 RiluTrip. All rights reserved.",
     "links": {
       "terms": "Terms of Service",
       "refund": "Refund Policy",
@@ -87,7 +87,7 @@
     "insufficientCredits": "Insufficient credits"
   },
   "auth": {
-    "dialogTitle": "ChillTour",
+    "dialogTitle": "RiluTrip",
     "dialogDescription": "Sign in to generate your free personalized itinerary",
     "continueWithGoogle": "Continue with Google",
     "signingIn": "Signing in...",
@@ -270,12 +270,12 @@
   },
   "legal": {
     "terms": {
-      "title": "Terms of Service | ChillTour",
+      "title": "Terms of Service | RiluTrip",
       "heading": "Terms of Service",
       "lastUpdated": "Last Updated: 2026",
       "section1": {
         "title": "Article 1. Services and Disclaimer",
-        "p1": "ChillTour (hereinafter referred to as \"the Site\") provides AI-driven travel itinerary planning and information aggregation services.",
+        "p1": "RiluTrip (hereinafter referred to as \"the Site\") provides AI-driven travel itinerary planning and information aggregation services.",
         "sub1": {
           "title": "Non-Licensed Travel Agency Disclaimer:",
           "content": "The Site only provides software-calculated results for travel routes, attractions, and itinerary logic. The Site \"DOES NOT\" engage in licensed travel agency business, such as booking flights, accommodations, visa processing, or selling tickets. Users must complete all transactions for transportation and accommodation through third-party legal platforms or providers."
@@ -291,7 +291,7 @@
       }
     },
     "refund": {
-      "title": "Refund & Cancellation Policy | ChillTour",
+      "title": "Refund & Cancellation Policy | RiluTrip",
       "heading": "Refund & Cancellation Policy",
       "headingSub": "",
       "lastUpdated": "Last Updated: 2026",
@@ -308,7 +308,7 @@
         },
         "sub2": {
           "title": "How to Cancel:",
-          "content": "You can log into the member center at any time and click the \"Cancel Subscription\" button, or send a cancellation request to our customer service email at support@chilltour.com."
+          "content": "You can log into the member center at any time and click the \"Cancel Subscription\" button, or send a cancellation request to our customer service email at support@rilutrip.com."
         },
         "sub3": {
           "title": "Effective Date:",
@@ -317,7 +317,7 @@
       }
     },
     "privacy": {
-      "title": "Privacy Policy | ChillTour",
+      "title": "Privacy Policy | RiluTrip",
       "heading": "Privacy Policy",
       "lastUpdated": "Last Updated: 2026",
       "section1": {

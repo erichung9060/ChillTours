@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "title": "ChillTour - 規劃您的完美旅行",
+    "title": "旅鷺 - AI規劃您的完美旅行",
     "description": "使用 AI 驅動的行程規劃建立個人化旅行行程"
   },
   "common": {
@@ -67,7 +67,7 @@
         "short": ["日", "一", "二", "三", "四", "五", "六"]
       }
     },
-    "footer": "© 2026 ChillTour. 保留一切權利。",
+    "footer": "© 2026 RiluTrip. 保留一切權利。",
     "links": {
       "terms": "服務條款",
       "refund": "退款政策",
@@ -87,7 +87,7 @@
     "insufficientCredits": "點數不足"
   },
   "auth": {
-    "dialogTitle": "ChillTour",
+    "dialogTitle": "旅鷺",
     "dialogDescription": "登入即可免費生成專屬行程",
     "continueWithGoogle": "使用 Google 繼續",
     "signingIn": "登入中...",
@@ -270,12 +270,12 @@
   },
   "legal": {
     "terms": {
-      "title": "服務條款 (Terms of Service) | ChillTour",
+      "title": "服務條款 (Terms of Service) | 旅鷺",
       "heading": "服務條款 (Terms of Service)",
       "lastUpdated": "最後更新日期：2026年",
       "section1": {
         "title": "第一條、服務內容與免責聲明",
-        "p1": "ChillTour（以下簡稱「本站」）提供基於人工智慧（AI）運算之旅遊行程規劃與資訊統整服務。",
+        "p1": "旅鷺（以下簡稱「本站」）提供基於人工智慧（AI）運算之旅遊行程規劃與資訊統整服務。",
         "sub1": {
           "title": "非特許旅行業務聲明：",
           "content": "本站僅提供旅遊路線、景點資訊與行程邏輯之軟體運算結果。本站「絕無」從事代訂機票、代訂住宿、代辦護照簽證或代售票券等旅行業特許業務。所有行程中之交通與住宿，皆須由使用者自行前往第三方合法平台或業者處完成交易。"
@@ -291,7 +291,7 @@
       }
     },
     "refund": {
-      "title": "退款政策與消費者權益 (Refund & Cancellation Policy) | ChillTour",
+      "title": "退款政策與消費者權益 (Refund & Cancellation Policy) | 旅鷺",
       "heading": "退款政策與消費者權益",
       "headingSub": "(Refund & Cancellation Policy)",
       "lastUpdated": "最後更新日期：2026年",
@@ -308,7 +308,7 @@
         },
         "sub2": {
           "title": "取消方式：",
-          "content": "您可隨時登入本站會員中心，點擊「取消訂閱」按鈕；或將取消請求寄送至客服信箱 support@chilltour.com。"
+          "content": "您可隨時登入本站會員中心，點擊「取消訂閱」按鈕；或將取消請求寄送至客服信箱 support@rilutrip.com。"
         },
         "sub3": {
           "title": "生效時間：",
@@ -317,7 +317,7 @@
       }
     },
     "privacy": {
-      "title": "隱私權政策 (Privacy Policy) | ChillTour",
+      "title": "隱私權政策 (Privacy Policy) | 旅鷺",
       "heading": "隱私權政策 (Privacy Policy)",
       "lastUpdated": "最後更新日期：2026年",
       "section1": {

@@ -18,7 +18,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "metadata" });
 
   // Determine the base URL (use environment variable or default)
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://chilltour.com";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://rilutrip.com";
 
   // Generate canonical URL
   const canonicalPath = locale === "en" ? "/" : `/${locale}`;
@@ -42,7 +42,7 @@ export async function generateMetadata({
       title: t("title"),
       description: t("description"),
       url: canonical,
-      siteName: "ChillTour",
+      siteName: "RiluTrip",
       locale: locale,
       alternateLocale: locale === "en" ? "zh-TW" : "en",
       type: "website",

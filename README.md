@@ -1,4 +1,4 @@
-# ChillTour Travel Planner
+# RiluTrip
 
 An AI-powered travel planning web application built with Next.js 15, React, Supabase, and Google Gemini 2.0 Flash.
 
@@ -169,12 +169,12 @@ pm2 startup  # Enable auto-restart on system reboot
 cloudflared tunnel --url http://localhost:1234
 ```
 
-Point your domain (e.g., `wss://yjs.chilltours.com.tw`) to the tunnel.
+Point your domain (e.g., `wss://yjs.rilutrip.com`) to the tunnel.
 
 5. Update the Next.js app environment variable:
 
 ```bash
-NEXT_PUBLIC_YJS_SERVER_URL=wss://yjs.chilltours.com.tw
+NEXT_PUBLIC_YJS_SERVER_URL=wss://yjs.rilutrip.com
 ```
 
 ### Server Features
